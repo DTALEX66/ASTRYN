@@ -1,0 +1,44 @@
+# Design QA 契约配置（design-review 技能套件的输入）
+# 产物目录指向 .project-local，不进入提交物。
+project:
+  name: astryn-dev-host
+  baseUrl: http://127.0.0.1:5183
+  outputDir: .project-local/runs/design-qa
+  appCommand: npm run dev
+  appReadyUrl: http://127.0.0.1:5183/
+
+design:
+  designMd: DESIGN.md
+
+screens:
+  - name: dev-host-panel
+    path: /
+    viewport:
+      width: 1280
+      height: 900
+  - name: dev-host-narrow
+    path: /
+    viewport:
+      width: 375
+      height: 720
+  - name: dev-host-200zoom
+    path: /
+    viewport:
+      width: 640
+      height: 512
+
+code:
+  include:
+    - src/**/*.tsx
+    - src/**/*.ts
+    - src/**/*.css
+    - contracts/**/*.ts
+    - dev-host/**/*.tsx
+  exclude:
+    - node_modules/**
+    - .project-local/**
+
+a11y:
+  disabledRules: []
+  includeSelectors: []
+  excludeSelectors: []

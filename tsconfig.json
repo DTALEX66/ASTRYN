@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@astryn/contracts": ["contracts/index.ts"],
+      "@astryn/core": ["src/index.ts"]
+    },
+    "types": ["vite/client", "node"]
+  },
+  "include": ["contracts/**/*.ts", "src/**/*.ts", "src/**/*.tsx", "dev-host/**/*.ts", "dev-host/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx", "vite.config.ts", "eslint.config.js"]
+}

@@ -1,0 +1,174 @@
+/* 星栖呈现层样式。设计令牌集中在 :root，组件规则只引用令牌（见 DESIGN.md）。
+   动效只使用 transform / opacity（合成层友好），并在 prefers-reduced-motion 下停用。
+   文字所在表面一律为纯色：径向渐变只留给不含 HTML 文字的装饰层，
+   这样自动化对比度检查（axe color-contrast）才能判定而不是标 incomplete。 */
+
+.astryn-root {
+  /* 表面与文字 */
+  --astryn-bg: #0b0d1a;
+  --astryn-surface: #141830;
+  --astryn-surface-2: #1c2242;
+  --astryn-surface-sunken: #10142a;
+  --astryn-text: #e8ecff;
+  --astryn-muted: #9aa4cf;
+  --astryn-line: #2a3160;
+  --astryn-accent: #5ad1c8;
+  --astryn-placeholder: #a8b1d6;
+
+  /* 语义状态：任务 / 错误 / 警告 / 成功 */
+  --astryn-task-line: #3a5fa8;
+  --astryn-task-text: #bcd2ff;
+  --astryn-error-line: #8a2f3c;
+  --astryn-error-text: #ffb3bd;
+  --astryn-error-surface: #22101a;
+  --astryn-error-strong: #ffc7ce;
+  --astryn-warning-line: #b98a2e;
+  --astryn-warning-text: #ffd166;
+  --astryn-warning-surface: #1f1a10;
+  --astryn-success-line: #2e7d57;
+  --astryn-success-text: #63e6a6;
+
+  /* 形状与节奏 */
+  --astryn-radius-sm: 6px;
+  --astryn-radius-md: 9px;
+  --astryn-radius-lg: 10px;
+  --astryn-radius-xl: 14px;
+  --astryn-radius-full: 999px;
+  --astryn-space-1: 2px;
+  --astryn-space-2: 6px;
+  --astryn-space-3: 8px;
+  --astryn-space-4: 12px;
+  --astryn-space-5: 14px;
+
+  /* 焦点：键盘可见性不依赖 UA 默认环 */
+  --astryn-focus-ring: 2px solid var(--astryn-accent);
+
+  font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  color: var(--astryn-text);
+  background: var(--astryn-bg);
+  /* 面板底色与页面底色明度差极小，必须有描边才分得出层级。 */
+  border: 1px solid var(--astryn-line);
+  border-radius: var(--astryn-radius-xl);
+  padding: var(--astryn-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--astryn-space-4);
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.astryn-root--panel { width: min(360px, 100%); box-sizing: border-box; }
+.astryn-root--embedded { width: 100%; box-sizing: border-box; }
+
+/* panel 宽度容不下 200px 头像 + 状态列并排（实测只剩 ~120px 给文字，处处断词）。
+   因此 panel 模式下角色居中在上、状态与操作在下；embedded 有更宽容器时保持并排。 */
+.astryn-root--panel .astryn-stage { flex-direction: column; align-items: center; gap: var(--astryn-space-3); }
+.astryn-root--panel .astryn-stage-meta { width: 100%; }
+
+.astryn-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.astryn-title { font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+.astryn-disclosure { font-size: 11px; color: var(--astryn-muted); overflow-wrap: anywhere; }
+
+.astryn-evidence-tag {
+  font-size: 10px;
+  padding: var(--astryn-space-1) var(--astryn-space-3);
+  border-radius: var(--astryn-radius-full);
+  border: 1px solid var(--astryn-line);
+  color: var(--astryn-muted);
+  white-space: nowrap;
+}
+.astryn-evidence-tag--synthetic { border-color: var(--astryn-warning-line); color: var(--astryn-warning-text); }
+.astryn-evidence-tag--real { border-color: var(--astryn-success-line); color: var(--astryn-success-text); }
+
+.astryn-stage { display: flex; align-items: center; gap: var(--astryn-space-4); }
+.astryn-avatar { line-height: 0; flex: 0 0 auto; }
+.astryn-avatar svg { display: block; }
+.astryn-stage-meta { flex: 1 1 auto; min-width: 0; }
+
+.astryn-spin { transform-box: fill-box; transform-origin: center; animation: astryn-spin 6s linear infinite; }
+.astryn-breathe { transform-box: fill-box; transform-origin: 50% 100%; animation: astryn-breathe 4.2s ease-in-out infinite; }
+.astryn-dots { animation: astryn-drift 2.4s ease-in-out infinite; }
+.astryn-mouth { transform-box: fill-box; transform-origin: center; }
+
+@keyframes astryn-spin { from { opacity: 0.9; transform: rotate(0deg); } to { opacity: 0.9; transform: rotate(360deg); } }
+@keyframes astryn-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-1.2px) scale(1.012); }
+}
+@keyframes astryn-drift {
+  0%, 100% { opacity: 0.35; transform: translateY(1px); }
+  50% { opacity: 0.9; transform: translateY(-2px); }
+}
+
+.astryn-state-strip { display: flex; flex-wrap: wrap; gap: var(--astryn-space-2); font-size: 11px; color: var(--astryn-muted); }
+.astryn-chip {
+  border: 1px solid var(--astryn-line);
+  border-radius: var(--astryn-radius-sm);
+  padding: var(--astryn-space-2) 7px;
+  background: var(--astryn-surface);
+  color: var(--astryn-muted);
+  overflow-wrap: anywhere;
+}
+.astryn-chip--task { border-color: var(--astryn-task-line); color: var(--astryn-task-text); }
+.astryn-chip--error { border-color: var(--astryn-error-line); color: var(--astryn-error-text); }
+
+.astryn-log {
+  display: flex; flex-direction: column; gap: var(--astryn-space-4);
+  max-height: 240px; overflow-y: auto; padding: var(--astryn-space-3);
+  background: var(--astryn-surface); border: 1px solid var(--astryn-line);
+  border-radius: var(--astryn-radius-lg);
+}
+.astryn-msg { font-size: 13px; line-height: 1.55; padding: 7px 9px; border-radius: var(--astryn-radius-md); overflow-wrap: anywhere; max-width: 100%; }
+.astryn-msg--user { align-self: flex-end; background: var(--astryn-surface-2); }
+.astryn-msg--assistant { align-self: flex-start; background: var(--astryn-surface-sunken); border: 1px solid var(--astryn-line); }
+.astryn-msg--system { align-self: center; color: var(--astryn-muted); font-size: 11px; background: none; }
+.astryn-msg--error { align-self: flex-start; border: 1px solid var(--astryn-error-line); color: var(--astryn-error-strong); background: var(--astryn-error-surface); }
+
+.astryn-composer { display: flex; gap: var(--astryn-space-3); flex-wrap: wrap; }
+.astryn-composer input {
+  flex: 1 1 140px; min-width: 0;
+  background: var(--astryn-surface); border: 1px solid var(--astryn-line);
+  border-radius: var(--astryn-radius-md); color: var(--astryn-text);
+  padding: var(--astryn-space-3) 10px; font-size: 13px;
+}
+.astryn-composer input::placeholder { color: var(--astryn-placeholder); opacity: 1; }
+
+.astryn-btn {
+  background: var(--astryn-surface-2); color: var(--astryn-text);
+  border: 1px solid var(--astryn-line); border-radius: var(--astryn-radius-md);
+  padding: var(--astryn-space-3) var(--astryn-space-5); font-size: 13px; cursor: pointer;
+  min-height: 32px;
+}
+.astryn-btn:hover { transform: translateY(-1px); }
+.astryn-btn:disabled { opacity: 0.62; cursor: not-allowed; }
+.astryn-btn--stop { border-color: var(--astryn-error-line); color: var(--astryn-error-strong); }
+
+/* 键盘焦点：显式声明，不依赖 UA 默认环；指针点击不显示环（focus-visible 语义）。 */
+.astryn-btn:focus-visible,
+.astryn-composer input:focus-visible {
+  outline: var(--astryn-focus-ring);
+  outline-offset: 2px;
+}
+
+.astryn-approval {
+  border: 1px solid var(--astryn-warning-line);
+  background: var(--astryn-warning-surface);
+  border-radius: var(--astryn-radius-lg);
+  padding: 10px; display: flex; flex-direction: column; gap: var(--astryn-space-3);
+  font-size: 12px; color: var(--astryn-warning-text);
+}
+.astryn-approval strong { color: var(--astryn-warning-text); }
+
+.astryn-toolbar { display: flex; flex-wrap: wrap; gap: var(--astryn-space-2); align-items: center; }
+.astryn-toolbar--spaced { margin-top: var(--astryn-space-3); }
+.astryn-toolbar .astryn-btn { padding: 5px 9px; font-size: 11px; min-height: 28px; }
+
+.astryn-visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astryn-spin, .astryn-breathe, .astryn-dots { animation: none; }
+  .astryn-btn:hover { transform: none; }
+}

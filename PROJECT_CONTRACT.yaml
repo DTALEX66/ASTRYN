@@ -1,0 +1,42 @@
+schema_version: 1
+project:
+  name: ASTRYN
+  chinese_name: 星栖
+  default_character: 小栖
+  intended_repository: https://github.com/DTALEX66/ASTRYN
+  local_root: 'D:\All projects\ASTRYN'
+phase: m0_development_executed
+current_grant:
+  - archive_supplied_task_losslessly
+  - establish_directory_conventions
+  - establish_authority_and_path_indexes
+  - decompose_development_tasks_and_prepare_agent_handoff
+  - implement_m0_within_astryn_per_agent_start_prompt
+write_scope:
+  - 'D:\All projects\ASTRYN'
+external_operations: not_authorized_by_this_contract
+development_execution: executed_partial
+git_state: not_a_repository_no_init_per_D003
+host_integration: UNVERIFIED
+git_identity: UNVERIFIED
+architecture:
+  astryn: [character, companionship, expression, rendering, presentation]
+  aaos: [model_services, memory, context, tasks, permissions, authoritative_storage]
+  boundary: typed_versioned_permissioned_host_adapter
+  forbidden: [direct_aaos_database_writes, second_production_memory_store, second_formal_frontend]
+acceptance:
+  - archived_source_sha256_matches
+  - authority_links_resolve_locally
+  - directory_roles_documented
+  - external_references_marked_unverified
+  - no_git_initialization_or_remote_write
+m0_acceptance:
+  ledger: docs/tasks/M0-ACCEPTANCE-TRACKER.md
+  verdict: PARTIAL
+  passed: [A00, A02, A03, A04, A06, A07, A08, A09, A10, A11, A12, A13, A14, A15, A16]
+  partial: [A01]
+  not_tested: [A05]
+  unverified: [A17]
+  not_executed: [A18, A19]
+  gates: {lint: 0, typecheck: 0, test: 0, build: 0}
+  tests: {files: 12, passed: 85}

@@ -1,0 +1,47 @@
+name: m0-gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['20.19', '22.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install from lockfile
+        run: npm ci --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm run test
+      - name: Build dev host
+        run: npm run build
+      - name: No secrets in tracked sources
+        run: |
+          if grep -rInE "sk-[A-Za-z0-9]{12,}|-----BEGIN [A-Z ]*PRIVATE KEY-----" \
+            --exclude-dir=node_modules --exclude-dir=.project-local --exclude=.env.example \
+            --exclude-dir=.git . ; then
+            echo "FOUND_CREDENTIAL_LIKE_STRING" && exit 1
+          fi
+      - name: No third-party model weights or binaries
+        run: |
+          if find assets/third-party -type f ! -name '.gitkeep' | grep . ; then
+            echo "UNAUTHORIZED_ASSET_PRESENT" && exit 1
+          fi

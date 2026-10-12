@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-12T19:00:21.110Z",
+  "generatedAt": "2026-10-12T23:57:03.310Z",
   "toolchain": {
     "node": "v26.7.0",
     "platform": "win32",
@@ -13,7 +13,7 @@
   },
   "sourceTree": {
     "files": 64,
-    "sha256": "b529388fce9ce9c78a571979e9294896bd01487fec1b1212269835b8cb4019e3",
+    "sha256": "02fce12c26b263db7aa9c493b7b9400b05bca7e480a1a04e18d3932e6343abcf",
     "scopes": [
       "contracts",
       "src",
@@ -285,8 +285,8 @@
     },
     {
       "path": "tests/boundary/architecture-risks.test.tsx",
-      "bytes": 6370,
-      "sha256": "ec096f92b4a831ca6f3cb801a6794d9496a7c6246d4522bf3993be64bf574d76"
+      "bytes": 6628,
+      "sha256": "12df6b93f3d3b1fd74d6f1aa5e79f1bf6c74e4e51a4351777a44be2661cb0261"
     },
     {
       "path": "tests/boundary/design-tokens.test.ts",

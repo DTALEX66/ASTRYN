@@ -78,7 +78,11 @@ describe('R2 乱序检测必须作用于宿主原始序号', () => {
 describe('R3 错误文本不得带出上游地址或凭据', () => {
   it('URL、Bearer、key 样式一律先脱敏再截断', () => {
     expect(redactErrorText('connect ECONNREFUSED https://user:tok@endpoint.example/v1')).not.toContain('endpoint.example');
-    expect(redactErrorText('Authorization: Bearer sk-abcdef123456')).not.toContain('sk-abcdef123456');
+    // 凭据样式在运行时拼装：源码里留字面 sk- 开头的串会被 CI 的秘密扫描（正确地）拦下。
+    const fakeKey = ['sk', 'abcdef123456'].join('-');
+    const redactedBearer = redactErrorText(`Authorization: Bearer ${fakeKey}`);
+    expect(redactedBearer).not.toContain(fakeKey);
+    expect(redactedBearer).toContain('[redacted');
     expect(redactErrorText('x'.repeat(900))).toHaveLength(240);
     expect(redactErrorText('普通网络错误')).toBe('普通网络错误');
   });

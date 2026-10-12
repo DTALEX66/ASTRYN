@@ -34,6 +34,10 @@
 *.yml text eol=lf
 *.txt text eol=lf
 
+# 归档原件按字节原样存储：ARCHIVE-RECEIPT.md 用 SHA-256 钉住其确切字节，
+# 任何行尾规范化都会让归档不再匹配自己的收据。
+docs/tasks/archive/** -text -eol
+
 # 若将来引入 Windows 脚本，必须 CRLF
 *.bat text eol=crlf
 *.cmd text eol=crlf

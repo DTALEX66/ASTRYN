@@ -103,11 +103,14 @@ describe('GF06 记忆管理面板（开发宿主）', () => {
     await screen.findByTestId('devhost-mem-row-cand-2');
   });
 
-  it('导出：账本快照含限制声明，已删除记录不再出现', async () => {
+  it('导出：账本快照含限制声明，已删除记录不再出现、存活记录在', async () => {
     renderPanel();
     await screen.findByTestId('devhost-mem-grant-user_preference');
+    // 两条记录：删一条留一条——否则"已删除不再出现"等于在空账本上做断言，导出内容本身从未被验证。
     fireEvent.click(screen.getByTestId('devhost-mem-pref'));
     await screen.findByTestId('devhost-mem-row-cand-1');
+    fireEvent.click(screen.getByTestId('devhost-mem-pref'));
+    await screen.findByTestId('devhost-mem-row-cand-2');
     fireEvent.click(screen.getByTestId('devhost-mem-delete-cand-1'));
     await waitFor(() => {
       expect(screen.queryByTestId('devhost-mem-row-cand-1')).toBeNull();
@@ -118,7 +121,8 @@ describe('GF06 记忆管理面板（开发宿主）', () => {
     const text = pre.textContent ?? '';
     const parsed = JSON.parse(text) as { kind: string; records: unknown[]; limitations: string[] };
     expect(parsed.kind).toBe('astryn-memory-export');
-    expect(parsed.records).toEqual([]);
+    expect(parsed.records.length).toBeGreaterThan(0);
+    expect(text).toContain('cand-2');
     expect(parsed.limitations.join(' ')).toContain('备份保留');
     expect(text).not.toContain('cand-1');
   });

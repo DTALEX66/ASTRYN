@@ -111,7 +111,11 @@ describe('材料库', () => {
     const material = addMaterial(store);
     const journey = startJourney(store, material.materialId);
     const turn = recordRecall(store, journey.journeyId, material.materialId);
-    store.recordOutcome({ journeyId: journey.journeyId, turnId: turn.turnId, result: 'missed' });
+    const outcome = store.recordOutcome({ journeyId: journey.journeyId, turnId: turn.turnId, result: 'missed' });
+    expect(outcome.ok).toBe(true);
+    if (outcome.ok) expect(outcome.review?.materialId).toBe(material.materialId);
+    // 正控制：移除前队列确实持有该材料，否则移除后的空断言是空洞的。
+    expect(store.snapshot.review.map((state) => state.materialId)).toContain(material.materialId);
     store.removeMaterial(material.materialId);
     const reading = store.masteryFor(material.materialId);
     expect(reading.outcomeCount).toBe(1);
@@ -360,6 +364,8 @@ describe('显式结果与掌握度（不虚构掌握度）', () => {
     const { store } = makeStore();
     const material = addMaterial(store);
     const journey = startJourney(store, material.materialId);
+    // 名字里的 unrated 腿必须真的被断言：无任何结果时不猜测等级。
+    expect(store.masteryFor(material.materialId).level).toBe('unrated');
     const rate = (result: 'correct' | 'partial' | 'missed') => {
       const turn = recordRecall(store, journey.journeyId, material.materialId);
       const recorded = store.recordOutcome({ journeyId: journey.journeyId, turnId: turn.turnId, result });
@@ -410,6 +416,9 @@ describe('复习排程只由显式结果驱动', () => {
   });
 
   it('correct 逐步加长：1 天 → 3 天 → 7 天，步进封顶', () => {
+    // 先钉死阶梯本身：断言与共享常量对比会让"常量被改错"同时通过两边。
+    expect(ASTRYN_REVIEW_INTERVALS_MS).toEqual([86_400_000, 259_200_000, 604_800_000]);
+    const DAY = 86_400_000;
     const { store, advance } = makeStore();
     const material = addMaterial(store);
     const journey = startJourney(store, material.materialId);
@@ -421,15 +430,18 @@ describe('复习排程只由显式结果驱动', () => {
     };
     const first = rate('correct');
     expect(first?.step).toBe(0);
-    expect(first?.dueAt).toBe(new Date(T0 + ASTRYN_REVIEW_INTERVALS_MS[0]).toISOString());
-    advance(ASTRYN_REVIEW_INTERVALS_MS[0]);
+    expect(first?.dueAt).toBe(new Date(T0 + 1 * DAY).toISOString());
+    advance(1 * DAY);
     const second = rate('correct');
     expect(second?.step).toBe(1);
-    expect(second?.dueAt).toBe(new Date(T0 + ASTRYN_REVIEW_INTERVALS_MS[0] + ASTRYN_REVIEW_INTERVALS_MS[1]).toISOString());
+    expect(second?.dueAt).toBe(new Date(T0 + 1 * DAY + 3 * DAY).toISOString());
     const third = rate('correct');
     expect(third?.step).toBe(2);
+    expect(third?.dueAt).toBe(new Date(T0 + 1 * DAY + 7 * DAY).toISOString());
     const fourth = rate('correct');
-    expect(fourth?.step).toBe(ASTRYN_REVIEW_INTERVALS_MS.length - 1);
+    // 封顶：第 4 次 correct 不再出现新步，且复用最后一档（7 天）间隔。
+    expect(fourth?.step).toBe(2);
+    expect(fourth?.dueAt).toBe(new Date(T0 + 1 * DAY + 7 * DAY).toISOString());
   });
 
   it('partial 回到第一步；missed 拉回 10 分钟', () => {

@@ -35,11 +35,13 @@ describe('SSE 解析（流式边界）', () => {
     expect(messages[0]?.event).toBe('delta');
   });
 
-  it('残留半行不当成完整消息（避免把截断数据当回复）', () => {
-    expect(decode(['data: 完整\n\ndata: 截断'])).toEqual(['完整', '截断']);
+  it('push 不派发未终结的半行；flush 按流结束派发残留（截断是否可用由调用方判定）', () => {
     const decoder = new SseDecoder();
     expect(decoder.push('data: 只到半句')).toEqual([]);
     expect(decoder.remainder).toBe('data: 只到半句');
+    // 流结束：残留半行与未派发块按结束处理——缺尾空行的末条完整 JSON 块不会被丢弃，
+    // 而真正截断的 JSON 由调用方 JSON.parse 失败识别（MALFORMED_STREAM），不会冒充回复。
+    expect(decode(['data: 完整\n\ndata: 截断'])).toEqual(['完整', '截断']);
   });
 
   it('[DONE] 哨兵可识别', () => {
@@ -48,6 +50,7 @@ describe('SSE 解析（流式边界）', () => {
 
   it('损坏的 JSON 由调用方识别，解析器本身不吞数据', () => {
     const [payload] = decode(['data: {不是json\n\n']);
+    expect(payload).toBe('{不是json');
     expect(() => JSON.parse(payload ?? '')).toThrow();
   });
 });

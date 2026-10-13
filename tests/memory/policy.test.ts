@@ -78,6 +78,9 @@ describe('记忆作用域与生命周期（A11）', () => {
     const asTask = await memory.query({ consumer: 'task', scopes: ['companion_private'] });
     expect(asTask.ok).toBe(false);
     if (!asTask.ok) expect(asTask.reason).toBe('PRIVATE_CONTENT_NOT_SHAREABLE');
+    const taskFiction = await memory.query({ consumer: 'task', scopes: ['character_fiction'] });
+    expect(taskFiction.ok).toBe(false);
+    if (!taskFiction.ok) expect(taskFiction.reason).toBe('CONSUMER_FORBIDDEN_FOR_SCOPE');
 
     const fiction = (await memory.query({ consumer: 'companion', scopes: ['character_fiction'] }));
     expect(fiction.ok).toBe(true);
@@ -100,13 +103,29 @@ describe('记忆作用域与生命周期（A11）', () => {
     expect(afterDispose.ok).toBe(false);
   });
 
-  it('模型自述内容只能作为候选，不会自动成为记录之外的权威', async () => {
+  it('命中消费方禁止表：任务/知识读虚构剧情被拒，即使持有授权也读不到', () => {
+    // 静态禁止表优先于任何授权：故意给足授权，证明拒绝不来自"没授权"。
+    const grants = [grant('character_fiction'), grant('companion_private')];
+    expect(denialReason(decideRead('task', 'character_fiction', grants, NOW))).toBe('CONSUMER_FORBIDDEN_FOR_SCOPE');
+    expect(denialReason(decideRead('knowledge', 'character_fiction', grants, NOW))).toBe('CONSUMER_FORBIDDEN_FOR_SCOPE');
+    // 正控制：同一作用域对陪伴自身可读——拒绝是消费方维度的，不是作用域被全局封死。
+    expect(decideRead('companion', 'character_fiction', grants, NOW).allowed).toBe(true);
+  });
+
+  it('无可信宿主合同时：模型生成候选不可确认，回执自报签发方不作数', async () => {
     const memory = new SyntheticMemoryFixture({ now: () => NOW, trustedIssuers: [] });
     const outcome = await memory.propose({ scope: 'verified_fact', origin: 'model-generated', summary: '我记住了', sessionId: 's1' });
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) throw new Error('unreachable');
     expect(outcome.candidate.lifecycle).toBe('candidate');
-    const confirmed = await memory.confirm({ receiptId: 'r9', candidateId: outcome.candidate.id, to: 'confirmed', issuedBy: 'model', issuedAt: NOW });
-    expect(confirmed.ok).toBe(false);
+    const byModel = await memory.confirm({ receiptId: 'r9', candidateId: outcome.candidate.id, to: 'confirmed', issuedBy: 'model', issuedAt: NOW });
+    expect(byModel.ok).toBe(false);
+    if (!byModel.ok) expect(byModel.reason).toBe('HOST_CONTRACT_MISSING');
+    // 门禁读的是配置下的可信签发表而非 receipt.issuedBy：自称 aaos-core 的同一回执同样被拒。
+    const byClaimedCore = await memory.confirm({ receiptId: 'r10', candidateId: outcome.candidate.id, to: 'confirmed', issuedBy: 'aaos-core', issuedAt: NOW });
+    expect(byClaimedCore.ok).toBe(false);
+    if (!byClaimedCore.ok) expect(byClaimedCore.reason).toBe('HOST_CONTRACT_MISSING');
+    // 两次被拒后候选仍在，等待真实宿主合同接通。
+    expect(await memory.listForReview('s1')).toHaveLength(1);
   });
 });

@@ -47,18 +47,24 @@ describe('GF03 三呈现档（首页 / 对话头像 / 阅读侧边）', () => {
     expect(ah as number).toBeLessThan(hh as number);
   });
 
-  it('头像档仍完整包含状态环与光晕（几何判据，不是目测）', () => {
+  it('头像档仍完整包含状态环与光晕（几何来自渲染输出，实现改半径即刻变红）', () => {
     const [x, y, w, h] = AVATAR_VIEW_PROFILES.avatar.viewBox;
-    // 环中心 (60,64)，环半径 37.5+描边半宽 0.9；光晕半径 44。
-    const ringOuter = 37.5 + 0.9;
-    const aura = 44;
-    expect(x, '环左缘被裁').toBeLessThanOrEqual(60 - ringOuter);
-    expect(x + w, '环右缘被裁').toBeGreaterThanOrEqual(60 + ringOuter);
-    expect(y, '环顶被裁').toBeLessThanOrEqual(64 - ringOuter);
-    expect(y + h, '环底被裁').toBeGreaterThanOrEqual(64 + ringOuter);
-    expect(x, '光晕左缘被裁').toBeLessThanOrEqual(60 - aura);
-    expect(x + w, '光晕右缘被裁').toBeGreaterThanOrEqual(60 + aura);
-    expect(y, '光晕顶被裁').toBeLessThanOrEqual(64 - aura);
+    // 判据不进测试常量：从缺省整幅渲染里解析真实圆几何——环/光晕长大后此处立即失败。
+    const markup = renderXiaoqiMarkup(frame());
+    const auraMatch = markup.match(/<circle cx="(\d+)" cy="(\d+)" r="([\d.]+)" fill="url\(#astryn-aura\)"/);
+    const ringMatch = markup.match(/<circle data-testid="astryn-ring"[^>]*cx="(\d+)" cy="(\d+)" r="([\d.]+)"[^>]*stroke-width="([\d.]+)"/);
+    if (!auraMatch || !ringMatch) throw new Error('渲染输出中找不到光晕/状态环圆');
+    const circles = [
+      { label: '光晕', cx: Number(auraMatch[1]), cy: Number(auraMatch[2]), r: Number(auraMatch[3]) },
+      // 环的外缘 = 半径 + 描边半宽。
+      { label: '环', cx: Number(ringMatch[1]), cy: Number(ringMatch[2]), r: Number(ringMatch[3]) + Number(ringMatch[4]) / 2 }
+    ];
+    for (const circle of circles) {
+      expect(x, `${circle.label}左缘被裁`).toBeLessThanOrEqual(circle.cx - circle.r);
+      expect(x + w, `${circle.label}右缘被裁`).toBeGreaterThanOrEqual(circle.cx + circle.r);
+      expect(y, `${circle.label}顶被裁`).toBeLessThanOrEqual(circle.cy - circle.r);
+      expect(y + h, `${circle.label}底被裁`).toBeGreaterThanOrEqual(circle.cy + circle.r);
+    }
   });
 
   it('缺省渲染与原行为一致（整幅 120×140 / 宽 200），并带清晰度提示', () => {

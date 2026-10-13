@@ -102,7 +102,7 @@ describe('设计令牌对比度门禁（DESIGN.md 可重算）', () => {
   });
 
   it('九态环色互不相同（颜色是状态载体）', () => {
-    expect(new Set(Object.values(ringColors)).size).toBeGreaterThanOrEqual(8);
+    expect(new Set(Object.values(ringColors)).size).toBe(9);
   });
 });
 

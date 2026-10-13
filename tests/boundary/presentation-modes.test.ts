@@ -19,6 +19,6 @@ describe('多形态呈现的诚实声明（A02）', () => {
     expect(modeSpec('floating').windowRequirement).toBe('native-window');
     expect(modeSpec('pet').implementedInM0).toBe(false);
     expect(modeSpec('voice-only').implementedInM0).toBe(false);
-    expect(() => modeSpec('unknown-mode' as never)).toThrow();
+    expect(() => modeSpec('unknown-mode' as never)).toThrow(/unknown presentation mode/);
   });
 });

@@ -6,6 +6,7 @@ import {
   ASTRYN_HIDDEN_FOOTPRINT_TOKEN,
   ASTRYN_HOST_SLOTS,
   ASTRYN_HOST_SLOT_SPECS,
+  AVATAR_VIEW_PROFILES,
   hostSlotSpec,
   modeSpec
 } from '@astryn/core';
@@ -33,7 +34,8 @@ describe('呈现尺寸令牌门禁（GF08）', () => {
     for (const slot of ASTRYN_HOST_SLOTS) {
       expect(css, `缺少槽位映射：${slot}`).toContain(`.astryn-root[data-slot="${slot}"]`);
     }
-    for (const view of ['hero', 'avatar', 'sidebar']) {
+    // 取景档名从真实 profile 注册表枚举：新增档位而未写 CSS 映射时此处变红。
+    for (const view of Object.keys(AVATAR_VIEW_PROFILES)) {
       expect(css, `缺少取景档映射：${view}`).toContain(`.astryn-root[data-avatar-view="${view}"]`);
     }
     expect(css).toContain('.astryn-root[data-hidden="true"]');
@@ -58,7 +60,7 @@ describe('呈现尺寸令牌门禁（GF08）', () => {
 
   it('未知槽位显式抛错（未知不当可用）', () => {
     for (const slot of ASTRYN_HOST_SLOTS) {
-      expect(['hero', 'avatar', 'sidebar']).toContain(hostSlotSpec(slot).avatarView);
+      expect(Object.keys(AVATAR_VIEW_PROFILES)).toContain(hostSlotSpec(slot).avatarView);
     }
     expect(() => hostSlotSpec('nowhere' as never)).toThrow(/unknown host slot/);
   });

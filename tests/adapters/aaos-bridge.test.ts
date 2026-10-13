@@ -68,11 +68,19 @@ describe('AaosHostBridge：未配置即未连接，不猜测宿主现场', () =>
     expect(grant.denied).toEqual(['task-context', 'user_preference']);
   });
 
-  it('onAuthoritativeEvent：宿主无推送面，订阅只能是空实现', () => {
-    const bridge = new AaosHostBridge({ baseUrl: null });
-    const dispose = bridge.onAuthoritativeEvent();
+  it('onAuthoritativeEvent：宿主无推送面，订阅只能是空实现（不发任何传输、不派发事件）', async () => {
+    const { calls, transport } = makeTransport({});
+    const bridge = new AaosHostBridge({ baseUrl: 'http://127.0.0.1:1', transport });
+    const heard: unknown[] = [];
+    // 桥的实现无参；这里经类型转换注入监听者，验证"即使有人想接也收不到任何事件"。
+    const subscribe = bridge.onAuthoritativeEvent as unknown as (handler: (event: unknown) => void) => () => void;
+    const dispose = subscribe((event) => heard.push(event));
     expect(typeof dispose).toBe('function');
     expect(dispose()).toBeUndefined();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    // 空实现的可证伪证据：不发起任何传输调用（改成轮询/伪装推送会在此变红），监听者永远收不到事件。
+    expect(calls).toHaveLength(0);
+    expect(heard).toEqual([]);
   });
 });
 

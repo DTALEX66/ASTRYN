@@ -55,7 +55,7 @@ describe('八端口一致性：清单、可用性推导与自有 seam 的真实�
       else expect(spec.blockedBy, `${mode} 未实现必须给 blockedBy`).toBeTruthy();
     }
     expect(ASTRYN_PRESENTATION_MODE_SPECS.map((spec) => spec.mode)).toEqual([...ASTRYN_PRESENTATION_MODES]);
-    expect(() => modeSpec('hologram' as never)).toThrow();
+    expect(() => modeSpec('hologram' as never)).toThrow(/unknown presentation mode/);
 
     const detail = describePortAvailability({ configured: false, capabilities: null }).find((entry) => entry.port === 'presentationMode')?.detail ?? '';
     expect(detail).toContain('embedded/panel 已实现');

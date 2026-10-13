@@ -184,7 +184,7 @@ describe('GF06 记忆治理：查看/纠正/忘记/停用均经宿主端口并�
     expect(resumed.ok).toBe(true);
   });
 
-  it('分离：遗忘只作用于记忆记录，角色档案与学习事实不受影响', async () => {
+  it('分离：遗忘只经记忆端口生效，管理器结构上不持有档案与学习存储', async () => {
     const { port, manager } = setup();
     const profileStore = createEphemeralProfileStore();
     const saved = await profileStore.save(XIAOQI_PROFILE, 0);
@@ -207,6 +207,12 @@ describe('GF06 记忆治理：查看/纠正/忘记/停用均经宿主端口并�
 
     expect((await manager.view()).records).toEqual([]);
     expect(port.size).toBe(0);
+    // 反空洞：'不受影响'不能只靠"管理器从未见过的两个本地对象保持原样"来证明。
+    // 结构化断言：管理器唯一的存储接触面是端口，它不持有档案/学习存储的任何引用。
+    const managerOwnValues = Object.values(manager) as unknown[];
+    expect(managerOwnValues).toContain(port); // 正控制：扫描确实看得到管理器持有的存储面
+    expect(managerOwnValues).not.toContain(profileStore);
+    expect(managerOwnValues).not.toContain(learningStore);
     const profile = await profileStore.load();
     expect(profile.profile.profileRevision).toBe(1);
     expect(learningStore.snapshot.materials).toHaveLength(1);

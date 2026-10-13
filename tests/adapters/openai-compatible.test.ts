@@ -117,7 +117,9 @@ describe('开发环境标准兼容适配器', () => {
     });
     const events = await collect(port, controller.signal);
     const last = events[events.length - 1];
-    expect(['ABORTED', 'MALFORMED_STREAM']).toContain((last?.payload as { code: string }).code);
+    // 取消必须分类为 ABORTED（不可退化为 MALFORMED_STREAM：那是"上游截断"的语义，
+    // 会误导 UI 提示可重试）。signal.aborted 在适配器里先于任何解析错误判定。
+    expect((last?.payload as { code: string }).code).toBe('ABORTED');
   });
 
   it('availability() 在未配置时给出 MODEL_UNAVAILABLE', async () => {

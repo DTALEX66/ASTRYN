@@ -71,6 +71,8 @@ describe('授权回执在 UI 上落地（A04/A08）', () => {
     fireEvent.click(screen.getByTestId('astryn-deny'));
     await settle();
     expect(screen.queryByTestId('astryn-approval-card')).toBeNull();
+    // 任务 chip 只在 taskId 存在时渲染：拒绝必须把任务清干净，否则残留 chip 会显示状态错位的信息。
+    expect(screen.queryByTestId('astryn-task-chip')).toBeNull();
     expect(screen.getByTestId('astryn-visible-state').textContent).toContain('idle');
     expect(screen.getByTestId('astryn-avatar').getAttribute('data-visible-state')).not.toBe('completed');
   });

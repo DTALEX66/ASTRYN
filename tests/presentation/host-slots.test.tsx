@@ -132,16 +132,27 @@ describe('宿主槽位正式入口（GF08）', () => {
     manager.dispose();
   });
 
-  it('隐藏态保留槽位身份并带 data-hidden；恢复后记录区不丢', () => {
-    const manager = managerWith(null);
-    const utils = renderSlot('home', manager, null);
+  it('隐藏态保留槽位身份并带 data-hidden；恢复后记录区不丢', async () => {
+    const { port } = recordingPort(happyPort());
+    const manager = managerWith(port);
+    const utils = renderSlot('home', manager, port);
+    // 先产生真实记录，恢复后的"不丢"才有可丢之物。
+    const input = within(utils.container).getByTestId('astryn-input');
+    fireEvent.change(input, { target: { value: '隐藏前的记录' } });
+    fireEvent.submit(input.closest('form') as HTMLElement);
+    await vi.waitFor(() => {
+      expect(within(utils.container).getByTestId('astryn-log').textContent).toContain('我在呢');
+    });
+
     fireEvent.click(within(utils.container).getByTestId('astryn-hide'));
     const placeholder = within(utils.container).getByTestId('astryn-hidden-placeholder');
     expect(placeholder.getAttribute('data-hidden')).toBe('true');
     expect(placeholder.getAttribute('data-slot')).toBe('home');
 
     fireEvent.click(within(utils.container).getByTestId('astryn-show'));
-    expect(within(utils.container).getByTestId('astryn-log')).toBeTruthy();
+    const log = within(utils.container).getByTestId('astryn-log').textContent ?? '';
+    expect(log).toContain('隐藏前的记录');
+    expect(log).toContain('我在呢');
     manager.dispose();
   });
 });

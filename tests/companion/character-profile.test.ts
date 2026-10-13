@@ -140,10 +140,40 @@ describe('人物档案 v3（GF01/GF09）', () => {
     expect(girlMap.get('persona')).toContain('不改变事实来源');
   });
 
-  it('档案序列化后不含采集与本地存储接口痕迹', () => {
+  it('档案序列化后不含采集与本地存储接口痕迹，且结构上只含纯数据', () => {
     const serialized = JSON.stringify(XIAOQI_PROFILE);
     for (const pattern of ['getUserMedia', 'getDisplayMedia', 'localStorage', 'sessionStorage', 'sqlite', 'child_process']) {
       expect(serialized).not.toContain(pattern);
     }
+    // 反空洞：黑名单只拦已知字符串，函数/句柄藏在新命名下不会被看见。
+    // 结构化遍历证明档案是纯数据——任何函数、类实例或非平凡对象都点名失败。
+    const offenders: string[] = [];
+    const walk = (value: unknown, path: string): void => {
+      if (typeof value === 'function') {
+        offenders.push(`${path}: function`);
+        return;
+      }
+      if (value === null || typeof value !== 'object') return;
+      if (Array.isArray(value)) {
+        value.forEach((item, i) => walk(item, `${path}[${i}]`));
+        return;
+      }
+      const proto = Object.getPrototypeOf(value) as object | null;
+      if (proto !== Object.prototype && proto !== Map.prototype && proto !== Set.prototype) {
+        offenders.push(`${path}: ${(value as object).constructor?.name ?? 'unknown'}`);
+        return;
+      }
+      if (value instanceof Map) {
+        for (const [k, v] of value as Map<unknown, unknown>) walk(v, `${path}.get(${String(k)})`);
+        return;
+      }
+      if (value instanceof Set) {
+        for (const v of value as Set<unknown>) walk(v, `${path}<set-item>`);
+        return;
+      }
+      for (const [k, v] of Object.entries(value)) walk(v, `${path}.${k}`);
+    };
+    walk(XIAOQI_PROFILE, 'XIAOQI_PROFILE');
+    expect(offenders).toEqual([]);
   });
 });

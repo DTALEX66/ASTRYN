@@ -76,7 +76,10 @@ describe('GF03 渲染失败回退（标记渲染抛错 / 命令式挂载失败�
   it('正常驱动不回退：SVG 驱动渲染出画面', () => {
     mountView(xiaoqiSvgRenderer);
     expect(screen.queryByTestId('astryn-avatar-fallback')).toBeNull();
-    expect(screen.getByTestId('astryn-avatar-host').querySelector('svg')).toBeTruthy();
+    const svg = screen.getByTestId('astryn-avatar-host').querySelector('svg');
+    expect(svg).toBeTruthy();
+    // 画布不能是空壳：状态环是每个九态帧都存在的承重结构。
+    expect(svg?.querySelector('[data-testid="astryn-ring"]')).not.toBeNull();
   });
 
   it('呈现档透传到驱动：头像档的 viewBox 出现在真实 DOM 上', () => {

@@ -50,7 +50,7 @@ describe('对话状态机', () => {
     expect(focus.state.conversation).toBe('speaking');
   });
 
-  it('每个真实 delta 递增口型帧；重复序号不会自行推进动画', () => {
+  it('每个真实 delta 递增口型帧；序号去重是守卫的职责而非状态机的', () => {
     const { state, seq } = start();
     let current = reduceCompanionState(state, conv('s1', 'r1', 'turn.submitted', { text: 'a', characterId: 'xiaoqi' }, seq.n++)).state;
     current = reduceCompanionState(current, conv('s1', 'r1', 'stream.delta', { text: '一' }, seq.n++)).state;
@@ -58,6 +58,11 @@ describe('对话状态机', () => {
     current = reduceCompanionState(current, conv('s1', 'r1', 'stream.delta', { text: '二' }, seq.n++)).state;
     expect(current.expressionFrame).toBe(2);
     expect(current.streamedText).toBe('一二');
+    // 状态机不读 seq（乱序/去重在 session-guard 层，见 guard.test.ts）：即便序号回退，
+    // 到达 reduceCompanionState 的 delta 仍会推进口型帧。守卫一旦被绕过，这里会先变红。
+    current = reduceCompanionState(current, conv('s1', 'r1', 'stream.delta', { text: '三' }, 0)).state;
+    expect(current.expressionFrame).toBe(3);
+    expect(current.streamedText).toBe('一二三');
   });
 
   it('说完一句话不等于任务完成（A08 核心）', () => {

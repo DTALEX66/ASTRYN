@@ -113,6 +113,8 @@ describe('声音设置（GF09）：未接语音明确禁用，不播放假语音
 
     const enabled = screen.getByTestId('astryn-voice-enabled') as HTMLInputElement;
     expect(enabled.checked).toBe(false);
+    // 偏好行的标注必须写明"接通后生效"，避免用户误以为当前就会朗读。
+    expect(enabled.closest('label')?.textContent ?? '').toContain('接通后生效');
     expect(screen.queryByTestId('astryn-voice-preference-note')).toBe(null);
     fireEvent.click(enabled);
     expect(enabled.checked).toBe(true);

@@ -61,7 +61,7 @@ function hostRequest(simulator: SyntheticHostSimulator, requestId: string, summa
 }
 
 describe('会话管理器（GF02）', () => {
-  it('同一请求只执行一次：单飞提交拒绝并发，空输入得到可区分结果', async () => {
+  it('同一请求只执行一次：并发提交（重复同一问与另一问）都被拒，空输入得到可区分结果', async () => {
     const { port, streamCalls } = recordingPort(
       new SyntheticConversationPort({ clock: slowClock, steps: [{ text: '回', delayMs: 15 }, { finish: 'stop' }] })
     );
@@ -72,6 +72,10 @@ describe('会话管理器（GF02）', () => {
     expect(empty).toEqual({ accepted: false, reason: 'EMPTY_INPUT' });
 
     const first = manager.submit('第一问');
+    // 同一请求重复提交：单飞必须拒绝，否则同一问题会被执行两次。
+    const duplicate = await manager.submit('第一问');
+    expect(duplicate).toEqual({ accepted: false, reason: 'SESSION_BUSY' });
+    // 另一请求并发提交同样被拒。
     const second = await manager.submit('第二问');
     expect(second).toEqual({ accepted: false, reason: 'SESSION_BUSY' });
 
@@ -126,6 +130,8 @@ describe('会话管理器（GF02）', () => {
     expect(manager.viewCount).toBe(0);
     expect(manager.snapshot.renderingPaused).toBe(true);
     const pushesAtZero = pushes.length;
+    // 反空洞：证明推送通道在暂停之前确实工作过，否则下面的 0===0 等式什么都证明不了。
+    expect(pushesAtZero).toBeGreaterThan(0);
 
     hostRequest(simulator, 'act-zero-view', '零视图期间的宿主请求');
     await pending;

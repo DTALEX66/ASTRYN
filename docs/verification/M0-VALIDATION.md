@@ -72,7 +72,8 @@
 | --- | --- | --- |
 | 真实模型调用（A05） | `NOT_TESTED` / `NO_EVIDENCE` | 无获准凭据；未付费、未读取其他项目密钥。配置路径与错误路径已实现并被测试覆盖 |
 | AAOS 真实集成（A17） | `UNVERIFIED` | 见 `docs/architecture/AAOS-HOST-CAPABILITY-MAP.md`：Core 无通用流式会话面；记忆 Consumer 是闭集且不含星栖；无"当前选区"合同；宿主无事件推送面。适配器已按这些事实写成类型化契约，但没有一次真实调用 |
-| 远端 CI（A18） | `NOT_EXECUTED` | 本地不是 Git 仓库、无远端授权；`.github/workflows/ci.yml` 只是配置存在 |
+| 远端 CI（A18） | **PASS** | 已推送并跑通：run `38324785775` @ `5603f34`，Node 20.19 与 22.12 两矩阵各 10 步 success（含秘密扫描与素材检查）。首跑 `38324323712` 为红，拦出测试内嵌字面凭据样式与归档被行尾规范化两处自身缺陷，已在 `5603f34` 修复 |
+| Git 关联（A01） | **PASS** | 本地 HEAD 与服务端 `refs/heads/main` 逐字符一致；未 force push、未改全局配置 |
 | 安装运行/用户验收（A19） | `NOT_EXECUTED` | 未安装任何正式程序；浏览器验证不等于用户验收 |
 | floating / pet / voice-only 形态 | `BLOCKED` | 需原生窗口/托盘与 AAOS ASR/TTS，属 P2 |
 | 记忆生产读写、真实选区 | `BLOCKED_BY_HOST_CONTRACT` | 宿主合同缺失，未用合成夹具冒充 |

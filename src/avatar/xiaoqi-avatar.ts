@@ -1,9 +1,12 @@
 import { STATE_VISUALS, eyesFor, mouthPathFor } from './state-visuals';
-import type { AstrynAvatarFrame } from '@astryn/contracts';
+import { bodyPresetFor } from './state-action-matrix';
+import type { AstrynAvatarFrame, AstrynAvatarViewProfile } from '@astryn/contracts';
 
 export interface XiaoqiAvatarProps {
   readonly frame: AstrynAvatarFrame;
-  readonly size?: number;
+  readonly size?: number | undefined;
+  /** 呈现档（首页/头像/侧边）。缺省为整幅半身，与原行为一致。 */
+  readonly view?: AstrynAvatarViewProfile | undefined;
 }
 
 /**
@@ -16,12 +19,15 @@ export interface XiaoqiAvatarProps {
  * 注入不变量：本函数写入 DOM 的字符串只由内部常量与数值拼装，
  * 任何外部文本（模型正文、宿主摘要、文件名）都不得进入这里。
  */
-export function XiaoqiAvatar({ frame, size = 200 }: XiaoqiAvatarProps): string {
+export function XiaoqiAvatar({ frame, size, view }: XiaoqiAvatarProps): string {
   const tokens = STATE_VISUALS[frame.visibleState];
   const eyes = eyesFor(tokens);
   const motion = tokens.motionAllowed && !frame.reducedMotion;
   const mouth = mouthPathFor(frame.expressionFrame, tokens);
   const color = tokens.ringColor;
+  const [vx = 0, vy = 0, vw = 120, vh = 140] = view?.viewBox ?? [];
+  const width = size ?? view?.width ?? 200;
+  const height = view ? Math.round(width * (vh / vw) * 100) / 100 : width * 1.1667;
 
   // 状态环紧贴头部轮廓，并配一条完整底轨：
   // 没有底轨时，单段虚线弧会被读成"悬在头顶的独立铁圈"而不是环绕角色的状态光环。
@@ -34,7 +40,7 @@ export function XiaoqiAvatar({ frame, size = 200 }: XiaoqiAvatarProps): string {
   return `
 <svg data-testid="astryn-avatar" data-visible-state="${frame.visibleState}" data-expression-frame="${frame.expressionFrame}"
      data-motion="${motion ? 'on' : 'off'}" role="img" aria-label="小栖当前状态：${frame.visibleState}"
-     viewBox="0 0 120 140" width="${size}" height="${size * 1.1667}" xmlns="http://www.w3.org/2000/svg">
+     viewBox="${vx} ${vy} ${vw} ${vh}" width="${width}" height="${height}" shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <radialGradient id="astryn-aura" cx="50%" cy="44%" r="52%">
       <stop offset="0%" stop-color="${color}" stop-opacity="${tokens.auraOpacity * 0.55}" />
@@ -126,6 +132,8 @@ export function describeXiaoqiFrame(frame: AstrynAvatarFrame): Record<string, st
   const eyes = eyesFor(tokens);
   return {
     visibleState: frame.visibleState,
+    bodyPreset: bodyPresetFor(frame.visibleState),
+    expressionDriver: 'text-event-frame',
     ringColor: tokens.ringColor,
     eyeMode: tokens.eyeMode,
     mouthMode: tokens.mouthMode,

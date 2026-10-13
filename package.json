@@ -17,7 +17,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run build && node scripts/check-aaos-drift.mjs && node scripts/check-archive-fidelity.mjs",
     "record-gates": "node scripts/record-gates.mjs"
   },
   "dependencies": {

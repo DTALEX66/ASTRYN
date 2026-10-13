@@ -35,6 +35,18 @@ export interface AstrynAssetProvenance {
   readonly note: string;
 }
 
+/**
+ * 呈现档：同一角色源在三种落点（首页主视觉 / 对话头像 / 阅读侧边）的
+ * 取景框与建议尺寸。取景坐标系与渲染源一致（x y w h，单位同 viewBox）。
+ */
+export interface AstrynAvatarViewProfile {
+  readonly id: string;
+  readonly label: string;
+  readonly purpose: string;
+  readonly viewBox: readonly [number, number, number, number];
+  readonly width: number;
+}
+
 export interface AstrynAvatarRenderer {
   readonly rendererId: string;
   readonly displayName: string;
@@ -48,7 +60,8 @@ export interface AstrynAvatarRenderer {
   /**
    * 两种落地方式至少提供一种：字符串标记（SVG/HTML 驱动）或命令式挂载（WebGL/Live2D 驱动）。
    * 呈现层必须通过这里取画面，不得直接 import 具体渲染实现——否则 seam 只是装饰。
+   * view 为呈现档；size 显式给出时优先于档位建议宽度。
    */
-  renderMarkup?(frame: AstrynAvatarFrame, size?: number): string;
+  renderMarkup?(frame: AstrynAvatarFrame, size?: number, view?: AstrynAvatarViewProfile): string;
   mount?(host: HTMLElement, frame: AstrynAvatarFrame): AstrynAvatarInstance;
 }

@@ -1,15 +1,43 @@
 import { describe, expect, it, vi } from 'vitest';
-import { XIAOQI_PROFILE } from '@astryn/contracts';
+import { XIAOQI_PROFILE, withOverrides } from '@astryn/contracts';
+import type { AstrynConversationRequest, AstrynHostPort } from '@astryn/contracts';
 import { AstrynCompanionController, SyntheticConversationPort } from '@astryn/core';
+import { createHostTap } from '../support/host-tap';
 
-function build(conversation: ConstructorParameters<typeof AstrynCompanionController>[0]['conversation'], sessionId = 's1') {
-  return new AstrynCompanionController({
+function build(
+  conversation: ConstructorParameters<typeof AstrynCompanionController>[0]['conversation'],
+  sessionId = 's1',
+  host: AstrynHostPort | null = null
+) {
+  const controller = new AstrynCompanionController({
     sessionId,
     profile: XIAOQI_PROFILE,
     conversation,
     actions: null,
-    verifier: null
+    verifier: null,
+    host
   });
+  if (host) controller.attach();
+  return controller;
+}
+
+/** 记录每次请求的端口：用于断言"提示里实际送出了什么档案"。 */
+function recordingPort() {
+  const requests: AstrynConversationRequest[] = [];
+  const inner = new SyntheticConversationPort({ steps: [{ text: '好' }, { finish: 'stop' }] });
+  const port = {
+    protocol: inner.protocol,
+    providerId: inner.providerId,
+    transport: inner.transport,
+    evidenceLevel: inner.evidenceLevel,
+    modelId: inner.modelId,
+    availability: () => inner.availability(),
+    stream: async function* (request: AstrynConversationRequest, signal: AbortSignal) {
+      requests.push(request);
+      yield* inner.stream(request, signal);
+    }
+  };
+  return { port, requests };
 }
 
 const slowClock = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
@@ -83,16 +111,18 @@ describe('控制器编排（A06/A07）', () => {
 
   it('dispose 之后不再接受事件，也不回调监听者', async () => {
     const port = new SyntheticConversationPort({ clock: slowClock, steps: [{ text: '一', delayMs: 20 }, { text: '二', delayMs: 20 }, { finish: 'stop' }] });
-    const controller = build(port);
+    const tap = createHostTap();
+    const controller = build(port, 's1', tap.host);
     const listener = vi.fn();
     controller.subscribe(listener);
     const pending = controller.submit('说两句');
     await slowClock(8);
     controller.dispose();
     await pending;
+    expect(tap.unsubscribes()).toBe(1);
     const calls = listener.mock.calls.length;
-    controller.dispatch(
-      // 手工构造一个迟到事件：卸载后必须被忽略。
+    tap.emit(
+      // 卸载后经宿主通道迟到的原始事件：订阅已解除，投递无入口。
       {
         protocol: 'astryn-1',
         eventId: 'late',
@@ -107,7 +137,29 @@ describe('控制器编排（A06/A07）', () => {
         payload: { kind: 'input.focus', surface: 'composer' }
       }
     );
+    // 公开方法在 dispose 之后同样是无操作。
+    controller.notifyFocus('composer');
     expect(listener.mock.calls.length).toBe(calls);
+  });
+
+  it('setProfile 不重建实例：会话连续，新档案只作用于下一轮提示', async () => {
+    const { port, requests } = recordingPort();
+    const controller = build(port);
+    await controller.submit('第一问');
+    expect(controller.transcript).toHaveLength(2);
+
+    controller.setProfile(withOverrides(XIAOQI_PROFILE, { expressionStyle: { replyLength: 'brief' } }));
+    await controller.submit('第二问');
+
+    expect(controller.currentState.conversation).toBe('idle');
+    expect(controller.transcript).toHaveLength(4);
+    expect(controller.currentState.sessionId).toBe('s1');
+
+    expect(requests).toHaveLength(2);
+    const [firstRequest, secondRequest] = requests;
+    if (!firstRequest || !secondRequest) throw new Error('missing recorded requests');
+    expect(firstRequest.messages[0]?.content ?? '').toContain('回复保持在一到三句。');
+    expect(secondRequest.messages[0]?.content ?? '').toContain('回复控制在两句以内。');
   });
 
   it('上游抛错时给出可区分的失败码，而不是静默', async () => {

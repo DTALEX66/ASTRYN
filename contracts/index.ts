@@ -9,3 +9,4 @@ export * from './memory';
 export * from './context';
 export * from './avatar';
 export * from './presentation';
+export * from './speech';

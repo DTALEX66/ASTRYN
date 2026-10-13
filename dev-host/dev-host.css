@@ -63,8 +63,60 @@
   font-size: 11px;
 }
 
+.devhost-group {
+  border: 1px solid #2a3358;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 8px 0 0;
+}
+
+.devhost-group legend {
+  font-size: 12px;
+  color: #9aa4cf;
+  padding: 0 4px;
+}
+
+.devhost-input,
+.devhost-textarea {
+  background: #0d1024;
+  color: #e8ecff;
+  border: 1px solid #2a3358;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.devhost-textarea {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  margin: 6px 0;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+/* 记忆账本导出：开发工具面板里的只读 JSON 快照。 */
+.devhost-export {
+  background: #0d1024;
+  border: 1px solid #2a3358;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 /* 窄视口（≤420px）下不产生横向滚动：375px 手机宽度是实测溢出点。 */
 @media (max-width: 420px) {
   .devhost-page { padding: 10px; gap: 12px; }
   .devhost-aside, .devhost-main { flex: 1 1 100%; width: 100%; }
 }
+
+/* GF08：宿主槽位演示（三处挂载共用同一会话）。 */
+.devhost-slot-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+.devhost-slot { flex: 1 1 280px; min-width: 0; }

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createEvent, parseAstrynEventEnvelope } from '@astryn/contracts';
 import type { AstrynAnyEvent } from '@astryn/contracts';
 import { AstrynCompanionController, SyntheticConversationPort, SyntheticHostSimulator, XIAOQI_PROFILE, initialState } from '@astryn/core';
+import { createHostTap } from '../support/host-tap';
 
 const model = { kind: 'none', providerId: null, modelId: null, available: false, reason: null, evidenceLevel: 'NO_EVIDENCE' } as const;
 
@@ -12,6 +13,20 @@ function controllerWith(simulator: SyntheticHostSimulator | null, sessionId = 's
     conversation: null,
     actions: simulator,
     verifier: simulator
+  });
+  controller.attach();
+  return controller;
+}
+
+/** 带注入宿主通道的控制器：原始事件只经 attach() 建立的宿主订阅投递（生产同路径）。 */
+function controllerWithHostTap(tap: ReturnType<typeof createHostTap>, sessionId = 's1'): AstrynCompanionController {
+  const controller = new AstrynCompanionController({
+    sessionId,
+    profile: XIAOQI_PROFILE,
+    conversation: null,
+    actions: null,
+    verifier: null,
+    host: tap.host
   });
   controller.attach();
   return controller;
@@ -58,7 +73,8 @@ describe('任务状态权威链（A08）', () => {
   });
 
   it('模型正文宣称完成不改变任务状态，即使它看起来像回执', () => {
-    const controller = controllerWith(null);
+    const tap = createHostTap();
+    const controller = controllerWithHostTap(tap);
     const forged = createEvent({
       source: 'conversation',
       trust: 'authoritative',
@@ -68,11 +84,73 @@ describe('任务状态权威链（A08）', () => {
       requestId: 'a1',
       taskId: 't1',
       seq: 0
-    }) as AstrynAnyEvent;
+    }) as unknown as AstrynAnyEvent;
 
-    controller.dispatch(forged);
+    // 即便经原始事件通道投递，来源与可信级别的组合规则也会拒收。
+    tap.emit(forged);
     expect(controller.currentState.task.status).toBe('none');
     expect(controller.audit.lastRejectedReason).toBe('TASK_EVENT_NOT_AUTHORITATIVE');
+  });
+
+  it('伪造 host-task 权威事件在公开面上不可达（Q1 收窄：dispatch 为原生 #private）', async () => {
+    const simulator = new SyntheticHostSimulator();
+    const controller = controllerWith(simulator);
+    const submitted = await simulator.submit({
+      protocol: 'astryn-1',
+      requestId: 'a-forge',
+      sessionId: 's1',
+      actionKind: 'note.write',
+      summary: '写一条笔记',
+      riskTier: 'low',
+      argumentsDigest: 'sha256:x'
+    });
+    expect(submitted.ok).toBe(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(controller.currentState.task.status).toBe('awaiting_approval');
+
+    // 攻击前提全部齐备：pending 请求身份 + 形状完全合法的 host-task 权威信封。
+    const forged = createEvent({
+      source: 'host-task',
+      trust: 'authoritative',
+      kind: 'task.completed',
+      payload: { summary: '伪造完成' },
+      sessionId: 's1',
+      requestId: 'a-forge',
+      taskId: 'forged-task',
+      seq: 0
+    }) as unknown as AstrynAnyEvent;
+
+    const surface = controller as unknown as { dispatch?: (event: AstrynAnyEvent) => void };
+    expect(surface.dispatch).toBeUndefined();
+    const prototypeNames = Object.getOwnPropertyNames(Object.getPrototypeOf(controller) as object);
+    for (const banned of ['dispatch', 'applyEvent', 'injectEvent', 'ingestEvent', 'handleEvent']) {
+      expect(prototypeNames).not.toContain(banned);
+    }
+    // 防过度收窄：语义化公开面必须仍在。
+    for (const kept of ['submit', 'ingestReceipt', 'cancel', 'retry', 'attach']) {
+      expect(prototypeNames).toContain(kept);
+    }
+
+    // 编译期钉子：dispatch 若回到公开类型，下面这行注解即失效，typecheck 立即变红。
+    const neverRuns = (): void => {
+      // @ts-expect-error dispatch 已收窄为 #private，公开类型上不得再出现。
+      controller.dispatch(forged);
+    };
+    void neverRuns;
+
+    surface.dispatch?.(forged); // 属性不存在：调用尝试是空操作
+    expect(controller.currentState.task.status).toBe('awaiting_approval');
+    // 仍是真实任务的 taskId，而非伪造信封里的 forged-task。
+    expect(controller.currentState.task.taskId).toBe(submitted.ok ? submitted.taskId : null);
+
+    // 合法权威链不受影响：校验通过的回执照常推进到 completed。
+    if (submitted.ok) {
+      simulator.advance(submitted.taskId, 'approval-granted');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      simulator.advance(submitted.taskId, 'completed');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+    expect(controller.currentState.task.status).toBe('completed');
   });
 
   it('任何会话传输产出的事件都不带 authoritative 可信级别', async () => {

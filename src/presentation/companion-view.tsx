@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import type {
   AstrynAvatarFrame,
+  AstrynAvatarRenderer,
+  AstrynAvatarViewProfile,
   AstrynCharacterProfile,
   AstrynCompanionState,
   AstrynContextFragment
 } from '@astryn/contracts';
 import { toVisibleState } from '@astryn/contracts';
-import { selectAvatarRenderer } from '../avatar/xiaoqi-svg-renderer';
+import { resolveAvatarRenderer } from '../avatar/xiaoqi-svg-renderer';
 
 export interface CompanionViewProps {
   readonly state: AstrynCompanionState;
@@ -34,9 +36,22 @@ function rejectedTotal(rejected: Readonly<Record<string, number>>): number {
   return Object.values(rejected).reduce((sum, count) => sum + count, 0);
 }
 
-export function AvatarView({ state, profile, reducedMotion }: Pick<CompanionViewProps, 'state' | 'profile' | 'reducedMotion'>): JSX.Element {
+export interface AvatarViewProps {
+  readonly state: AstrynCompanionState;
+  readonly profile: AstrynCharacterProfile;
+  readonly reducedMotion: boolean;
+  /** 呈现档（首页/头像/侧边）。缺省用渲染器的整幅半身。 */
+  readonly view?: AstrynAvatarViewProfile | undefined;
+  /** 驱动注入：故障注入测试与宿主自定义驱动；缺省按 profile.appearance.rendererId 选择。 */
+  readonly renderer?: AstrynAvatarRenderer | undefined;
+}
+
+export function AvatarView({ state, profile, reducedMotion, view, renderer }: AvatarViewProps): JSX.Element {
   const visibleState = toVisibleState(state);
-  const renderer = selectAvatarRenderer(profile.appearance.rendererId);
+  const resolution = renderer
+    ? { renderer, exact: true, reason: null as string | null }
+    : resolveAvatarRenderer(profile.appearance.rendererId);
+  const selected = resolution.renderer;
   const frame: AstrynAvatarFrame = {
     characterId: profile.characterId,
     sessionId: state.sessionId,
@@ -48,22 +63,62 @@ export function AvatarView({ state, profile, reducedMotion }: Pick<CompanionView
     reducedMotion
   };
   const mountHost = useRef<HTMLDivElement | null>(null);
-  const markup = renderer.renderMarkup?.(frame);
+  const [mountFailed, setMountFailed] = useState(false);
+
+  // 渲染失败可回退：标记渲染抛错或命令式挂载失败时，退到可读的文本状态行，
+  // 绝不把错误细节或外部文本写进 DOM（注入不变量的另一半）。
+  let markup: string | undefined;
+  let renderFailed = mountFailed;
+  if (!renderFailed) {
+    try {
+      markup = selected.renderMarkup?.(frame, undefined, view);
+    } catch {
+      renderFailed = true;
+    }
+  }
 
   // 命令式驱动（WebGL / Live2D）走 mount 分支；SVG 驱动走标记分支。UI 不认识具体实现。
   useEffect(() => {
-    if (markup !== undefined || !renderer.mount || !mountHost.current) return;
-    const instance = renderer.mount(mountHost.current, frame);
-    return () => {
-      instance.dispose();
-    };
+    if (renderFailed || markup !== undefined || !selected.mount || !mountHost.current) return;
+    try {
+      const instance = selected.mount(mountHost.current, frame);
+      return () => {
+        instance.dispose();
+      };
+    } catch {
+      setMountFailed(true);
+    }
   });
 
-  // markup 由内部常量与数值拼装，不含任何外部文本，见 xiaoqi-svg-renderer 的注入不变量。
-  if (markup !== undefined) {
-    return <div className="astryn-avatar" data-renderer={renderer.rendererId} data-testid="astryn-avatar-host" dangerouslySetInnerHTML={{ __html: markup }} />;
+  // 未注册 rendererId 的静默回退是"未知当作可用"，这里显式作证：data-renderer-exact=false。
+  const exactAttr = resolution.exact ? undefined : 'false';
+  if (renderFailed) {
+    return (
+      <div
+        className="astryn-avatar astryn-avatar--fallback"
+        data-renderer={selected.rendererId}
+        data-renderer-exact={exactAttr}
+        data-testid="astryn-avatar-fallback"
+        role="img"
+        aria-label={`小栖当前状态：${visibleState}（画面渲染失败，已回退文本）`}
+      >
+        <span className="astryn-chip">状态：{visibleState}（渲染失败，文本回退）</span>
+      </div>
+    );
   }
-  return <div className="astryn-avatar" data-renderer={renderer.rendererId} data-testid="astryn-avatar-host" ref={mountHost} />;
+  if (markup !== undefined) {
+    // markup 由内部常量与数值拼装，不含任何外部文本，见 xiaoqi-svg-renderer 的注入不变量。
+    return (
+      <div
+        className="astryn-avatar"
+        data-renderer={selected.rendererId}
+        data-renderer-exact={exactAttr}
+        data-testid="astryn-avatar-host"
+        dangerouslySetInnerHTML={{ __html: markup }}
+      />
+    );
+  }
+  return <div className="astryn-avatar" data-renderer={selected.rendererId} data-renderer-exact={exactAttr} data-testid="astryn-avatar-host" ref={mountHost} />;
 }
 
 export interface AuditChip {
@@ -128,39 +183,102 @@ export function ApprovalCard({ state, onApprovalDecision }: Pick<CompanionViewPr
   );
 }
 
-export function Composer({ onSubmit, onCancel, onFocus, onBlur, streaming, disabled }: {
+export interface ComposerProps {
+  /** 受控草稿：由外壳持有，打开设置/隐藏角色/重试时都不丢输入。 */
+  readonly value: string;
+  readonly onValueChange: (value: string) => void;
+  /** 已附到下一轮、尚未提交的获准材料标签。 */
+  readonly attachments: readonly AstrynContextFragment[];
+  readonly onRemoveAttachment: (index: number) => void;
   readonly onSubmit: (text: string) => void;
   readonly onCancel: () => void;
   readonly onFocus: () => void;
   readonly onBlur: () => void;
   readonly streaming: boolean;
   readonly disabled: boolean;
-}): JSX.Element {
-  const [draft, setDraft] = useState('');
+}
+
+export function Composer({
+  value,
+  onValueChange,
+  attachments,
+  onRemoveAttachment,
+  onSubmit,
+  onCancel,
+  onFocus,
+  onBlur,
+  streaming,
+  disabled
+}: ComposerProps): JSX.Element {
   return (
     <form
       className="astryn-composer"
       onSubmit={(event) => {
         event.preventDefault();
-        if (draft.trim().length === 0) return;
-        onSubmit(draft);
-        setDraft('');
+        if (value.trim().length === 0) return;
+        onSubmit(value);
       }}
     >
+      {attachments.length > 0 ? (
+        <div className="astryn-composer-tags" data-testid="astryn-composer-tags" aria-label="已附加材料标签">
+          {attachments.map((fragment, index) => (
+            <span key={`${fragment.sourceId}-${index}`} className="astryn-chip astryn-chip--tag" data-testid={`astryn-attachment-${index}`}>
+              {fragment.sourceTitle} {fragment.sourceVersion}
+              <button
+                type="button"
+                className="astryn-chip-remove"
+                aria-label={`移除材料标签：${fragment.sourceTitle}`}
+                data-testid={`astryn-attachment-remove-${index}`}
+                onClick={() => onRemoveAttachment(index)}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      ) : null}
       <input
         data-testid="astryn-input"
-        value={draft}
+        value={value}
         disabled={disabled}
         placeholder={disabled ? '角色已隐藏' : '和小栖说点什么…'}
         aria-label="发送给小栖的消息"
-        onChange={(event) => setDraft(event.target.value)}
+        onChange={(event) => onValueChange(event.target.value)}
         onFocus={onFocus}
         onBlur={onBlur}
       />
-      <button type="submit" className="astryn-btn" data-testid="astryn-send" disabled={streaming || draft.trim().length === 0}>发送</button>
+      <button type="submit" className="astryn-btn" data-testid="astryn-send" disabled={streaming || value.trim().length === 0}>发送</button>
       {streaming ? (
         <button type="button" className="astryn-btn astryn-btn--stop" data-testid="astryn-stop" onClick={onCancel}>停止生成</button>
       ) : null}
     </form>
+  );
+}
+
+export interface RetryBarProps {
+  readonly candidate: {
+    readonly text: string;
+    readonly failureCode: string | null;
+    readonly cause: 'failed' | 'cancelled';
+    readonly outcomeUnknown: boolean;
+  };
+  readonly onRetry: () => void;
+}
+
+/**
+ * 重试条：展示"输入已保留"，并预告将先查询原请求还是直接重发。
+ * 它只转发一次重试意图，不做任何自行重发。
+ */
+export function RetryBar({ candidate, onRetry }: RetryBarProps): JSX.Element {
+  return (
+    <div className="astryn-retry" data-testid="astryn-retry" role="group" aria-label="重试上一轮">
+      <span data-testid="astryn-retry-text">
+        上一轮{candidate.cause === 'cancelled' ? '已停止' : '未完成'}（{candidate.failureCode ?? '未知原因'}）：输入已保留——「{candidate.text}」
+      </span>
+      <span className="astryn-disclosure" data-testid="astryn-retry-hint">
+        {candidate.outcomeUnknown ? '执行结果未知：重试会先查询原请求，再决定是否重发。' : '执行结果已知（未执行）：重试将直接重发。'}
+      </span>
+      <button type="button" className="astryn-btn" data-testid="astryn-retry-btn" onClick={onRetry}>重试</button>
+    </div>
   );
 }

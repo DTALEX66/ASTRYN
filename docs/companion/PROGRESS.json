@@ -22,14 +22,16 @@
     },
     {
       "task_id": "GF01",
-      "state": "PLANNED",
-      "implementation": "NOT_EXECUTED",
-      "tests": "NOT_EXECUTED",
-      "runtime": "UNVERIFIED",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_17_FILES_136_PASSED_PLUS_DEV_HOST_BROWSER_SMOKE",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_EPHEMERAL_PROFILE_STORE",
       "installation": "NOT_EXECUTED",
-      "evidence_refs": [],
-      "blocker": "depends_on BE01 (host contract admission) — UI-side schema/views proceed; host persistence stays BLOCKED_BY_HOST_CONTRACT",
-      "rollback_handle": null
+      "evidence_refs": [
+        "docs/companion/GF01-PROFILE-AND-SETTINGS.md"
+      ],
+      "blocker": "host profile persistence BLOCKED_BY_HOST_CONTRACT (character.profile.read/write via BE06 + BE01 admission); ASTRYN side completed with ephemeral fallback and explicit save failure",
+      "rollback_handle": "git revert of the GF01 commit on feat/astryn-learning-companion-v1; linear history, nothing rewritten"
     },
     {
       "task_id": "GF02",
@@ -39,7 +41,7 @@
       "runtime": "UNVERIFIED",
       "installation": "NOT_EXECUTED",
       "evidence_refs": [],
-      "blocker": "depends_on GF01 and BE05 (host session stream)",
+      "blocker": "GF01 completed; BE05 (host session stream) still pending — ASTRYN-side session-manager extraction can proceed and marks host stream calls BLOCKED",
       "rollback_handle": null
     },
     {

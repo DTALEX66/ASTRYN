@@ -168,6 +168,40 @@
   overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
 }
 
+/* 设置视图：结构化档案的编辑器，分组字段集 + 平铺选项 */
+.astryn-settings {
+  display: flex; flex-direction: column; gap: var(--astryn-space-4);
+  background: var(--astryn-surface-sunken); border: 1px solid var(--astryn-line);
+  border-radius: var(--astryn-radius-lg); padding: var(--astryn-space-4);
+}
+.astryn-settings-head { display: flex; align-items: center; justify-content: space-between; gap: var(--astryn-space-3); }
+.astryn-settings-group {
+  display: flex; flex-direction: column; gap: var(--astryn-space-3);
+  margin: 0; padding: var(--astryn-space-3) var(--astryn-space-4);
+  border: 1px solid var(--astryn-line); border-radius: var(--astryn-radius-md);
+}
+.astryn-settings-group legend { font-size: 12px; color: var(--astryn-muted); padding: 0 var(--astryn-space-2); }
+.astryn-settings-option { display: flex; align-items: flex-start; gap: var(--astryn-space-3); font-size: 13px; }
+.astryn-settings-row { display: flex; align-items: center; justify-content: space-between; gap: var(--astryn-space-3); font-size: 13px; }
+.astryn-settings-row input[type="text"],
+.astryn-settings-row select {
+  flex: 0 1 180px; min-width: 0;
+  background: var(--astryn-surface); border: 1px solid var(--astryn-line);
+  border-radius: var(--astryn-radius-md); color: var(--astryn-text);
+  padding: var(--astryn-space-2) 10px; font-size: 13px;
+}
+.astryn-settings-row-group { display: flex; flex-wrap: wrap; gap: var(--astryn-space-3); }
+.astryn-settings-inline { display: inline-flex; align-items: center; gap: var(--astryn-space-2); font-size: 13px; }
+.astryn-settings-actions { margin-top: var(--astryn-space-1); }
+
+.astryn-settings input[type="radio"],
+.astryn-settings input[type="checkbox"] { accent-color: var(--astryn-accent); }
+.astryn-settings input:focus-visible,
+.astryn-settings select:focus-visible {
+  outline: var(--astryn-focus-ring);
+  outline-offset: 2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .astryn-spin, .astryn-breathe, .astryn-dots { animation: none; }
   .astryn-btn:hover { transform: none; }

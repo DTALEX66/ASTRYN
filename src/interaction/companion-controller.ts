@@ -65,7 +65,7 @@ export class AstrynCompanionController {
   private history: AstrynChatMessage[] = [];
   private pendingContextFragments: AstrynContextFragment[] = [];
 
-  constructor(private readonly deps: CompanionControllerDeps) {
+  constructor(private deps: CompanionControllerDeps) {
     this.guard = new AstrynEventGuard(deps.sessionId);
     this.state = initialState(deps.sessionId, {
       kind: deps.conversation ? (deps.conversation.transport === 'aaos-host' ? 'aaos-host' : deps.conversation.transport === 'openai-compatible' ? 'openai-compatible-dev' : 'synthetic') : 'none',
@@ -368,6 +368,16 @@ export class AstrynCompanionController {
         emittedAt: receipt.issuedAt
       }) as unknown as AstrynAnyEvent
     );
+  }
+
+  /**
+   * 配置变化时在不重建实例的前提下替换档案：
+   * 设置面板不应打断会话连续性（守卫状态、历史与在途请求）。
+   * 档案会在下一轮请求组装提示时生效。
+   */
+  setProfile(profile: AstrynCharacterProfile): void {
+    if (this.deps.profile === profile) return;
+    this.deps = { ...this.deps, profile };
   }
 
   switchSession(nextSessionId: string): void {

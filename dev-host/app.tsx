@@ -6,6 +6,7 @@ import {
   SyntheticContextFixture,
   SyntheticHostSimulator,
   SyntheticMemoryFixture,
+  createEphemeralProfileStore,
   resolveConversation,
   type AstrynContextFragment,
   type AstrynMemoryCandidate,
@@ -28,6 +29,8 @@ export function DevHostApp(): JSX.Element {
 
   const simulator = useMemo(() => (config.syntheticHostEnabled ? new SyntheticHostSimulator() : null), [config.syntheticHostEnabled]);
   const memory = useMemo(() => new SyntheticMemoryFixture(), []);
+  // 开发回退：进程内，刷新即失。正式档案保存归宿主（character.profile.write，BE06 未接通）。
+  const profileStore = useMemo(() => createEphemeralProfileStore(), []);
   const contextFixture = useMemo(
     () => new SyntheticContextFixture({ document: { ...SYNTHETIC_DOC, selection: null } }),
     []
@@ -78,6 +81,7 @@ export function DevHostApp(): JSX.Element {
           conversation={sourceOverride === 'none' ? null : resolved.port}
           actions={simulator}
           verifier={simulator}
+          profileStore={profileStore}
           selectionProvider={selectionProvider}
           onTaskAdvance={simulator ? (taskId, outcome, detail) => simulator.advance(taskId, outcome, detail) : undefined}
         />
@@ -182,6 +186,7 @@ export function DevHostApp(): JSX.Element {
           <ul className="devhost-list">
             <li>本宿主是开发工具，不是第二个正式前端；正式形态由 AAOS 前端挂载。</li>
             <li>未启用麦克风、摄像头、屏幕采集与系统命令；本页面不请求任何此类权限。</li>
+            <li>小栖档案在开发宿主里只存进程内（刷新即失）；正式保存归宿主（character.profile.write，BE06 未接通，保存会显式失败）。</li>
             <li>合成数据一律标注 SYNTHETIC；真实模型调用需自行配置 dev 代理，密钥不进浏览器。</li>
             <li>任务状态只来自宿主回执；开发宿主里由合成模拟器的回执提供，故仍不构成真实集成证据。</li>
           </ul>

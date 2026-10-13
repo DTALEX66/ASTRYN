@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { XIAOQI_PROFILE } from '@astryn/contracts';
+import { XIAOQI_PROFILE, withOverrides } from '@astryn/contracts';
+import type { AstrynConversationRequest } from '@astryn/contracts';
 import { AstrynCompanionController, SyntheticConversationPort } from '@astryn/core';
 
 function build(conversation: ConstructorParameters<typeof AstrynCompanionController>[0]['conversation'], sessionId = 's1') {
@@ -10,6 +11,25 @@ function build(conversation: ConstructorParameters<typeof AstrynCompanionControl
     actions: null,
     verifier: null
   });
+}
+
+/** 记录每次请求的端口：用于断言"提示里实际送出了什么档案"。 */
+function recordingPort() {
+  const requests: AstrynConversationRequest[] = [];
+  const inner = new SyntheticConversationPort({ steps: [{ text: '好' }, { finish: 'stop' }] });
+  const port = {
+    protocol: inner.protocol,
+    providerId: inner.providerId,
+    transport: inner.transport,
+    evidenceLevel: inner.evidenceLevel,
+    modelId: inner.modelId,
+    availability: () => inner.availability(),
+    stream: async function* (request: AstrynConversationRequest, signal: AbortSignal) {
+      requests.push(request);
+      yield* inner.stream(request, signal);
+    }
+  };
+  return { port, requests };
 }
 
 const slowClock = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
@@ -108,6 +128,26 @@ describe('控制器编排（A06/A07）', () => {
       }
     );
     expect(listener.mock.calls.length).toBe(calls);
+  });
+
+  it('setProfile 不重建实例：会话连续，新档案只作用于下一轮提示', async () => {
+    const { port, requests } = recordingPort();
+    const controller = build(port);
+    await controller.submit('第一问');
+    expect(controller.transcript).toHaveLength(2);
+
+    controller.setProfile(withOverrides(XIAOQI_PROFILE, { expressionStyle: { replyLength: 'brief' } }));
+    await controller.submit('第二问');
+
+    expect(controller.currentState.conversation).toBe('idle');
+    expect(controller.transcript).toHaveLength(4);
+    expect(controller.currentState.sessionId).toBe('s1');
+
+    expect(requests).toHaveLength(2);
+    const [firstRequest, secondRequest] = requests;
+    if (!firstRequest || !secondRequest) throw new Error('missing recorded requests');
+    expect(firstRequest.messages[0]?.content ?? '').toContain('回复保持在一到三句。');
+    expect(secondRequest.messages[0]?.content ?? '').toContain('回复控制在两句以内。');
   });
 
   it('上游抛错时给出可区分的失败码，而不是静默', async () => {

@@ -261,7 +261,7 @@ components:
 - 横向溢出：0（修复前 375px 档为 `414 > 375`）。
 - 键盘 Tab：DOM 可聚焦 13（idle）/ 15（审批态），焦点环 <2px 或缺失 **0**，聚焦时横向裁切 **0**，触控目标 <24px **0**。
 - 窄屏（≤420px）宿主侧栏全宽堆叠；角色面板 `min(360px, 100%)` 自适应。
-- `prefers-reduced-motion: reduce` 下停用 `.astryn-spin / .astryn-breathe / .astryn-dots`，且角色 SVG 的 `data-motion` 转为 `off`。
+- `prefers-reduced-motion: reduce` 下停用 `.astryn-spin / .astryn-breathe / .astryn-dots`，且角色 SVG 的 `data-motion` 转为 `off`。系统偏好**只增强不削弱**：系统开启后应用内开关禁用并显示"系统已在减少动效"（第四轮实现；CDP `Emulation.setEmulatedMedia` 双上下文 15 项检查实测生效）。
 
 ## Motion
 
@@ -278,5 +278,6 @@ components:
 ## 验证与防漂移
 
 - `tests/boundary/design-tokens.test.ts`：从 `astryn.css` 解析令牌，断言每组文字/背景对比度 ≥4.5:1、九态环色 ≥3:1、承载文字容器无渐变背景、组件规则内零硬编码十六进制色。
-- `tests/presentation/companion-shell.test.tsx`：九态视觉签名两两唯一。
+- `tests/presentation/companion-shell.test.tsx`：九态视觉签名两两唯一；系统级 reduced-motion 三测（matchMedia stub：系统开启即 `data-motion=off` 且开关禁用、实时 change 事件翻转、禁用态点击不可覆盖）。
+- 系统级 reduced-motion 浏览器级证据（第四轮）：CDP 探针在默认与 `reduce` 双上下文实测三层防线（产品层 `data-motion`、运行时零运行中动画、CSS 媒体查询强制挂类后 `animationName=none`），报告 `.project-local/runs/q7-reduced-motion.report.json`。
 - axe（WCAG2 A/AA + 2.1 A/AA）扫描纳入 `docs/verification/M0-VALIDATION.md`，并**必须报告 axe 未判定（incomplete/inapplicable）的节点数**——零违规不等于通过。

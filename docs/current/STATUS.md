@@ -28,7 +28,7 @@
 
 测试审计（A1–A2）：两路只读子智能体并行深审 30 个测试文件（UI/适配层 22 + 核心逻辑 8；判据=每条断言必须能对其名称所述命题失败），发现 **23 项测试质量问题、全部为测试自身缺陷**（空洞断言、名称-正文错位、弱反例、覆盖盲区等），未发现产品行为缺陷；两处"疑似缺陷"（SSE 尾部残行派发、取消分类顺序）经读源码确认为有意设计。23 项全部修复于 19 个测试文件（+162/−41 行），`src/`、`contracts/`、`dev-host/` 零改动；每项修复都让"去掉所指机制即变红"成立；唯一新增测试是 `CONSUMER_FORBIDDEN_FOR_SCOPE` 覆盖盲区补测（此前 0 触达），总数 323 → 324。逐项处置见 `docs/verification/TEST-AUDIT.md`。
 
-封存门禁（`gate-20261014-005737.log`）：lint/typecheck/test/build/drift/archive/record/anchors 八阶段全 `EXIT=0`；**36 文件 324 项通过**；`AAOS_DRIFT=VERIFIED`；`ARCHIVE_FIDELITY=OK`；文档锚点 0 问题；`docs/verification/gates.json` 全绿（源码树 101 文件，树哈希 `e75bc5032c4e0cd6…`）。
+封存门禁（`gate-20261014-005737.log`）：lint/typecheck/test/build/drift/archive/record/anchors 八阶段全 `EXIT=0`；**36 文件 324 项通过**；`AAOS_DRIFT=VERIFIED`；`ARCHIVE_FIDELITY=OK`；文档锚点 0 问题；`docs/verification/gates.json` 全绿（源码树 101 文件，树哈希 `e75bc5032c4e0cd6…`）。审计与文档提交 `35e4af7`/`d5944bc` 已推送 main，CI run **38435185594** @ `d5944bc` 双矩阵 success。
 
 验收：A00–A04、A06–A16 为 PASS（A01 为 PARTIAL），A05 `NOT_TESTED`、A17 `UNVERIFIED`、A18/A19 `NOT_EXECUTED`。**整体 M0 = PARTIAL**，逐项证据见 `docs/tasks/M0-ACCEPTANCE-TRACKER.md`。
 
@@ -37,7 +37,7 @@
 - **本地已是 Git 仓库并已上远端**：用户指令"全部上传"构成该操作授权（D015）。`git init -b main` → 7 个正向提交 `b42eee2`（M0 全量）→ `5603f34`（归档按字节 + 测试去掉字面凭据样式）→ `6aa9785`/`ce07148`/`eb1f4b5`（文档回填与回执刷新）→ `2a671f6`（文档正文不再出现字面凭据样式）→ `9cf9a44`（如实记录 CI 过程）→ `a21495a`（交接提示词固化与树哈希修正）→ **PR #1 合并** `c8cc3a7`。HEAD `c8cc3a7a5dd1333c0a9e805849c0cd3adeb8007a` 与服务端 `refs/heads/main` 逐字符一致（本轮 `git ls-remote` 实测）；本地 main 已快进 `a21495a..c8cc3a7`（85 文件）。**未 force push、未改写已发布历史**；推送前确认远端为 0 ref，不存在覆盖他人工作。
 - 仓库是 **public**：105 个文件已公开可见。文档内已参数化用户目录（`$HOME` 形式），不再含 Windows 用户名；`E:\` 仅出现在"未访问 E 盘"的声明句里。
 - 行尾策略：`.gitattributes` 统一 LF，`docs/tasks/archive/**` 显式 `-text -eol` 按字节原样存储，归档 SHA-256 与收据一致（CI 首跑拦出的缺陷，已修）。
-- 远端 CI：最新绿 run **38433650701** @ `c8cc3a7a`（合并后 main push 双矩阵 success，含新增 Archive byte fidelity 步）；PR #1 run **38433397794** @ `38d1fb2` 双矩阵 success。main 上累计 11 次运行 = 7 绿 4 红（另 1 次 PR 运行绿），逐次归因见台账 A18：4 次红全部为秘密扫描拦下我们自己写进测试与文档正文的字面凭据样式；另有一次本地 `test=0` 回执是误报（那次 shell 未把 node 放进 PATH，vitest 根本没跑）。**归档被行尾规范化破坏 SHA-256 那一条 CI 并没有拦到**，是推送后人工比对远端 blob 字节才发现的——已作为风险 Q9 登记，第四轮已交付字节保真断言并进 CI（见上文第四轮）。
+- 远端 CI：最新绿 run **38435185594** @ `d5944bc`（第四轮审计与文档提交，双矩阵 success）；此前合并链：PR #1 run **38433397794** @ `38d1fb2`、合并后 main push run **38433650701** @ `c8cc3a7a`，均双矩阵 success（含 Archive byte fidelity 步）。main 上累计 12 次运行 = 8 绿 4 红（另 1 次 PR 运行绿），逐次归因见台账 A18：4 次红全部为秘密扫描拦下我们自己写进测试与文档正文的字面凭据样式；另有一次本地 `test=0` 回执是误报（那次 shell 未把 node 放进 PATH，vitest 根本没跑）。**归档被行尾规范化破坏 SHA-256 那一条 CI 并没有拦到**，是推送后人工比对远端 blob 字节才发现的——已作为风险 Q9 登记，第四轮已交付字节保真断言并进 CI（见上文第四轮）。
 - Git 全局配置含 `url.git@github.com:.insteadof=https://github.com/`，因此 origin 虽写作 HTTPS，实际走 SSH。未修改任何全局配置；提交身份沿用已有的 `DTALEX66`。
 - AAOS 本地根存在且为 Git 仓库（核验时 HEAD `0574c3ac`，工作树干净）。本轮对 AAOS **零写入**。
 - PATH 内无 node/npm；本轮绑定 `$HOME/AppData/Local/hermes/tools/node-26.7.0-win32-x64`（Node 26.7.0 / npm 11.19.0），npm 缓存限定在 `.project-local/runs/cache/npm`。

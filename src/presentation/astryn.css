@@ -134,6 +134,23 @@
 }
 .astryn-composer input::placeholder { color: var(--astryn-placeholder); opacity: 1; }
 
+/* 材料标签与重试条：GF07 输入连续性的呈现部分，全部复用既有令牌。 */
+.astryn-composer-tags { display: flex; flex-wrap: wrap; gap: var(--astryn-space-2); flex-basis: 100%; }
+.astryn-chip--tag { display: inline-flex; align-items: center; gap: var(--astryn-space-2); border-color: var(--astryn-task-line); color: var(--astryn-task-text); }
+.astryn-chip-remove {
+  background: none; border: none; color: inherit; cursor: pointer;
+  font-size: 13px; line-height: 1; padding: 0 var(--astryn-space-1); min-height: 16px;
+}
+.astryn-chip-remove:focus-visible { outline: var(--astryn-focus-ring); outline-offset: 1px; }
+.astryn-retry {
+  display: flex; flex-direction: column; gap: var(--astryn-space-2);
+  border: 1px solid var(--astryn-warning-line); background: var(--astryn-warning-surface);
+  border-radius: var(--astryn-radius-lg); padding: 10px;
+  font-size: 12px; color: var(--astryn-warning-text);
+}
+.astryn-retry .astryn-disclosure { color: var(--astryn-warning-text); }
+.astryn-retry .astryn-btn { align-self: flex-start; }
+
 .astryn-btn {
   background: var(--astryn-surface-2); color: var(--astryn-text);
   border: 1px solid var(--astryn-line); border-radius: var(--astryn-radius-md);

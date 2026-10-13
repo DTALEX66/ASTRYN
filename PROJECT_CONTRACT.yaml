@@ -70,5 +70,8 @@ companion_program:
   gf06_doc: docs/companion/GF06-MEMORY-GOVERNANCE.md
   gf06_domain: src/memory/manager.ts + dev-host/memory-panel.tsx
   gf06_semantics: '治理动作（纠正/忘记/导出/停用）全部经宿主记忆端口，且每次动作后用新鲜 query(listForReview+includeLifecycle) 独立读回，期望来自操作语义而非变更回执；revoke 保留审计痕迹、delete 从账本除名；停用=先真实撤销活跃记录再拦截本机登记，宿主 grant 本身变更 BLOCKED_BY_HOST_CONTRACT；备份保留归宿主不可见'
-  execution_state: GF06_completed
+  gf07_doc: docs/companion/GF07-STREAM-AND-RETRY.md
+  gf07_domain: contracts/conversation.ts + src/interaction/companion-controller.ts + src/presentation/companion-view.tsx
+  gf07_semantics: '重试保留输入与材料标签并以新 requestId 重发；未知执行结果的失败码（NETWORK/TIMEOUT/MALFORMED_STREAM/ABORTED/UNKNOWN）先经正式流合同 lookupRequest 查询原请求再决定：completed/in-progress 扣留不重发（HELD_BACK 防重复执行）且输入放回输入框，端口无查询能力时如实标注 RESENT_WITHOUT_LOOKUP（宿主合同缺项）；停止与关视图不同：隐藏角色不取消会话（隐藏期间跑完、恢复可见），用户停止后晚到增量与迟到权威事件被 SETTLED_REQUEST 静默丢弃、任务状态不因此改变；合成夹具不保留已结束请求（lookup 恒 not-found，不写正式记录）'
+  execution_state: GF07_completed
   host_dependencies: 'BE01/BE03/BE05/BE06/BE07/BE12 in DTALEX66/ArcheAxis-Knowledge-OS; this repo never writes the host repo'

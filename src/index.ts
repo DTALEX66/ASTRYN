@@ -7,9 +7,16 @@ export { composePromptSections, composeSystemPrompt, buildConversationMessages, 
 export { createEphemeralProfileStore, createHostProfileStore } from './companion/profile-store';
 export type { AstrynProfileStore, AstrynProfileLoad, AstrynProfileSave } from './companion/profile-store';
 export { AstrynCompanionController } from './interaction/companion-controller';
-export type { CompanionControllerDeps, ControllerAudit } from './interaction/companion-controller';
+export type {
+  CompanionControllerDeps,
+  ControllerAudit,
+  ControllerRetryResult,
+  RetryCandidate,
+  RetryDisposition
+} from './interaction/companion-controller';
 export { CompanionSessionManager, createCompanionSessionManager } from './interaction/session-manager';
 export type {
+  AstrynRetryOutcome,
   AstrynSubmitOutcome,
   CompanionManagerDeps,
   CompanionSessionManagerOptions,

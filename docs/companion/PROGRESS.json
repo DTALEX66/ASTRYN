@@ -204,14 +204,37 @@
     },
     {
       "task_id": "GF07",
-      "state": "PLANNED",
-      "implementation": "NOT_EXECUTED",
-      "tests": "NOT_EXECUTED",
-      "runtime": "UNVERIFIED",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_32_FILES_293_PASSED_INCL_GF07_15 (stream-retry 10 + composer-continuity 5)",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_STREAM_RETRY_LOOP (draft survives settings toggle and hide/show; material-tag strip visible/removable/consumed; no-model retry bar keeps input with known-outcome note; stop during streaming -> interrupted + cancelled candidate; retry after stop -> lookup first (host has no record) -> resent -> completed reply; console 0 errors)",
       "installation": "NOT_EXECUTED",
-      "evidence_refs": [],
-      "blocker": null,
-      "rollback_handle": null
+      "evidence_refs": [
+        "docs/companion/GF07-STREAM-AND-RETRY.md"
+      ],
+      "blocker": "real model upstream not configured this session so \"real call usable\" stays UNVERIFIED (adapter/SSE covered by tests, not host integration); lookupRequest is a new OPTIONAL port capability absent from the dev-proxy (openai-compatible) port so retry there is honestly labelled RESENT_WITHOUT_LOOKUP; AAOS-side request lookup BLOCKED_BY_HOST_CONTRACT",
+      "rollback_handle": "git revert of the GF07 commit on feat/astryn-learning-companion-v1; additive contract members are optional; new files tests/interaction/stream-retry.test.ts + tests/presentation/composer-continuity.test.tsx; no migration and no host-side writes",
+      "source_sha": "source tree sha256 d0a223a0dd84e7e41b197fb77c2914e704d48886fe782dc6a748b61029321008 (93 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head f1bf14e5e3df93f751e75f3da9bbee60be46b2cf; receipt docs/verification/gates.json",
+      "changed_paths": [
+        "contracts/conversation.ts",
+        "src/interaction/companion-controller.ts",
+        "src/interaction/session-manager.ts",
+        "src/adapters/synthetic-conversation.ts",
+        "src/presentation/companion-view.tsx",
+        "src/presentation/companion-shell.tsx",
+        "src/presentation/astryn.css",
+        "src/index.ts",
+        "tests/interaction/stream-retry.test.ts (new)",
+        "tests/presentation/composer-continuity.test.tsx (new)",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF07-STREAM-AND-RETRY.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261013-232954.log, single pass); vitest 32 files / 293 passed; vite dev server 127.0.0.1:5183 (VITE_ASTRYN_ALLOW_SYNTHETIC=1) exercised via DOM readout including draft continuity, no-model retry bar, stop via microtask capture, lookup-before-resend after stop, explain-selection regression, console 0 errors, vite terminated by netstat PID 14584, port 5183 released",
+      "artifact_hashes": "gates.json sourceTree.sha256=d0a223a0dd84e7e41b197fb77c2914e704d48886fe782dc6a748b61029321008 (93 files); build index-CbOSzxQX.js 281523 bytes sha256 1cf192baaa4f44a8760d0c28632cf3e61201d9f9c952d4b1cd8daca97c24d2a1, index-jmmVyAgy.css 10076 bytes sha256 f9ee4dba2d3945b103f551f7d45539707068911c40cf585785c4376a9c24a218",
+      "limitations": "browser evidence is structural DOM readout (no screenshot surface this session); synthetic script is zero-delay so the in-browser stop window is sub-frame and was caught via microtask polling while timing-sensitive semantics are proven by controlled-clock tests; late-event rejection relies on the existing GF04 guard chain (SETTLED_REQUEST) and only gains witness tests here; a port that ignores abort can only be stopped from the consumer side (no dispatch, no render); resend honestly records a second user message instead of merging; dev-host app.tsx wiring remains browser-smoke-only (no test imports it)"
     },
     {
       "task_id": "GF08",

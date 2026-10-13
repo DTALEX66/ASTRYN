@@ -12,7 +12,7 @@ import { createCompanionSessionManager } from '../interaction/session-manager';
 import type { CompanionSessionManager, CompanionSessionPorts, CompanionSessionSnapshot } from '../interaction/session-manager';
 import { avatarViewForMode } from '../avatar/render-profiles';
 import type { AstrynProfileLoad, AstrynProfileStore } from '../companion/profile-store';
-import { ApprovalCard, AvatarView, ChatLog, Composer, StatusStrip } from './companion-view';
+import { ApprovalCard, AvatarView, ChatLog, Composer, RetryBar, StatusStrip } from './companion-view';
 import type { TranscriptEntry } from './companion-view';
 import { CompanionSettings } from './companion-settings';
 import './astryn.css';
@@ -61,6 +61,9 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  // 草稿归外壳所有：设置开关、隐藏角色、失败重试都不吞输入（GF07 输入连续性）。
+  const [draft, setDraft] = useState('');
+  const [retryNote, setRetryNote] = useState<string | null>(null);
 
   const store = props.profileStore ?? null;
 
@@ -159,7 +162,41 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
   }, [snapshot, state.streamedText, state.failure, synthetic, contextFragment]);
 
   const handleSubmit = useCallback((text: string) => {
-    void manager.submit(text);
+    void manager.submit(text).then((outcome) => {
+      if (outcome.accepted) {
+        setDraft('');
+        setRetryNote(null);
+      } else if (outcome.reason === 'SESSION_BUSY') {
+        setRetryNote('正在生成中：等这一轮结束再发送。');
+      }
+    });
+  }, [manager]);
+
+  const handleRetry = useCallback(() => {
+    void manager.retry().then((outcome) => {
+      if (!outcome.accepted) {
+        if (outcome.reason === 'SESSION_BUSY') setRetryNote('正在生成中：稍后再重试。');
+        return;
+      }
+      if (outcome.disposition.kind === 'HELD_BACK') {
+        const label = outcome.disposition.lookup.outcome === 'completed' ? '已执行完成' : '仍在执行中';
+        setRetryNote(`未重发：原请求${label}（${outcome.disposition.lookup.detail ?? '宿主查询结果'}）。为避免重复执行，输入已放回输入框。`);
+        setDraft(outcome.text);
+        return;
+      }
+      if (outcome.disposition.kind === 'RESENT_WITHOUT_LOOKUP') {
+        setRetryNote('端口未提供原请求查询能力（宿主合同缺项）：无法确认原请求是否已执行，已按新请求重发。');
+        return;
+      }
+      const lookup = outcome.disposition.lookup;
+      if (lookup && lookup.outcome === 'unknown') {
+        setRetryNote(`查询原请求未给出确定结果（${lookup.detail ?? '未知'}）：已按新请求重发，可能重复执行。`);
+      } else if (lookup) {
+        setRetryNote('已先查询原请求（宿主无该请求记录）：按新请求重发。');
+      } else {
+        setRetryNote('执行结果已知未执行：已直接重发。');
+      }
+    });
   }, [manager]);
 
   const handleProfileChange = useCallback((next: AstrynCharacterProfile) => {
@@ -314,7 +351,13 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
       ) : (
         <>
           <ChatLog transcript={transcript} />
+          {snapshot.retry && !streaming ? <RetryBar candidate={snapshot.retry} onRetry={handleRetry} /> : null}
+          {retryNote ? <div className="astryn-disclosure" data-testid="astryn-retry-note">{retryNote}</div> : null}
           <Composer
+            value={draft}
+            onValueChange={setDraft}
+            attachments={snapshot.pendingAttachments}
+            onRemoveAttachment={(index) => manager.removePendingContext(index)}
             streaming={streaming}
             disabled={false}
             onSubmit={handleSubmit}

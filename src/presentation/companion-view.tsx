@@ -183,39 +183,102 @@ export function ApprovalCard({ state, onApprovalDecision }: Pick<CompanionViewPr
   );
 }
 
-export function Composer({ onSubmit, onCancel, onFocus, onBlur, streaming, disabled }: {
+export interface ComposerProps {
+  /** 受控草稿：由外壳持有，打开设置/隐藏角色/重试时都不丢输入。 */
+  readonly value: string;
+  readonly onValueChange: (value: string) => void;
+  /** 已附到下一轮、尚未提交的获准材料标签。 */
+  readonly attachments: readonly AstrynContextFragment[];
+  readonly onRemoveAttachment: (index: number) => void;
   readonly onSubmit: (text: string) => void;
   readonly onCancel: () => void;
   readonly onFocus: () => void;
   readonly onBlur: () => void;
   readonly streaming: boolean;
   readonly disabled: boolean;
-}): JSX.Element {
-  const [draft, setDraft] = useState('');
+}
+
+export function Composer({
+  value,
+  onValueChange,
+  attachments,
+  onRemoveAttachment,
+  onSubmit,
+  onCancel,
+  onFocus,
+  onBlur,
+  streaming,
+  disabled
+}: ComposerProps): JSX.Element {
   return (
     <form
       className="astryn-composer"
       onSubmit={(event) => {
         event.preventDefault();
-        if (draft.trim().length === 0) return;
-        onSubmit(draft);
-        setDraft('');
+        if (value.trim().length === 0) return;
+        onSubmit(value);
       }}
     >
+      {attachments.length > 0 ? (
+        <div className="astryn-composer-tags" data-testid="astryn-composer-tags" aria-label="已附加材料标签">
+          {attachments.map((fragment, index) => (
+            <span key={`${fragment.sourceId}-${index}`} className="astryn-chip astryn-chip--tag" data-testid={`astryn-attachment-${index}`}>
+              {fragment.sourceTitle} {fragment.sourceVersion}
+              <button
+                type="button"
+                className="astryn-chip-remove"
+                aria-label={`移除材料标签：${fragment.sourceTitle}`}
+                data-testid={`astryn-attachment-remove-${index}`}
+                onClick={() => onRemoveAttachment(index)}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      ) : null}
       <input
         data-testid="astryn-input"
-        value={draft}
+        value={value}
         disabled={disabled}
         placeholder={disabled ? '角色已隐藏' : '和小栖说点什么…'}
         aria-label="发送给小栖的消息"
-        onChange={(event) => setDraft(event.target.value)}
+        onChange={(event) => onValueChange(event.target.value)}
         onFocus={onFocus}
         onBlur={onBlur}
       />
-      <button type="submit" className="astryn-btn" data-testid="astryn-send" disabled={streaming || draft.trim().length === 0}>发送</button>
+      <button type="submit" className="astryn-btn" data-testid="astryn-send" disabled={streaming || value.trim().length === 0}>发送</button>
       {streaming ? (
         <button type="button" className="astryn-btn astryn-btn--stop" data-testid="astryn-stop" onClick={onCancel}>停止生成</button>
       ) : null}
     </form>
+  );
+}
+
+export interface RetryBarProps {
+  readonly candidate: {
+    readonly text: string;
+    readonly failureCode: string | null;
+    readonly cause: 'failed' | 'cancelled';
+    readonly outcomeUnknown: boolean;
+  };
+  readonly onRetry: () => void;
+}
+
+/**
+ * 重试条：展示"输入已保留"，并预告将先查询原请求还是直接重发。
+ * 它只转发一次重试意图，不做任何自行重发。
+ */
+export function RetryBar({ candidate, onRetry }: RetryBarProps): JSX.Element {
+  return (
+    <div className="astryn-retry" data-testid="astryn-retry" role="group" aria-label="重试上一轮">
+      <span data-testid="astryn-retry-text">
+        上一轮{candidate.cause === 'cancelled' ? '已停止' : '未完成'}（{candidate.failureCode ?? '未知原因'}）：输入已保留——「{candidate.text}」
+      </span>
+      <span className="astryn-disclosure" data-testid="astryn-retry-hint">
+        {candidate.outcomeUnknown ? '执行结果未知：重试会先查询原请求，再决定是否重发。' : '执行结果已知（未执行）：重试将直接重发。'}
+      </span>
+      <button type="button" className="astryn-btn" data-testid="astryn-retry-btn" onClick={onRetry}>重试</button>
+    </div>
   );
 }

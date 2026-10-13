@@ -1,10 +1,11 @@
 import type {
   AstrynCharacterProfile,
   AstrynChatMessage,
-  AstrynCompanionState
+  AstrynCompanionState,
+  AstrynContextFragment
 } from '@astryn/contracts';
 import { AstrynCompanionController } from './companion-controller';
-import type { CompanionControllerDeps, ControllerAudit } from './companion-controller';
+import type { CompanionControllerDeps, ControllerAudit, RetryCandidate, RetryDisposition } from './companion-controller';
 import type { AstrynProfileLoad, AstrynProfileStore } from '../companion/profile-store';
 
 /** 会话运行所需的宿主端口集合：变化即视为运行环境变化。 */
@@ -24,6 +25,10 @@ export interface CompanionSessionSnapshot {
   readonly profile: AstrynCharacterProfile;
   readonly transcript: readonly AstrynChatMessage[];
   readonly audit: ControllerAudit;
+  /** 已附到下一轮、尚未提交的获准材料标签。 */
+  readonly pendingAttachments: readonly AstrynContextFragment[];
+  /** 上一轮未完成的重试候选（失败或被停止）：输入与标签已保留。 */
+  readonly retry: RetryCandidate | null;
   readonly viewsAttached: number;
   /** 无视图时渲染暂停（不推送快照），业务与宿主订阅照常运行。 */
   readonly renderingPaused: boolean;
@@ -32,6 +37,10 @@ export interface CompanionSessionSnapshot {
 export type AstrynSubmitOutcome =
   | { readonly accepted: true; readonly requestId: string }
   | { readonly accepted: false; readonly reason: 'EMPTY_INPUT' | 'SESSION_BUSY' | 'DISPOSED' };
+
+export type AstrynRetryOutcome =
+  | { readonly accepted: true; readonly ofRequestId: string; readonly text: string; readonly disposition: RetryDisposition }
+  | { readonly accepted: false; readonly reason: 'NO_RETRY_CANDIDATE' | 'SESSION_BUSY' | 'DISPOSED' };
 
 export interface CompanionSessionManagerOptions {
   /**
@@ -85,6 +94,8 @@ export class CompanionSessionManager {
         profile: this.deps.profile,
         transcript: this.controller.transcript,
         audit: this.controller.audit,
+        pendingAttachments: this.controller.pendingContextFragments,
+        retry: this.controller.retryCandidate,
         viewsAttached: this.viewHandles.size,
         renderingPaused: this.viewHandles.size === 0
       };
@@ -133,6 +144,27 @@ export class CompanionSessionManager {
     }
   }
 
+  /**
+   * 重试上一轮未完成的提交。与 submit 共用单飞闸门：
+   * 结果未知时先查询原请求再重发；被扣留或无法查询的情形如实返回处置。
+   */
+  async retry(): Promise<AstrynRetryOutcome> {
+    if (this.finalized) return { accepted: false, reason: 'DISPOSED' };
+    if (this.inFlight) return { accepted: false, reason: 'SESSION_BUSY' };
+    this.inFlight = true;
+    try {
+      const result = await this.controller.retry();
+      if (!result.ok) {
+        if (result.reason === 'NO_RETRY_CANDIDATE') return { accepted: false, reason: 'NO_RETRY_CANDIDATE' };
+        if (result.reason === 'IN_FLIGHT') return { accepted: false, reason: 'SESSION_BUSY' };
+        return { accepted: false, reason: 'DISPOSED' };
+      }
+      return { accepted: true, ofRequestId: result.ofRequestId, text: result.text, disposition: result.disposition };
+    } finally {
+      this.inFlight = false;
+    }
+  }
+
   cancel(reason: 'user' | 'superseded' | 'unmount' = 'user'): void {
     if (this.finalized) return;
     this.controller.cancel(reason);
@@ -141,6 +173,13 @@ export class CompanionSessionManager {
   attachContext(fragments: Parameters<AstrynCompanionController['attachContext']>[0]): void {
     if (this.finalized) return;
     this.controller.attachContext(fragments);
+    this.invalidate();
+  }
+
+  removePendingContext(index: number): void {
+    if (this.finalized) return;
+    this.controller.removePendingContext(index);
+    this.invalidate();
   }
 
   notifyFocus(surface: 'composer' | 'chat-log' = 'composer'): void {

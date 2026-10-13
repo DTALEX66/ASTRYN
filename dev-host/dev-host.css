@@ -96,6 +96,21 @@
   resize: vertical;
 }
 
+/* 记忆账本导出：开发工具面板里的只读 JSON 快照。 */
+.devhost-export {
+  background: #0d1024;
+  border: 1px solid #2a3358;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 /* 窄视口（≤420px）下不产生横向滚动：375px 手机宽度是实测溢出点。 */
 @media (max-width: 420px) {
   .devhost-page { padding: 10px; gap: 12px; }

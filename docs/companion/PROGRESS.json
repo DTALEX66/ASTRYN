@@ -173,14 +173,34 @@
     },
     {
       "task_id": "GF06",
-      "state": "PLANNED",
-      "implementation": "NOT_EXECUTED",
-      "tests": "NOT_EXECUTED",
-      "runtime": "UNVERIFIED",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_30_FILES_278_PASSED_INCL_GF06_12 (manager 8 + memory-panel 4)",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_GOVERNANCE_LOOP (propose, correct with dual-channel read-back, revoke keeps ledger trace, delete removes from ledger, suspend revokes actives + blocks local propose, resume allows, export excludes deleted record, separation chips live, console 0 errors on fresh load)",
       "installation": "NOT_EXECUTED",
-      "evidence_refs": [],
-      "blocker": "depends_on BE06 for real memory host operations",
-      "rollback_handle": null
+      "evidence_refs": [
+        "docs/companion/GF06-MEMORY-GOVERNANCE.md"
+      ],
+      "blocker": "real long-term memory host (BE06) not admitted: ledger is the in-process SYNTHETIC fixture; host confirmation face absent (candidates never auto-confirm in dev host); host grant changes BLOCKED_BY_HOST_CONTRACT (suspend is local-only interception); backup retention is host territory and is never claimed cleared",
+      "rollback_handle": "git revert of the GF06 commit on feat/astryn-learning-companion-v1; additive only (src/memory/manager.ts, tests/memory/*, dev-host/memory-panel.tsx, dev-host/app.tsx section swap, dev-host.css rule)",
+      "source_sha": "source tree sha256 0075b9e1eff08655125bfdda41f6571e2a6b688c46a427ecd43d0f067386696d (91 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head 077e6fdadff2f4e2f4065d1107fc0fd49c73f89c; receipt docs/verification/gates.json",
+      "changed_paths": [
+        "src/memory/manager.ts (new)",
+        "src/index.ts",
+        "dev-host/memory-panel.tsx (new)",
+        "dev-host/app.tsx",
+        "dev-host/dev-host.css",
+        "tests/memory/manager.test.ts (new)",
+        "tests/memory/memory-panel.test.tsx (new)",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF06-MEMORY-GOVERNANCE.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261013-231754.log, single pass); vitest 30 files / 278 passed; vite dev server 127.0.0.1:5183 (VITE_ASTRYN_ALLOW_SYNTHETIC=1) exercised via DOM readout including propose/correct/revoke/delete/suspend/resume/export plus a GF05 learning import regression, console 0 errors on fresh load, vite terminated by netstat PID 15604, port 5183 released",
+      "artifact_hashes": "gates.json sourceTree.sha256=0075b9e1eff08655125bfdda41f6571e2a6b688c46a427ecd43d0f067386696d (91 files); build index-BId_1Wxf.js 275424 bytes sha256 160da66951dafa0e1bf68268bfe29f89fff3d5559edd83a1d7a6582f0ae78e70, index-C_KIL2tT.css 9221 bytes sha256 3d2b2d71c984dd6f3778a8b8453178d4013f1427975558f5daca8c793cc73a9c",
+      "limitations": "browser evidence is structural DOM readout (no screenshot surface this session); read-back runs through the same port, so a lying port is detected only by the falsifier test (TamperingPort) not by an out-of-band channel; confirmation governance (host receipt face) has no dev-host UI so candidate->confirmed is exercised in unit tests only; in-process SYNTHETIC ledger means real memory host integration stays UNVERIFIED (BE06); dev-host app.tsx wiring is browser-smoke-only (no test imports it)"
     },
     {
       "task_id": "GF07",

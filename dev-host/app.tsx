@@ -6,6 +6,7 @@ import {
   SyntheticContextFixture,
   SyntheticHostSimulator,
   SyntheticMemoryFixture,
+  MemoryManager,
   XIAOQI_PROFILE,
   createCompanionSessionManager,
   createEphemeralProfileStore,
@@ -15,12 +16,12 @@ import {
   type AstrynContextFragment,
   type AstrynHostCapabilities,
   type AstrynHostUnavailable,
-  type AstrynMemoryCandidate,
   type AstrynPresentationMode
 } from '@astryn/core';
 import { CompanionShell } from '@astryn/core';
 import { readDevConfig } from './dev-config';
 import { LearningPanel } from './learning-panel';
+import { MemoryPanel } from './memory-panel';
 import '../src/presentation/astryn.css';
 import './dev-host.css';
 
@@ -53,11 +54,12 @@ export function DevHostApp(): JSX.Element {
     [sessionId, conversationPort, simulator]
   );
   const memory = useMemo(() => new SyntheticMemoryFixture(), []);
+  // GF06：治理动作经宿主端口并读回验证；新会话换管理器（账本按会话过滤）。
+  const memoryManager = useMemo(() => new MemoryManager({ port: memory, sessionId }), [memory, sessionId]);
   // 学习陪伴状态独立于会话运行时：新会话不清空材料与练习记录（进程内，刷新即失）。
   const learningStore = useMemo(() => createLearningCompanion(), []);
   // 开发回退：进程内，刷新即失。正式档案保存归宿主（character.profile.write，BE06 未接通）。
   const profileStore = useMemo(() => createEphemeralProfileStore(), []);
-  const [review, setReview] = useState<readonly AstrynMemoryCandidate[]>([]);
   const [notice, setNotice] = useState<string>('');
   const [hostProbe, setHostProbe] = useState<AstrynHostCapabilities | AstrynHostUnavailable | null>(null);
 
@@ -112,12 +114,6 @@ export function DevHostApp(): JSX.Element {
     setNotice('');
     return result.fragment;
   }), [sessionId]);
-
-  const proposeCandidate = useMemo(() => (async (scope: AstrynMemoryCandidate['scope'], origin: AstrynMemoryCandidate['origin'], summary: string) => {
-    const outcome = await memory.propose({ scope, origin, summary, sessionId });
-    setReview(await memory.listForReview(sessionId));
-    setNotice(outcome.ok ? `已登记候选（${outcome.candidate.lifecycle}）：${outcome.candidate.id}` : `登记被拒：${outcome.reason}`);
-  }), [memory, sessionId]);
 
   return (
     <div className="devhost-page">
@@ -236,32 +232,7 @@ export function DevHostApp(): JSX.Element {
           readCharacterReply={() => manager.snapshot.state.streamedText}
         />
 
-        <section className="astryn-root" data-testid="devhost-memory">
-          <div className="astryn-title">记忆候选（进程内夹具，刷新即销毁）</div>
-          <div className="astryn-toolbar">
-            <button type="button" className="astryn-btn" data-testid="devhost-mem-pref" onClick={() => void proposeCandidate('user_preference', 'user-stated', '用户偏好：晚上少打扰')}>登记偏好候选</button>
-            <button type="button" className="astryn-btn" data-testid="devhost-mem-fiction" onClick={() => void proposeCandidate('character_fiction', 'model-generated', '模型自称「我们上次一起看过海」')}>登记虚构经历候选</button>
-          </div>
-          <ul className="devhost-candidates">
-            {review.map((record) => (
-              <li key={record.id} data-testid={`devhost-mem-row-${record.id}`}>
-                {record.scope} · {record.origin} · {record.lifecycle} · {record.summary}
-                <button
-                  type="button"
-                  className="astryn-btn devhost-inline-btn"
-                  data-testid={`devhost-mem-delete-${record.id}`}
-                  onClick={() => {
-                    void memory.delete({ receiptId: `ui-${record.id}`, candidateId: record.id, to: 'deleted', issuedBy: 'user-console', issuedAt: new Date().toISOString() });
-                    void memory.listForReview(sessionId).then(setReview);
-                  }}
-                >
-                  删除
-                </button>
-              </li>
-            ))}
-            {review.length === 0 ? <li className="astryn-disclosure">（尚无候选）</li> : null}
-          </ul>
-        </section>
+        <MemoryPanel manager={memoryManager} learningStore={learningStore} profileStore={profileStore} onNotice={setNotice} />
 
         <section className="astryn-root" data-testid="devhost-boundary">
           <div className="astryn-title">边界声明</div>
@@ -272,6 +243,7 @@ export function DevHostApp(): JSX.Element {
             <li>合成数据一律标注 SYNTHETIC；真实模型调用需自行配置 dev 代理，密钥不进浏览器。</li>
             <li>学习材料与练习记录在开发宿主里只存进程内（刷新即失）；正式持久化归宿主，未接通前不做假保存。掌握度只由你的显式自评驱动，角色文本永不参与。</li>
             <li>任务状态只来自宿主回执；开发宿主里由合成模拟器的回执提供，故仍不构成真实集成证据。</li>
+            <li>记忆治理（查看/纠正/忘记/导出/停用）全部经宿主记忆端口并读回验证；开发宿主里账本仍是合成夹具（SYNTHETIC），正式长期记忆归 AAOS（BE06 未接通）。备份保留归宿主，星栖不可见、不可改。</li>
           </ul>
           <div className="astryn-disclosure" data-testid="devhost-notice">{notice}</div>
         </section>

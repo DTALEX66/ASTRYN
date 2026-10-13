@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T15:10:16.773Z",
+  "generatedAt": "2026-10-13T15:18:05.346Z",
   "toolchain": {
     "node": "v26.7.0",
     "platform": "win32",
@@ -9,12 +9,12 @@
   "git": {
     "repository": true,
     "branch": "feat/astryn-learning-companion-v1",
-    "head": "abb1f47cb48f10f01115c6ae06274c7ebd460d0a",
+    "head": "077e6fdadff2f4e2f4065d1107fc0fd49c73f89c",
     "worktreeNote": "需 git status 判定，见台账"
   },
   "sourceTree": {
-    "files": 87,
-    "sha256": "db462aab7c055528ec73754e10b3ff7909fa7c28047fe31b7dd6d824e46df4e0",
+    "files": 91,
+    "sha256": "0075b9e1eff08655125bfdda41f6571e2a6b688c46a427ecd43d0f067386696d",
     "scopes": [
       "contracts",
       "src",
@@ -106,8 +106,8 @@
     },
     {
       "path": "dev-host/app.tsx",
-      "bytes": 14147,
-      "sha256": "242fbe54b1ef956d8b23091d5e730a90f3c3e0576d930966de032cc948185ffe"
+      "bytes": 12577,
+      "sha256": "aef8972dcce7a73aa1f173e0eaf383a4f1331793d0373cb7a26466f79fdda510"
     },
     {
       "path": "dev-host/dev-config.ts",
@@ -116,8 +116,8 @@
     },
     {
       "path": "dev-host/dev-host.css",
-      "bytes": 1883,
-      "sha256": "2dcb7cdc39e9a85123930a792896393df4269ac054efc26dfe5f9073325f6b87"
+      "bytes": 2221,
+      "sha256": "a3f046ebb3640c525ff6583e70867d8b5d904f5721a90aae04dec74f19039468"
     },
     {
       "path": "dev-host/index.html",
@@ -133,6 +133,11 @@
       "path": "dev-host/main.tsx",
       "bytes": 328,
       "sha256": "561369009f5b97be1ba91e84b790e34c59ff406ba9a3ce2b32a6c2d7ad91ba61"
+    },
+    {
+      "path": "dev-host/memory-panel.tsx",
+      "bytes": 14708,
+      "sha256": "3e325819aa832b13d009342a3604844f022ac134963b0258e77d3fed441631dd"
     },
     {
       "path": "dev-host/server/dev-model-proxy.mjs",
@@ -156,8 +161,8 @@
     },
     {
       "path": "PROJECT_CONTRACT.yaml",
-      "bytes": 4033,
-      "sha256": "22d78903506bbbfe6658068aee1fdabb68c06a5b02428c32d4e0d0a938d4a6f8"
+      "bytes": 4567,
+      "sha256": "23b6432f56bccf3f5e8e416cbea958f84c55ec80a49f4b49e2df512d2ccd968a"
     },
     {
       "path": "src/adapters/aaos-bridge.ts",
@@ -256,8 +261,8 @@
     },
     {
       "path": "src/index.ts",
-      "bytes": 4740,
-      "sha256": "a85bb8acc7c6c278db4bbb77bdfeb7c821b217baafd6228bc04409be00ee8db0"
+      "bytes": 5060,
+      "sha256": "73d7d92060c7fbc5980f9b92d0c0a5eebc9d66905aec4500162347e0e555ce68"
     },
     {
       "path": "src/interaction/companion-controller.ts",
@@ -278,6 +283,11 @@
       "path": "src/learning/types.ts",
       "bytes": 8127,
       "sha256": "b6b70c18bf517a6b7302c7bd2cda2c52c7f89050e45ece48ff18f57a585bbd9b"
+    },
+    {
+      "path": "src/memory/manager.ts",
+      "bytes": 15398,
+      "sha256": "f13cae03130aebf7b099edd9685bfaf73113a94bf4d9f33c8ab71bfaef8f1a70"
     },
     {
       "path": "src/memory/policy.ts",
@@ -428,6 +438,16 @@
       "path": "tests/learning/learning-panel.test.tsx",
       "bytes": 10947,
       "sha256": "260be33b6ac2ef09a67d91f6cf3653573cbf8e7c20c71295d8caa528f029291a"
+    },
+    {
+      "path": "tests/memory/manager.test.ts",
+      "bytes": 12377,
+      "sha256": "3f4a7f3ca04903468e56f53dfaca8951a188d1ab89aba6c7025c4c522e203e10"
+    },
+    {
+      "path": "tests/memory/memory-panel.test.tsx",
+      "bytes": 6750,
+      "sha256": "f6113ef71e2d3d4cb2db79eb29a318bddab35ce88a064c69517989b77c95f667"
     },
     {
       "path": "tests/memory/policy.test.ts",

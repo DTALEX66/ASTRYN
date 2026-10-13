@@ -36,6 +36,19 @@ export { SseDecoder, SSE_DONE_SENTINEL } from './adapters/sse';
 export { SyntheticMemoryFixture } from './memory/synthetic-fixture';
 export { decideLifecycle, decideRead, decideWrite } from './memory/policy';
 export type { MemoryDecision } from './memory/policy';
+export { ASTRYN_MEMORY_SPACES, MemoryManager } from './memory/manager';
+export type {
+  AstrynMemorySpace,
+  MemoryExport,
+  MemoryExportResult,
+  MemoryManagerOptions,
+  MemoryOperationResult,
+  MemoryOperationStep,
+  MemoryProposeInput,
+  MemoryReadBack,
+  MemoryReadBackEntry,
+  MemoryView
+} from './memory/manager';
 export {
   ASTRYN_LEARNING_INTENTS,
   ASTRYN_RECALL_OUTCOMES,

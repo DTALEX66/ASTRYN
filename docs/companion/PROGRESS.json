@@ -1,0 +1,145 @@
+{
+  "schema": "archeaxis.task-progress/v1",
+  "plan_id": "ASTRYN-COMPANION-20261013",
+  "repository": "DTALEX66/ASTRYN",
+  "branch": "feat/astryn-learning-companion-v1",
+  "updated": "2026-10-13",
+  "state_vocabulary": "task states follow pack template; runtime/installation kept separate from tests",
+  "task_updates": [
+    {
+      "task_id": "GF00",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_PACKAGE_AND_READBACK_CHECKS",
+      "runtime": "NOT_APPLICABLE_STATIC_HANDOVER",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [
+        "docs/companion/GF00-BASELINE-AND-SCOPE.md",
+        "docs/companion/source-ports-readback.json"
+      ],
+      "blocker": null,
+      "rollback_handle": "linear branch from a21495a; git revert of GF00 commit; no published history rewritten"
+    },
+    {
+      "task_id": "GF01",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": "depends_on BE01 (host contract admission) — UI-side schema/views proceed; host persistence stays BLOCKED_BY_HOST_CONTRACT",
+      "rollback_handle": null
+    },
+    {
+      "task_id": "GF02",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": "depends_on GF01 and BE05 (host session stream)",
+      "rollback_handle": null
+    },
+    {
+      "task_id": "GF03",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "GF04",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": "host logical operations are PROPOSED_REQUIRES_BE01_FORMAL_ADMISSION; adapter works as far as negative/contract tests allow and marks real calls BLOCKED",
+      "rollback_handle": null
+    },
+    {
+      "task_id": "GF05",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "GF06",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": "depends_on BE06 for real memory host operations",
+      "rollback_handle": null
+    },
+    {
+      "task_id": "GF07",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "GF08",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "GF09",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "GF10",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": "real host joint acceptance needs BE12; ASTRYN-side acceptance runs separately",
+      "rollback_handle": null
+    },
+    {
+      "task_id": "GF11",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    }
+  ]
+}

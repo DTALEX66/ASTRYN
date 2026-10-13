@@ -18,6 +18,10 @@
 
 研究侧补齐方向 2/3/5/7/9 共 43 个候选（矩阵 §3），并纠正两处会被照抄的误解：`acceptFirstMouse` 是 macOS 专用而非鼠标穿透、`visibleOnAllWorkspaces` 在 Windows 不支持。
 
+## 第三轮：小栖学习伴侣任务包接手（分支 `feat/astryn-learning-companion-v1`）
+
+用户引用任务包 `03-ASTRYN-Companion-Taskpack.zip`（**6,023,444 字节**，sha256 `553db575…94f4`，58 条目；57/57 随包文件校验通过）作为 `ASTRYN-COMPANION-20261013` 的执行输入。已从 `a21495a` 建分支并执行 GF00：基线与范围见 `docs/companion/GF00-BASELINE-AND-SCOPE.md`，八类 Port readback 见 `docs/companion/source-ports-readback.json`（8/8 端口，blob sha 与包内 `SOURCE-INDEX.json` 逐项一致），进度账本 `docs/companion/PROGRESS.json`。宿主依赖 BE01/BE03/BE05/BE06/BE07/BE12 位于 `DTALEX66/ArcheAxis-Knowledge-OS`，本仓不写对方仓库；未正式化的宿主操作按 `BLOCKED_BY_HOST_CONTRACT` 记录，不以合成流补齐正式结果。main 侧 CI 最新绿 `38394262275 @ a21495a`（10 次运行 = 6 绿 4 红）。
+
 验收：A00–A04、A06–A16 为 PASS（A01 为 PARTIAL），A05 `NOT_TESTED`、A17 `UNVERIFIED`、A18/A19 `NOT_EXECUTED`。**整体 M0 = PARTIAL**，逐项证据见 `docs/tasks/M0-ACCEPTANCE-TRACKER.md`。
 
 ## 现场事实（本轮实测，勿从历史推断）

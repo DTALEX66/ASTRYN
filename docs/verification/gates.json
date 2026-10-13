@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T00:11:34.318Z",
+  "generatedAt": "2026-10-13T11:52:31.002Z",
   "toolchain": {
     "node": "v26.7.0",
     "platform": "win32",
@@ -9,12 +9,12 @@
   "git": {
     "repository": true,
     "branch": "main",
-    "head": "2a671f60f2a65e392c49eaf02ba018a0f8d2e183",
+    "head": "9cf9a44441d24706211633f0759146872a726a0c",
     "worktreeNote": "需 git status 判定，见台账"
   },
   "sourceTree": {
     "files": 64,
-    "sha256": "8b6d56d4a9c17ea5649b8cc27f49bf922ccba3b509a946fdf66d2af0c679dac4",
+    "sha256": "f843508d56f3385696b1b76660b222cfc882c08ad440ce4a0b3659b2224b4218",
     "scopes": [
       "contracts",
       "src",
@@ -31,13 +31,8 @@
       "PROJECT_CONTRACT.yaml"
     ]
   },
-  "stages": {
-    "lint": 0,
-    "typecheck": 0,
-    "test": 0,
-    "build": 0
-  },
-  "allGreen": true,
+  "stages": {},
+  "allGreen": false,
   "files": [
     {
       "path": "contracts/action.ts",
@@ -151,8 +146,8 @@
     },
     {
       "path": "PROJECT_CONTRACT.yaml",
-      "bytes": 1818,
-      "sha256": "d92f7321add3e95285058b2d6e186fcec7b4eca4f48631af0f9a73cf2e2576df"
+      "bytes": 1925,
+      "sha256": "6ffb2f065a6fdf3cc37f5089f14b19b8cabac87cdc52603fe37e4cacd25b0d9b"
     },
     {
       "path": "src/adapters/aaos-bridge.ts",

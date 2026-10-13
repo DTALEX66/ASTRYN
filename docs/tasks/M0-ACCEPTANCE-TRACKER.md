@@ -6,7 +6,7 @@
 | ID | 验收 | 状态 | 证据级别 | 实际证据 |
 | --- | --- | --- | --- | --- |
 | A00 | 原任务归档无损 | PASS | REAL | 本轮重新计算：`ASTRYN-DEVELOPMENT-START-V1.0.txt` 实测 SHA-256 `866C151DB45E0D0ADFCAFA9F059A836DF859D830420B65AB95673FDD4B08450F`（20,960 字节 / 527 行），与 `ARCHIVE-RECEIPT.md` 记录的哈希逐字符相等 ⇒ MATCH=true。本轮未改写该文件；22 个既有文件全数保留（S0 §5） |
-| A01 | 本地/远端身份正确，无错误重建 | **PASS** | REAL | 推送前复核：远端 `ls-remote` 返回 **0 ref**（空仓库，确认不会覆盖任何东西）后才 `git init -b main`。现本地 HEAD `5603f34` == 服务端 `refs/heads/main` `5603f3430d862410b852705dd55213e95eda2d52`（逐字符比对）。远端 tree 105 个 blob，归档原件 `git hash-object` 与远端 blob sha 一致且字节数 20960、SHA-256 等于收据值。未使用 force push，历史为 `b42eee2` → `5603f34` 两个正向提交 |
+| A01 | 本地/远端身份正确，无错误重建 | **PASS** | REAL | 推送前复核：远端 `ls-remote` 返回 **0 ref**（空仓库，确认不会覆盖任何东西）后才 `git init -b main`。现本地 HEAD `9cf9a44` == 服务端 `refs/heads/main` `9cf9a44441d24706211633f0759146872a726a0c`（本轮 `gh api commits/HEAD` 实测，逐字符比对）。远端 tree 105 个 blob（`git ls-tree -r HEAD | wc -l` 本地同为 105），归档原件 `git hash-object` 与远端 blob sha 一致且字节数 20960、SHA-256 等于收据值。未使用 force push，历史为 `b42eee2` → `5603f34` 两个正向提交 |
 | A02 | 宿主按文档启动 | PASS | SYNTHETIC | `npm run dev` → Vite ready 236 ms，`http://127.0.0.1:5183/` HTTP 200；embedded/panel 两模式类名与宽度实测切换（408/388px）；`presentation-modes.test.ts` 断言只承认这两种，其余带阻塞原因。级别为 SYNTHETIC：页面数据源是合成夹具 |
 | A03 | 原创小栖可见 | PASS | REAL（画面）/ SYNTHETIC（数据） | 截图 `m0-browser-02-idle-v2.png`、`m0-browser-03-awaiting-approval.png`；几何断言 avatar 200×233 且 `>40×40`；来源声明 `assets/original/README.md`；`no-sensitive-apis.test.ts` 强制 `assets/third-party/` 为空；SVG 不含 `<image`/`href`/外部 URL |
 | A04 | 表情动作由真实交互事件驱动 | PASS | SYNTHETIC | 浏览器：聚焦输入框 `idle→listening`（环色 `#5ad1c8→#7aa2ff`）；提交后 `data-expression-frame` 由 0 增至 **4**，等于真实到达的 delta 数（帧号在 reducer 内递增，不接受外部传入、无定时器）；审批时 `awaiting_approval`+`?`+琥珀环，完成时 `completed`+`✓`+绿环。测试：`companion-shell.test.tsx`、`approval-flow.test.tsx` |
@@ -23,14 +23,14 @@
 | A15 | 无秘密/无许可素材/权重/私人数据 | PASS | REAL | lockfile 320 包许可总账（无 GPL/AGPL/LGPL；唯一 CC-BY-4.0 是构建期数据集 `caniuse-lite`，见 DEPENDENCIES.md §3）；密钥样式扫描禁 `sk-…`/私钥块；`assets/third-party/` 空；`.gitignore` 排除 `.env`/`*.sqlite`/`*.safetensors`/`*.gguf`/`.project-local/`；请求体测试断言不含 `api_key`/`authorization`；未提交任何个人对话或运行数据 |
 | A16 | AAOS 工作树/队列未被修改 | PASS | REAL | 对 AAOS 仅执行只读命令（`ls`/`sed -n`/`grep`/`git rev-parse`/`git log -1`/`git status --short`）与文件读取；唯一写入是 ASTRYN 内的 `docs/architecture/AAOS-HOST-CAPABILITY-MAP.md`。核验时 AAOS HEAD `0574c3ac`、分支 `codex/conversation-closure-20261013`、工作树干净。未访问 E:/F:，未扫描其他同级项目 |
 | A17 | 真实 AAOS 集成 | **UNVERIFIED** | NO_EVIDENCE | 能力图谱结论：Core 无通用流式 chat completion（AAOS 自己用双方法 404 测试断言其不存在）；记忆晋升永远 human-only 且 Consumer 枚举不含星栖；无"当前选区"广播；无事件推送面（只能轮询 job）。星栖侧适配器已按这些事实实现，但**没有一次真实宿主调用** |
-| A18 | 远端 CI | **PASS** | REAL | 当前绿：run **38325744854** @ `2a671f6`，https://github.com/DTALEX66/ASTRYN/actions/runs/38325744854 ，Node 20.19 与 22.12 两矩阵各 10 步 success（含秘密扫描与素材检查）。**过程并非一次通过**：`b42eee2` 红（测试内嵌凭据样式字面量 + 归档被行尾规范化破坏 SHA-256）、`ce07148` 与 `eb1f4b5` 红（文档正文又引用了同一字面量，扫描器按设计命中）；一次 test=0 回执是误报（那次 shell 未把 node 放进 PATH，vitest 根本没跑），已重跑并刷新。扫描器四次都站对了边 |
+| A18 | 远端 CI | **PASS** | REAL | 最新绿：run **38326024723** @ `9cf9a44`，https://github.com/DTALEX66/ASTRYN/actions/runs/38326024723 ，Node 20.19 与 22.12 两矩阵各 10 步 success（含秘密扫描与素材检查）。**证据绑定到被验证的 SHA，不绑定"当前 HEAD"**：任何后续 docs-only 提交都会再触发一次 CI，权威历史是 run 列表本身（本轮实测全部 7 次：`5603f34`→38324785775 success、`2a671f6`→38325744854 success、`9cf9a44`→38326024723 success）。**过程并非一次通过**，4 次红逐次归因（失败步骤名取自 `gh run view --json jobs`）：`b42eee2`（38324323712）红于 **"No secrets in tracked sources"**（测试里内嵌的凭据样式字面量）；同一提交另有**一处 CI 未覆盖的缺陷**由推送后的远端 blob 比对发现：`core.autocrlf=true` 把归档原件从 CRLF 规范化成 LF（远端 blob 20434 字节 vs 磁盘 20960），破坏其 SHA-256 收据，靠 `docs/tasks/archive/** -text -eol` 在 `5603f34` 修掉 —— 该缺陷不在 CI 步骤集合内，说明 CI 的字节保真覆盖是缺口（风险登记册 Q9）；`6aa9785`/`ce07148`/`eb1f4b5`（38325380117 / 38325423442 / 38325589197）三次红于同一步 **"No secrets in tracked sources"** —— 回填文档时把同一字面量又写进了正文，扫描器按设计命中。另一次 `test=0` 是本地回执的误报（那次 shell 未把 node 放进 PATH，vitest 根本没跑），与 CI 无关，已重跑并刷新。扫描器七次判定全部与事实一致 |
 | A19 | 已安装运行/用户验收 | NOT_EXECUTED | NO_EVIDENCE | 未安装任何正式程序；本轮浏览器验证不等于你的验收 |
 
 ## 2. 整体判定
 
 **M0 = PARTIAL（可运行、可测试、契约完整、已上远端且 exact-SHA CI 全绿；真实模型与真实宿主两项外部依赖未完成）。**
 
-已达成启动任务的实质衡量标准前半段：星栖拥有了自己的可运行角色体验（A02–A04、A06–A08 全绿），建立了与 AAOS 一致的能力边界（A09–A13、A16 全绿），并留下了可直接接入 AAOS 的工程基础（类型化 Host Adapter + 按实测端点建模的桥）。A01 远端身份已确立，A14 门禁本地与远端双绿，A18 为 `5603f34` 上的 success。
+已达成启动任务的实质衡量标准前半段：星栖拥有了自己的可运行角色体验（A02–A04、A06–A08 全绿），建立了与 AAOS 一致的能力边界（A09–A13、A16 全绿），并留下了可直接接入 AAOS 的工程基础（类型化 Host Adapter + 按实测端点建模的桥）。A01 远端身份已确立，A14 门禁本地与远端双绿，A18 的最新绿是 run 38326024723 @ `9cf9a44`（双矩阵各 10 步 success）。
 
 未达成的三项全部取决于外部输入：**A05** 需要你提供获准凭据；**A17** 需要 AAOS 集成任务授权（宿主合同本身缺位）；**A19** 由你判定。
 

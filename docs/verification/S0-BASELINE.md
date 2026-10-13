@@ -104,9 +104,9 @@ src/.gitkeep                      tests/.gitkeep
 
 上文 §1–§6 记录的是 T00 时刻的现场，保持原样。之后用户下达"全部上传"指令（D015），现场已变：
 
-- 本地已 `git init -b main`，两次正向提交 `b42eee2` → `5603f34`，已推送 `DTALEX66/ASTRYN`（推送前实测远端 0 ref）。
+- 本地已 `git init -b main`，7 个正向提交 `b42eee2` → `5603f34` → `6aa9785` → `ce07148` → `eb1f4b5` → `2a671f6` → `9cf9a44`，已推送 `DTALEX66/ASTRYN`（推送前实测远端 0 ref，未 force push）。
 - `git_identity` 由 UNVERIFIED 变为已核验：本地 HEAD 与服务端 `refs/heads/main` 逐字符一致。
-- 远端 CI run `38324785775` 在 Node 20.19 / 22.12 两矩阵 success。
+- 远端 CI：`5603f34` 上首次转绿（run 38324785775），最新绿 run 38326024723 @ `9cf9a44`；main 累计 7 次运行 = 3 绿 4 红，逐次归因见台账 A18。
 - §6 表中 G1/G2/G3 三选一的问题以 **G1** 落地；G2/G3 不再适用。
 - 全程未 force push、未修改全局配置或凭据、未访问 E:/F:。
 

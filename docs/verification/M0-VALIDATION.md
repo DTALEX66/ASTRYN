@@ -72,7 +72,7 @@
 | --- | --- | --- |
 | 真实模型调用（A05） | `NOT_TESTED` / `NO_EVIDENCE` | 无获准凭据；未付费、未读取其他项目密钥。配置路径与错误路径已实现并被测试覆盖 |
 | AAOS 真实集成（A17） | `UNVERIFIED` | 见 `docs/architecture/AAOS-HOST-CAPABILITY-MAP.md`：Core 无通用流式会话面；记忆 Consumer 是闭集且不含星栖；无"当前选区"合同；宿主无事件推送面。适配器已按这些事实写成类型化契约，但没有一次真实调用 |
-| 远端 CI（A18） | **PASS** | 已推送并跑通：run `38324785775` @ `5603f34`，Node 20.19 与 22.12 两矩阵各 10 步 success（含秘密扫描与素材检查）。首跑 `38324323712` 为红，拦出测试内嵌字面凭据样式与归档被行尾规范化两处自身缺陷，已在 `5603f34` 修复 |
+| 远端 CI（A18） | **PASS** | 已推送并跑通：最新绿 run `38326024723` @ `9cf9a44`，Node 20.19 与 22.12 两矩阵各 10 步 success（含秘密扫描与素材检查）。main 上累计 7 次运行 = 3 绿 4 红；首跑 `38324323712` 红于 "No secrets in tracked sources"，拦出测试内嵌的字面凭据样式。**归因修正**：归档被行尾规范化破坏 SHA-256 并非 CI 拦出，是推送后人工比对远端 blob 与磁盘字节才发现（风险登记册 Q9 要求把该断言写进 CI） |
 | Git 关联（A01） | **PASS** | 本地 HEAD 与服务端 `refs/heads/main` 逐字符一致；未 force push、未改全局配置 |
 | 安装运行/用户验收（A19） | `NOT_EXECUTED` | 未安装任何正式程序；浏览器验证不等于用户验收 |
 | floating / pet / voice-only 形态 | `BLOCKED` | 需原生窗口/托盘与 AAOS ASR/TTS，属 P2 |

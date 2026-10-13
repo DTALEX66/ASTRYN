@@ -22,10 +22,10 @@
 
 ## 现场事实（本轮实测，勿从历史推断）
 
-- **本地已是 Git 仓库并已上远端**：用户指令"全部上传"构成该操作授权（D015）。`git init -b main` → 两个正向提交 `b42eee2`（M0 全量）→ `5603f34`（修复 CI 拦出的两处缺陷），HEAD `5603f3430d862410b852705dd55213e95eda2d52` 与服务端 `refs/heads/main` 逐字符一致。**未 force push、未改写已发布历史**；推送前确认远端为 0 ref，不存在覆盖他人工作。
+- **本地已是 Git 仓库并已上远端**：用户指令"全部上传"构成该操作授权（D015）。`git init -b main` → 7 个正向提交 `b42eee2`（M0 全量）→ `5603f34`（归档按字节 + 测试去掉字面凭据样式）→ `6aa9785`/`ce07148`/`eb1f4b5`（文档回填与回执刷新）→ `2a671f6`（文档正文不再出现字面凭据样式）→ `9cf9a44`（如实记录 CI 过程），HEAD `9cf9a44441d24706211633f0759146872a726a0c` 与服务端 `refs/heads/main` 逐字符一致（本轮 `gh api commits/HEAD` 实测）。**未 force push、未改写已发布历史**；推送前确认远端为 0 ref，不存在覆盖他人工作。
 - 仓库是 **public**：105 个文件已公开可见。文档内已参数化用户目录（`$HOME` 形式），不再含 Windows 用户名；`E:\` 仅出现在"未访问 E 盘"的声明句里。
 - 行尾策略：`.gitattributes` 统一 LF，`docs/tasks/archive/**` 显式 `-text -eol` 按字节原样存储，归档 SHA-256 与收据一致（CI 首跑拦出的缺陷，已修）。
-- 远端 CI：当前 HEAD `2a671f6` run 38325744854 双矩阵 success。过程中 4 次红/误报均如实记录在台账 A18：扫描器三次拦下我们自己写的字面凭据样式与归档行尾破坏，另一次本地 test=0 回执是 shell 未含 node 路径导致的空跑。
+- 远端 CI：最新绿 run **38326024723** @ `9cf9a44`（Node 20.19 / 22.12 双矩阵各 10 步 success）。main 上累计 7 次运行 = 3 绿 4 红，逐次归因见台账 A18：秘密扫描那一步 4 次拦下我们自己写进测试与文档正文的字面凭据样式；另有一次本地 `test=0` 回执是误报（那次 shell 未把 node 放进 PATH，vitest 根本没跑）。**归档被行尾规范化破坏 SHA-256 那一条 CI 并没有拦到**，是推送后人工比对远端 blob 字节才发现的——已作为风险 Q9 登记，建议动作是给 CI 加一步字节保真断言。
 - Git 全局配置含 `url.git@github.com:.insteadof=https://github.com/`，因此 origin 虽写作 HTTPS，实际走 SSH。未修改任何全局配置；提交身份沿用已有的 `DTALEX66`。
 - AAOS 本地根存在且为 Git 仓库（核验时 HEAD `0574c3ac`，工作树干净）。本轮对 AAOS **零写入**。
 - PATH 内无 node/npm；本轮绑定 `$HOME/AppData/Local/hermes/tools/node-26.7.0-win32-x64`（Node 26.7.0 / npm 11.19.0），npm 缓存限定在 `.project-local/runs/cache/npm`。
@@ -36,7 +36,7 @@
 
 | # | 任务 | 输入 | 范围 | 完成定义 | 所需授权 |
 | --- | --- | --- | --- | --- | --- |
-| 1 | ~~Git 关联方案定案并执行~~ **已完成** | 用户指令"全部上传"（D015） | `git init -b main` + 推送 DTALEX66/ASTRYN，未 force push | A01 PASS、A18 PASS（run 38324785775 双矩阵 success） | 后续 push/PR/release 仍需逐次确认 |
+| 1 | ~~Git 关联方案定案并执行~~ **已完成** | 用户指令"全部上传"（D015） | `git init -b main` + 推送 DTALEX66/ASTRYN，未 force push | A01 PASS、A18 PASS（最新绿 run 38326024723 @ `9cf9a44`，双矩阵 success） | 后续 push/PR/release 仍需逐次确认 |
 | 2 | 真实模型验证（A05） | 你提供的上游 base URL + 凭据 + 模型名；`VITE_ASTRYN_DEV_*` 与 `ASTRYN_DEV_MODEL_*` | 只跑通 `OpenAiCompatibleConversationPort` 与 dev 代理 | 一次真实流式回复 + 一次取消 + 一次上游错误，记录非敏感参数与结果，不保存私人正文 | 付费调用需明确许可；凭据只进代理进程环境 |
 | 3 | AAOS 宿主契约确认（A17 前置） | `AAOS-HOST-CAPABILITY-MAP.md` §ASTRYN 侧结论 | 确认 `GenerationRequest`/`MemoryCandidateWrite`/`ConsumerIdentity`/`ActionExecution` 四项形状；确认星栖能否成为被命名 Consumer | 每个 Port 有可复核的 AAOS 端点/版本/权限依据，或明确记为合同缺失 | AAOS 侧只需读；若要 AAOS 新增消费者枚举，须**集成任务授权** |
 | 4 | AAOS 原生挂载（P1） | 已实现的 `embedded`/`panel` 组件与 `AstrynHostPort` | 在 AAOS 前端内挂载星栖，接统一会话与 job 轮询 | 同一 AAOS 工作区内完成一次角色交互闭环，任务态来自真实 job 状态 | **修改 AAOS 正式源码需单独授权** |
@@ -45,6 +45,7 @@
 | 7 | **收窄 `dispatch`（风险 Q1）** | `astryn-m0.risk-quality.md` §2 | 让权威事件只能经 `ingestReceipt` 进入；补"直接 dispatch 伪造权威事件在架构上不可达"的负向测试 | 该路径不可被 UI 或未来插件触达 | 可自主执行（本轮未做，列为下一步首位） |
 | 8 | **AAOS 漂移检查（风险 Q2）** | `AAOS-HOST-CAPABILITY-MAP.md` | 只读脚本比对 AAOS 当前 HEAD 与图谱记录，漂移即红并纳入 `npm run verify` | 漂移可被自动发现，不靠人工记忆 | 可自主执行；写入 SHA 需 Git 授权 |
 | 9 | **reduced-motion 真机验证（风险 Q7）** | `DESIGN.md` 验证节 | 用 CDP `Emulation.setEmulatedMedia` 实测动画停止，替换当前的 CSS 声明级断言 | 有一条浏览器级证据 | 可自主执行 |
+| 10 | **CI 字节保真断言（风险 Q9）** | `docs/tasks/archive/ARCHIVE-RECEIPT.md` | 在 `ci.yml` 增加一步：对收据里的每个归档文件断言 `git cat-file -s` 与 `sha256sum` 等于记录值 | 植入一个字节改动即红；正常状态绿 | 可自主执行（本轮真实教训：该缺陷发生时 CI 全绿） |
 
 P3（受控系统 Agent）、P4（多角色与生态）仍只保留接口，不纳入近期完成范围。
 

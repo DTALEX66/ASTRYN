@@ -12,12 +12,10 @@
 | D008 | 2026-10-13 | 任务状态权威三重防线：类型层无模型可表达"完成"的类型、信封层要求 `trust=authoritative` + `source∈{host-action,host-task}`、校验层无校验器即降级拒收 | 启动任务"所有任务状态必须来自真实系统事件"；A08 负向测试驱动 | 有效 |
 | D009 | 2026-10-13 | 控制器构造保持无副作用，宿主订阅只在 `attach()` 建立 | 浏览器实测发现 StrictMode 重复调用初始化器会使被丢弃实例消耗一次性回执，导致审批卡永不出现（jsdom 测试全绿仍漏） | 有效 |
 | D010 | 2026-10-13 | 记忆与选区在宿主合同缺失时保留 `BLOCKED_BY_HOST_CONTRACT`，不用合成夹具冒充已集成 | AAOS 实测：Consumer 闭集不含星栖、无"当前选区"合同、无事件推送面 | 有效 |
-
 | D011 | 2026-10-13 | 呈现层设计契约固化为 `DESIGN.md`，并把对比度、焦点可见性、合成动效属性、令牌化与窄视口无溢出钉进 `tests/boundary/design-tokens.test.ts` | design-review 技能复审：axe 曾因文字坐在渐变上而**拒绝判定** 19–21 个节点（"0 违规"实为"没判"）；占位符 3.73:1、禁用态 3.82:1、375px 溢出 414>375 均为实测 | 有效 |
 | D012 | 2026-10-13 | 渲染驱动必须经 `AVATAR_RENDERERS` 注册表与 `selectAvatarRenderer()` 获取，UI 不得直接 import 具体渲染实现；同时新增 `originSeq` 使乱序检测作用于宿主原始序号 | 架构风险复审 R1/R2：两者在 108 项测试全绿下依然存在，seam 当时是装饰而非约束 | 有效 |
 | D013 | 2026-10-13 | 无 Git 期间以 `docs/verification/gates.json`（源码树内容哈希 + 门禁退出码 + 工具链绑定）作为证据锚点；Git 定案后改为记录 exact commit | 风险登记册 Q3：报告与现场可能脱节且无法自证 | 有效 |
 | D014 | 2026-10-13 | 技能插件缺依赖时在 `.project-local/runs/node-libs` 项目内补齐并用 `module.register()` 解析钩子接入；不修改插件缓存、不装全局包。浏览器修订号不匹配时显式 `executablePath` 指向本机已有构建，不下载运行时 | 实测偏离已记录于 `docs/verification/design-a11y.md` §1 | 有效 |
-
 | D015 | 2026-10-13 | 执行上传：`git init -b main` + 推送 `DTALEX66/ASTRYN`（public），分支取 `main` 而非全局默认的 `master` | 用户指令"全部上传"；推送前实测远端 0 ref（空仓库），不存在覆盖；未 force push、未改全局配置、沿用已有提交身份 DTALEX66。**本条覆盖 D003 与合同 `acceptance.no_git_initialization_or_remote_write`，原文保留以显示决策链** | 有效，替代 D003 |
 | D016 | 2026-10-13 | `docs/tasks/archive/**` 以 `-text -eol` 按字节原样存储，不参与行尾规范化；其余文本统一 LF | CI 首跑（run 38324323712）暴露：`* text=auto eol=lf` 把归档 CRLF 归一化，远端 blob 20434 != 磁盘 20960 字节，归档不再匹配 ARCHIVE-RECEIPT 的 SHA-256。修复后 staged 与远端字节数 20960、SHA-256 与收据逐字符一致 | 有效 |
 | D017 | 2026-10-13 | 测试与夹具中不得出现字面凭据样式串，需要时运行时拼装 | CI 秘密扫描步骤拦下 `sk- 前缀加 12 位以上字母数字` 字面量。扫描器行为正确，改的是我们自己 | 有效 |

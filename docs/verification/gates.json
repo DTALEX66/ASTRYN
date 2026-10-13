@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T16:08:53.920Z",
+  "generatedAt": "2026-10-13T16:14:12.457Z",
   "toolchain": {
     "node": "v26.7.0",
     "platform": "win32",
@@ -9,12 +9,12 @@
   "git": {
     "repository": true,
     "branch": "feat/astryn-learning-companion-v1",
-    "head": "e1cacd505184db39f30889ccea8991bf7029131e",
+    "head": "5b6bdef4d55abcb86e3f509b3018b6560db942e9",
     "worktreeNote": "需 git status 判定，见台账"
   },
   "sourceTree": {
     "files": 100,
-    "sha256": "8027cfe9186a9c4d265a8074faca1b2933c95f9b5c6f3641245a582bae0771ff",
+    "sha256": "367b15793cfb7a2b88c3d486674916b869e89b37699dc9a6d05373a57b0d037f",
     "scopes": [
       "contracts",
       "src",
@@ -166,8 +166,8 @@
     },
     {
       "path": "PROJECT_CONTRACT.yaml",
-      "bytes": 8166,
-      "sha256": "9647768a3256e91a9af1f23e87e3602ec0fe1a4a50d2ee3d39b5056d7e07b63d"
+      "bytes": 8910,
+      "sha256": "2b9caa8da308e04cbd83b9cec4115c231766a4e41db70cf6ddd9df88a4821cde"
     },
     {
       "path": "src/adapters/aaos-bridge.ts",

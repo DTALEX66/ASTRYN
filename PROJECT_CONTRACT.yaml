@@ -79,5 +79,9 @@ companion_program:
   gf09_doc: docs/companion/GF09-SPEECH-SHELL.md
   gf09_domain: contracts/speech.ts + src/speech/playback.ts + contracts/character.ts + src/presentation/companion-settings.tsx
   gf09_semantics: '语音端口提议与任务包 speech_optional 逐字一致（state=FRONTEND_FIELDS_NOW_RUNTIME_OPTIONAL，12 字段/3 规则；正式登记 BLOCKED_BY_HOST_CONTRACT 归 BE01，formalization_gate 四项原样保存）；回放外壳以音频回放时钟为投影基准（tick 单调，回退读数忽略），字幕按 segments 与时钟交叠投影、utterance 结束保留末条、停止清空；块守卫：跨会话（FOREIGN_SESSION）/旧 utterance（STALE_UTTERANCE）/乱序重复（OUT_OF_ORDER）拒收，结清后到达的块一律作废（NOT_SPEAKING）；停止原子复位音频订阅（abort 信号）、字幕与嘴形，迟到块不改变投影；口型三态 resolveMouthMode：无音频=文本帧、有音频无音素=基础口型、有音素=viseme——缺音素时间戳仅标基础口型，M0 渲染器嘴型仍由文本帧驱动（音素选帧属未来口型驱动器）；档案 v3 声音节补全前端字段（enabled/microphone/subtitles/volume，迁移 MIGRATED_V1_TO_V3/MIGRATED_V2_TO_V3，音量夹 0–1），偏好可编辑但未接通时运行按钮（试听/停止/按住说话）保持禁用并原样显示未接通原因，不播放任何语音；星栖前端不直接采集麦克风（采集归宿主权限面），无 audio 元素、无占位语音，均有门禁测试钉住'
-  execution_state: GF09_completed
+  gf10_doc: docs/companion/GF10-JOINT-ACCEPTANCE.md
+  gf10_semantics: '联合验收轮（零源码改动）：开发宿主端九卡联合跑通（审批链/学习闭环/记忆治理/取消重发/隐藏连续/人设切换/三槽共享会话），真实宿主与真实模型两半按 BE12/A05 分列记录；封存源码树与 GF09 字节相同（零漂移自证）'
+  gf11_doc: docs/companion/GF11-DELIVERY-GUIDE.md
+  gf11_deliverables: '交付指南（导出入口/端口兼容/人物源文件/资源清单/使用说明/回退）+ 宣传采集（开发宿主合成阶段实测；真实宿主采集 BLOCKED_BY_HOST_CONTRACT；待接声音与未接通项保留状态）+ 剩余工作台账 docs/companion/REMAINING-WORK.md；安装 NOT_EXECUTED'
+  execution_state: GF11_completed
   host_dependencies: 'BE01/BE03/BE05/BE06/BE07/BE12 in DTALEX66/ArcheAxis-Knowledge-OS; this repo never writes the host repo'

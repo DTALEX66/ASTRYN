@@ -45,3 +45,5 @@ jobs:
           if find assets/third-party -type f ! -name '.gitkeep' | grep . ; then
             echo "UNAUTHORIZED_ASSET_PRESENT" && exit 1
           fi
+      - name: Archive byte fidelity (ARCHIVE-RECEIPT vs committed bytes)
+        run: node scripts/check-archive-fidelity.mjs

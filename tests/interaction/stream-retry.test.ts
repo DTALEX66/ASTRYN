@@ -6,9 +6,11 @@ import type {
   AstrynConversationPort,
   AstrynConversationRequest,
   AstrynFailureCode,
+  AstrynHostPort,
   AstrynRequestLookup
 } from '@astryn/contracts';
 import { AstrynCompanionController, CompanionSessionManager, SyntheticConversationPort } from '@astryn/core';
+import { createHostTap } from '../support/host-tap';
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -102,14 +104,17 @@ function makePort(options: {
   return { port, streamCalls, lookupArgs, order };
 }
 
-function build(conversation: AstrynConversationPort | null, sessionId = 's1'): AstrynCompanionController {
-  return new AstrynCompanionController({
+function build(conversation: AstrynConversationPort | null, sessionId = 's1', host: AstrynHostPort | null = null): AstrynCompanionController {
+  const controller = new AstrynCompanionController({
     sessionId,
     profile: XIAOQI_PROFILE,
     conversation,
     actions: null,
-    verifier: null
+    verifier: null,
+    host
   });
+  if (host) controller.attach();
+  return controller;
 }
 
 describe('GF07 重试与取消恢复', () => {
@@ -223,15 +228,17 @@ describe('GF07 重试与取消恢复', () => {
 
   it('取消后晚到片段不能继续回复或动作：静默丢弃并计入守卫审计', async () => {
     const { port, streamCalls } = makePort({ runs: [{ deltas: ['前半'], delayMs: 40 }] });
-    const controller = build(port);
+    const tap = createHostTap();
+    const controller = build(port, 's1', tap.host);
     const pending = controller.submit('慢慢说');
     await sleep(8);
     controller.cancel('user');
     const { requestId: originalId } = await pending;
     const frozenText = controller.currentState.streamedText;
 
-    // 迟到的增量（值守卫路径）与迟到的权威任务完成（若被接受就会改变任务状态或回复）。
-    controller.dispatch(
+    // 迟到的增量与迟到的权威任务完成经已 attach 的宿主通道投递
+    // （若被接受就会改变任务状态或回复）。
+    tap.emit(
       createEvent({
         source: 'conversation',
         trust: 'observed',
@@ -243,7 +250,7 @@ describe('GF07 重试与取消恢复', () => {
         eventId: 'late-delta'
       }) as unknown as AstrynAnyEvent
     );
-    controller.dispatch(
+    tap.emit(
       createEvent({
         source: 'host-task',
         trust: 'authoritative',

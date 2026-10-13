@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { XIAOQI_PROFILE, hostSlotSpec, unconnectedSpeechAvailability, withOverrides } from '@astryn/contracts';
 import type {
   AstrynActionPort,
@@ -76,9 +76,31 @@ function loadNoteText(note: AstrynProfileLoad['note']): string | null {
   }
 }
 
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+function subscribeReducedMotion(onChange: () => void): () => void {
+  const query = typeof window.matchMedia === 'function' ? window.matchMedia(REDUCED_MOTION_QUERY) : null;
+  if (!query) return () => {};
+  query.addEventListener('change', onChange);
+  return () => query.removeEventListener('change', onChange);
+}
+
+function systemReducedMotionSnapshot(): boolean {
+  return typeof window.matchMedia === 'function' ? window.matchMedia(REDUCED_MOTION_QUERY).matches : false;
+}
+
+/**
+ * Q7：系统级 prefers-reduced-motion 只增强、不削弱——无法被应用内开关重新启用。
+ * jsdom 无 matchMedia 时快照恒为 false（SSR 同值），浏览器内由 change 事件实时驱动。
+ */
+function useSystemReducedMotion(): boolean {
+  return useSyncExternalStore(subscribeReducedMotion, systemReducedMotionSnapshot, () => false);
+}
+
 export function CompanionShell(props: CompanionShellProps): JSX.Element {
   const [hidden, setHidden] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const systemReducedMotion = useSystemReducedMotion();
   const [contextFragment, setContextFragment] = useState<AstrynContextFragment | null>(props.initialContext ?? null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -336,7 +358,7 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
       </div>
 
       <div className="astryn-stage">
-        <AvatarView state={state} profile={profile} reducedMotion={reducedMotion} view={view} />
+        <AvatarView state={state} profile={profile} reducedMotion={reducedMotion || systemReducedMotion} view={view} />
         <div className="astryn-stage-meta">
           <StatusStrip
             state={state}
@@ -353,8 +375,15 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
             }}
           />
           <div className="astryn-toolbar astryn-toolbar--spaced">
-            <button type="button" className="astryn-btn" data-testid="astryn-toggle-motion" onClick={() => setReducedMotion((v) => !v)}>
-              {reducedMotion ? '启用动效' : '减少动效'}
+            <button
+              type="button"
+              className="astryn-btn"
+              data-testid="astryn-toggle-motion"
+              disabled={systemReducedMotion}
+              title={systemReducedMotion ? '系统已开启“减少动效”，应用内不可覆盖' : undefined}
+              onClick={() => setReducedMotion((v) => !v)}
+            >
+              {systemReducedMotion ? '系统已在减少动效' : reducedMotion ? '启用动效' : '减少动效'}
             </button>
             <button type="button" className="astryn-btn" data-testid="astryn-hide" onClick={() => setHidden(true)}>隐藏角色</button>
             <button

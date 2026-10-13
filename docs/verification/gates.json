@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T16:14:12.457Z",
+  "generatedAt": "2026-10-13T16:46:41.931Z",
   "toolchain": {
     "node": "v26.7.0",
     "platform": "win32",
@@ -9,12 +9,12 @@
   "git": {
     "repository": true,
     "branch": "feat/astryn-learning-companion-v1",
-    "head": "5b6bdef4d55abcb86e3f509b3018b6560db942e9",
+    "head": "d9cc030932857d005fa7db713c480894577b2f64",
     "worktreeNote": "需 git status 判定，见台账"
   },
   "sourceTree": {
-    "files": 100,
-    "sha256": "367b15793cfb7a2b88c3d486674916b869e89b37699dc9a6d05373a57b0d037f",
+    "files": 101,
+    "sha256": "0d49b1260257d655e209f28ce0f7c535953097eb11b3a3048604ce524f8d841a",
     "scopes": [
       "contracts",
       "src",
@@ -35,7 +35,9 @@
     "lint": 0,
     "typecheck": 0,
     "test": 0,
-    "build": 0
+    "build": 0,
+    "drift": 0,
+    "archive": 0
   },
   "allGreen": true,
   "files": [
@@ -161,8 +163,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 1196,
-      "sha256": "4f98856c742c056929797b7d3a5c120bf467c459f9de8bf857fcadba46bd58e7"
+      "bytes": 1276,
+      "sha256": "46b369eaf18c5c8c3e5dc84bbc41a94048cc26ca2bac6d332581d05449804eb3"
     },
     {
       "path": "PROJECT_CONTRACT.yaml",
@@ -271,8 +273,8 @@
     },
     {
       "path": "src/interaction/companion-controller.ts",
-      "bytes": 22044,
-      "sha256": "1cd4ff1126c5c69b0344c695652050e26a2f446c18819bfcd87b538ebdaed7a1"
+      "bytes": 22261,
+      "sha256": "3285a9baba834aa6f83c233f939588d49e765f878580173c18e2d80a47dd4897"
     },
     {
       "path": "src/interaction/session-manager.ts",
@@ -316,8 +318,8 @@
     },
     {
       "path": "src/presentation/companion-shell.tsx",
-      "bytes": 19962,
-      "sha256": "3693332a2a726d81fea0d8f926221d028e6dfacc98aa7e875fe375a30dc9d053"
+      "bytes": 21257,
+      "sha256": "45f6b51de9dd7f0bfc4bd7fcf0844d958ad18eb9e890cfe041cd86f0c901111c"
     },
     {
       "path": "src/presentation/companion-view.tsx",
@@ -381,8 +383,8 @@
     },
     {
       "path": "tests/boundary/architecture-risks.test.tsx",
-      "bytes": 6628,
-      "sha256": "12df6b93f3d3b1fd74d6f1aa5e79f1bf6c74e4e51a4351777a44be2661cb0261"
+      "bytes": 6744,
+      "sha256": "d49e260524ebb25ba86c7c8947ffc223ac92690cf5baaf6d42313d0e5b083d6d"
     },
     {
       "path": "tests/boundary/character-assets.test.ts",
@@ -406,8 +408,8 @@
     },
     {
       "path": "tests/companion/authority.test.ts",
-      "bytes": 8820,
-      "sha256": "7eef865a5b5779dc052f0438469daaa0f643c44ec8206abbf2a5eafab212bef3"
+      "bytes": 12190,
+      "sha256": "78d7a76b61821c9b609171372cc9941ff187edc0a519ea62ba43d11f2e4a3e80"
     },
     {
       "path": "tests/companion/character-profile.test.ts",
@@ -436,8 +438,8 @@
     },
     {
       "path": "tests/interaction/controller.test.ts",
-      "bytes": 7337,
-      "sha256": "6a3a0b3c678c4f2d2c6806facb252848ac37d5ba2dbdad8941065e739b5805c4"
+      "bytes": 7727,
+      "sha256": "319c79115b541a59a3f8c3bee5a8150826af4ebf9a21c90d94dbc498ae7398e0"
     },
     {
       "path": "tests/interaction/session-manager.test.ts",
@@ -446,8 +448,8 @@
     },
     {
       "path": "tests/interaction/stream-retry.test.ts",
-      "bytes": 14431,
-      "sha256": "af5ed22c35bf130f6d5b06dca0ffac00a3b9f2efc8102ccd6d7b848ddad22209"
+      "bytes": 14663,
+      "sha256": "9694fb1ef9fbfab050779e8c19d65e1413e8fffbf8f3817e41af8ec24d012b6e"
     },
     {
       "path": "tests/learning/learning-journey.test.ts",
@@ -491,8 +493,8 @@
     },
     {
       "path": "tests/presentation/companion-shell.test.tsx",
-      "bytes": 7132,
-      "sha256": "4c6a7da8e085f2743a44f96451997c2ec5b5f5f3e38961822ea3a626cb73296e"
+      "bytes": 9550,
+      "sha256": "7fdbe0d9c1f532a9c2dd9d82e32a0eaa6364ca8b4400c3edcaaf81c907257bfe"
     },
     {
       "path": "tests/presentation/composer-continuity.test.tsx",
@@ -528,6 +530,11 @@
       "path": "tests/speech/speech-shell.test.ts",
       "bytes": 12571,
       "sha256": "e4e61b7fec4c5d293c07d066b99bf0d7178a849f9478948e6128f844bbda6a71"
+    },
+    {
+      "path": "tests/support/host-tap.ts",
+      "bytes": 1227,
+      "sha256": "884e3900f546335546317dea9c5558c4f63349b2f03c3a94eaddba3dfdf1877d"
     },
     {
       "path": "tsconfig.json",

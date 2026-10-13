@@ -136,7 +136,7 @@ export class AstrynCompanionController {
     if (this.deps.host) {
       this.unsubscribes.push(
         this.deps.host.onAuthoritativeEvent((event) => {
-          this.dispatch(event);
+          this.#dispatch(event);
         })
       );
     }
@@ -164,7 +164,7 @@ export class AstrynCompanionController {
       this.publish();
       return;
     }
-    this.dispatch(this.emit({
+    this.#dispatch(this.emit({
       kind: 'model.unavailable',
       payload: {
         reason: availability.reason ?? '模型接口不可用',
@@ -239,8 +239,12 @@ export class AstrynCompanionController {
     }) as unknown as AstrynAnyEvent;
   }
 
-  /** 守卫 + reducer 的唯一入口。被拒事件不改变状态，但计入审计。 */
-  dispatch(event: AstrynAnyEvent): void {
+  /**
+   * 守卫 + reducer 的唯一入口。被拒事件不改变状态，但计入审计。
+   * 原生 #private 是刻意的（风险 Q1）：权威事件只能经 ingestReceipt（校验器）
+   * 或已 attach 的宿主通道进入，公开面上不得存在原始事件注入通道。
+   */
+  #dispatch(event: AstrynAnyEvent): void {
     if (this.disposed) return;
     const verdict = this.guard.accept(event);
     if (!verdict.accepted) {
@@ -259,11 +263,11 @@ export class AstrynCompanionController {
   }
 
   notifyFocus(surface: 'composer' | 'chat-log' = 'composer'): void {
-    this.dispatch(this.emit({ kind: 'input.focus', payload: { surface }, source: 'user', trust: 'observed' }));
+    this.#dispatch(this.emit({ kind: 'input.focus', payload: { surface }, source: 'user', trust: 'observed' }));
   }
 
   notifyBlur(surface: 'composer' | 'chat-log' = 'composer'): void {
-    this.dispatch(this.emit({ kind: 'input.blur', payload: { surface }, source: 'user', trust: 'observed' }));
+    this.#dispatch(this.emit({ kind: 'input.blur', payload: { surface }, source: 'user', trust: 'observed' }));
   }
 
   /** 提交一轮对话。快速连续提交会先把上一轮标记为被取代，避免旧回复串台。 */
@@ -275,13 +279,13 @@ export class AstrynCompanionController {
     const requestId = this.nextId('req');
     const sessionAtSubmit = this.deps.sessionId;
     this.guard.openRequest(requestId);
-    this.dispatch(this.emit({ kind: 'turn.submitted', payload: { text: trimmed, characterId: this.deps.profile.characterId }, source: 'user', trust: 'observed', requestId }));
+    this.#dispatch(this.emit({ kind: 'turn.submitted', payload: { text: trimmed, characterId: this.deps.profile.characterId }, source: 'user', trust: 'observed', requestId }));
 
     const sentFragments = this.pendingFragments;
     this.pendingFragments = [];
 
     if (!this.deps.conversation) {
-      this.dispatch(this.emit({ kind: 'model.unavailable', payload: { reason: '未配置获准模型接口，星栖不使用脚本回复冒充 AI。', configuredSource: 'none' }, source: 'system', trust: 'observed', requestId }));
+      this.#dispatch(this.emit({ kind: 'model.unavailable', payload: { reason: '未配置获准模型接口，星栖不使用脚本回复冒充 AI。', configuredSource: 'none' }, source: 'system', trust: 'observed', requestId }));
       this.guard.settleRequest(requestId);
       this.lastInterrupted = { requestId, text: trimmed, cause: 'failed', failureCode: 'MODEL_UNAVAILABLE', fragments: sentFragments };
       this.publish();
@@ -309,12 +313,12 @@ export class AstrynCompanionController {
       for await (const event of this.deps.conversation.stream(request, abort.signal)) {
         if (this.disposed || abort.signal.aborted) break;
         if (event.payload.kind === 'stream.failed') failedCode = event.payload.code;
-        this.dispatch(this.rebase(event, requestId));
+        this.#dispatch(this.rebase(event, requestId));
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       failedCode = abort.signal.aborted ? 'ABORTED' : 'NETWORK';
-      this.dispatch(this.emit({
+      this.#dispatch(this.emit({
         kind: 'stream.failed',
         payload: { code: failedCode, message, retryable: !abort.signal.aborted },
         source: 'system',
@@ -442,13 +446,13 @@ export class AstrynCompanionController {
   cancel(reason: 'user' | 'superseded' | 'unmount' = 'user'): void {
     const inFlight = [...this.abortByRequest.entries()];
     if (inFlight.length === 0) {
-      this.dispatch(this.emit({ kind: 'turn.cancelled', payload: { reason }, source: 'user', trust: 'observed' }));
+      this.#dispatch(this.emit({ kind: 'turn.cancelled', payload: { reason }, source: 'user', trust: 'observed' }));
       return;
     }
     for (const [requestId, abort] of inFlight) {
       // 先以仍在途的请求身份派发取消事件，再结清该请求；
       // 顺序颠倒会让 turn.cancelled 自己被守卫判成 SETTLED_REQUEST。
-      this.dispatch(this.emit({ kind: 'turn.cancelled', payload: { reason }, source: 'user', trust: 'observed', requestId }));
+      this.#dispatch(this.emit({ kind: 'turn.cancelled', payload: { reason }, source: 'user', trust: 'observed', requestId }));
       abort.abort();
       this.guard.settleRequest(requestId);
     }
@@ -490,7 +494,7 @@ export class AstrynCompanionController {
               ? { summary: receipt.summary ?? '任务完成' }
               : { code: receipt.failureCode ?? 'UNKNOWN', message: receipt.summary ?? '任务失败' };
 
-    this.dispatch(
+    this.#dispatch(
       createEvent({
         source: 'host-task',
         trust,

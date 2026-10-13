@@ -11,6 +11,7 @@ import {
   selectAvatarRenderer
 } from '@astryn/core';
 import { CompanionShell } from '@astryn/core';
+import { createHostTap } from '../support/host-tap';
 
 /**
  * 架构风险审查（docs/architecture/astryn-m0.risk-quality.md）确认的五个缺口的回归测试。
@@ -110,8 +111,10 @@ describe('R4 证据级别不得靠配置推断', () => {
       reason: null,
       evidenceLevel: 'NO_EVIDENCE'
     });
-    const controller = new AstrynCompanionController({ sessionId: 's1', profile: XIAOQI_PROFILE, conversation: null, actions: null, verifier: null });
-    controller.dispatch(createEvent({
+    const tap = createHostTap();
+    const controller = new AstrynCompanionController({ sessionId: 's1', profile: XIAOQI_PROFILE, conversation: null, actions: null, verifier: null, host: tap.host });
+    controller.attach();
+    tap.emit(createEvent({
       source: 'conversation',
       trust: 'observed',
       kind: 'stream.delta',

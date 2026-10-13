@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { XIAOQI_PROFILE } from '@astryn/contracts';
 import { CompanionShell, STATE_VISUALS, SyntheticConversationPort, XiaoqiAvatar, renderXiaoqiMarkup } from '@astryn/core';
@@ -160,5 +160,76 @@ describe('原创小栖可见状态（A03/A04）', () => {
     expect(markup).not.toMatch(/<image|href=|xlink:href=/);
     expect(markup.replace('http://www.w3.org/2000/svg', '')).not.toMatch(/https?:\/\//);
     expect(markup).toContain('width="120"');
+  });
+});
+
+describe('Q7 系统级 prefers-reduced-motion（只增强，不削弱）', () => {
+  function installMatchMedia(initial: boolean) {
+    const win = window as unknown as Record<string, unknown>;
+    const original = win.matchMedia;
+    const listeners = new Set<() => void>();
+    const state = { matches: initial };
+    win.matchMedia = (query: string) => ({
+      media: query,
+      get matches() {
+        return state.matches;
+      },
+      addEventListener: (type: string, listener: () => void) => {
+        if (type === 'change') listeners.add(listener);
+      },
+      removeEventListener: (type: string, listener: () => void) => {
+        if (type === 'change') listeners.delete(listener);
+      }
+    });
+    return {
+      set(next: boolean) {
+        state.matches = next;
+        for (const listener of [...listeners]) listener();
+      },
+      restore() {
+        if (original === undefined) delete win.matchMedia;
+        else win.matchMedia = original;
+      }
+    };
+  }
+
+  const avatarSvg = () => screen.getByTestId('astryn-avatar-host').querySelector('svg');
+
+  it('系统开启时无需触碰应用开关，data-motion 直接为 off，且开关被禁用并如实标注', () => {
+    const stub = installMatchMedia(true);
+    try {
+      shell();
+      expect(avatarSvg()?.getAttribute('data-motion')).toBe('off');
+      const toggle = screen.getByTestId('astryn-toggle-motion') as HTMLButtonElement;
+      expect(toggle.disabled).toBe(true);
+      expect(toggle.textContent).toContain('系统已在减少动效');
+    } finally {
+      stub.restore();
+    }
+  });
+
+  it('系统偏好运行中切换（change 事件）实时生效，可回开', () => {
+    const stub = installMatchMedia(false);
+    try {
+      shell();
+      expect(avatarSvg()?.getAttribute('data-motion')).toBe('on');
+      act(() => stub.set(true));
+      expect(avatarSvg()?.getAttribute('data-motion')).toBe('off');
+      act(() => stub.set(false));
+      expect(avatarSvg()?.getAttribute('data-motion')).toBe('on');
+    } finally {
+      stub.restore();
+    }
+  });
+
+  it('系统开启时应用开关无法重新启用动效（只增强，不削弱）', () => {
+    const stub = installMatchMedia(true);
+    try {
+      shell();
+      fireEvent.click(screen.getByTestId('astryn-toggle-motion'));
+      expect(avatarSvg()?.getAttribute('data-motion')).toBe('off');
+    } finally {
+      stub.restore();
+    }
   });
 });

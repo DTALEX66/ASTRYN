@@ -1,16 +1,24 @@
 import { describe, expect, it, vi } from 'vitest';
 import { XIAOQI_PROFILE, withOverrides } from '@astryn/contracts';
-import type { AstrynConversationRequest } from '@astryn/contracts';
+import type { AstrynConversationRequest, AstrynHostPort } from '@astryn/contracts';
 import { AstrynCompanionController, SyntheticConversationPort } from '@astryn/core';
+import { createHostTap } from '../support/host-tap';
 
-function build(conversation: ConstructorParameters<typeof AstrynCompanionController>[0]['conversation'], sessionId = 's1') {
-  return new AstrynCompanionController({
+function build(
+  conversation: ConstructorParameters<typeof AstrynCompanionController>[0]['conversation'],
+  sessionId = 's1',
+  host: AstrynHostPort | null = null
+) {
+  const controller = new AstrynCompanionController({
     sessionId,
     profile: XIAOQI_PROFILE,
     conversation,
     actions: null,
-    verifier: null
+    verifier: null,
+    host
   });
+  if (host) controller.attach();
+  return controller;
 }
 
 /** 记录每次请求的端口：用于断言"提示里实际送出了什么档案"。 */
@@ -103,16 +111,18 @@ describe('控制器编排（A06/A07）', () => {
 
   it('dispose 之后不再接受事件，也不回调监听者', async () => {
     const port = new SyntheticConversationPort({ clock: slowClock, steps: [{ text: '一', delayMs: 20 }, { text: '二', delayMs: 20 }, { finish: 'stop' }] });
-    const controller = build(port);
+    const tap = createHostTap();
+    const controller = build(port, 's1', tap.host);
     const listener = vi.fn();
     controller.subscribe(listener);
     const pending = controller.submit('说两句');
     await slowClock(8);
     controller.dispose();
     await pending;
+    expect(tap.unsubscribes()).toBe(1);
     const calls = listener.mock.calls.length;
-    controller.dispatch(
-      // 手工构造一个迟到事件：卸载后必须被忽略。
+    tap.emit(
+      // 卸载后经宿主通道迟到的原始事件：订阅已解除，投递无入口。
       {
         protocol: 'astryn-1',
         eventId: 'late',
@@ -127,6 +137,8 @@ describe('控制器编排（A06/A07）', () => {
         payload: { kind: 'input.focus', surface: 'composer' }
       }
     );
+    // 公开方法在 dispose 之后同样是无操作。
+    controller.notifyFocus('composer');
     expect(listener.mock.calls.length).toBe(calls);
   });
 

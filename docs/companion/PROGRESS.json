@@ -141,14 +141,35 @@
     },
     {
       "task_id": "GF05",
-      "state": "PLANNED",
-      "implementation": "NOT_EXECUTED",
-      "tests": "NOT_EXECUTED",
-      "runtime": "UNVERIFIED",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_28_FILES_266_PASSED_INCL_GF05_43 (learning-journey 32 + learning-panel 11)",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_FULL_LOOP (sample+selection import, journey, attempt/recall/self-rating, mastery schedule, authorized-fragment explain capture, chat/knowledge guards, reminders/focus toggles, no-model manual loop with honest explain disabled)",
       "installation": "NOT_EXECUTED",
-      "evidence_refs": [],
-      "blocker": null,
-      "rollback_handle": null
+      "evidence_refs": [
+        "docs/companion/GF05-LEARNING-JOURNEY.md"
+      ],
+      "blocker": "learning state is in-process only; host-side persistence BLOCKED_BY_HOST_CONTRACT (no admitted host contract for learning materials/journeys); real selection remains BLOCKED_BY_HOST_CONTRACT (synthetic fixture labeled SYNTHETIC everywhere)",
+      "rollback_handle": "git revert of the GF05 commit on feat/astryn-learning-companion-v1; additive only (new src/learning, tests/learning, dev-host learning panel + wiring)",
+      "source_sha": "source tree sha256 db462aab7c055528ec73754e10b3ff7909fa7c28047fe31b7dd6d824e46df4e0 (87 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head abb1f47cb48f10f01115c6ae06274c7ebd460d0a; receipt docs/verification/gates.json",
+      "changed_paths": [
+        "src/learning/types.ts (new)",
+        "src/learning/store.ts (new)",
+        "src/index.ts",
+        "dev-host/learning-panel.tsx (new)",
+        "dev-host/app.tsx",
+        "dev-host/dev-host.css",
+        "tests/learning/learning-journey.test.ts (new)",
+        "tests/learning/learning-panel.test.tsx (new)",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF05-LEARNING-JOURNEY.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261013-231006.log); the same chain earlier in the task (log gate-20261013-230412.log) was the first full green after tsc exposed 3 real errors vitest cannot see (panel union narrowing x2, noUncheckedIndexedAccess x1) which were fixed, not waived; vitest 28 files / 266 passed; vite dev server 127.0.0.1:5183 (VITE_ASTRYN_ALLOW_SYNTHETIC=1) exercised via DOM readout, console 0 errors on fresh load, killed by netstat PID 29012, port released",
+      "artifact_hashes": "gates.json sourceTree.sha256=db462aab7c055528…e46df4e0 (87 files); build index-CiX15iyT.js 260657 bytes sha256 cf1f653b442f424d…, index-s_cYDZFx.css 9005 bytes sha256 b6d69791044e0646…",
+      "limitations": "browser evidence is structural DOM readout (no screenshot surface this session); learning persistence is in-process (refresh loses it) and host persistence stays BLOCKED_BY_HOST_CONTRACT; the two dev-host wiring fixes (selection provider offsets, model-switch-aware modelAvailable) are covered only by browser smoke - no test imports dev-host/app.tsx; mastery never exists without explicit user outcomes (unrated otherwise), and character turns are excluded by construction"
     },
     {
       "task_id": "GF06",

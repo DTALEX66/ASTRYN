@@ -9,6 +9,7 @@ import {
   XIAOQI_PROFILE,
   createCompanionSessionManager,
   createEphemeralProfileStore,
+  createLearningCompanion,
   describePortAvailability,
   resolveConversation,
   type AstrynContextFragment,
@@ -19,6 +20,7 @@ import {
 } from '@astryn/core';
 import { CompanionShell } from '@astryn/core';
 import { readDevConfig } from './dev-config';
+import { LearningPanel } from './learning-panel';
 import '../src/presentation/astryn.css';
 import './dev-host.css';
 
@@ -51,12 +53,10 @@ export function DevHostApp(): JSX.Element {
     [sessionId, conversationPort, simulator]
   );
   const memory = useMemo(() => new SyntheticMemoryFixture(), []);
+  // 学习陪伴状态独立于会话运行时：新会话不清空材料与练习记录（进程内，刷新即失）。
+  const learningStore = useMemo(() => createLearningCompanion(), []);
   // 开发回退：进程内，刷新即失。正式档案保存归宿主（character.profile.write，BE06 未接通）。
   const profileStore = useMemo(() => createEphemeralProfileStore(), []);
-  const contextFixture = useMemo(
-    () => new SyntheticContextFixture({ document: { ...SYNTHETIC_DOC, selection: null } }),
-    []
-  );
   const [review, setReview] = useState<readonly AstrynMemoryCandidate[]>([]);
   const [notice, setNotice] = useState<string>('');
   const [hostProbe, setHostProbe] = useState<AstrynHostCapabilities | AstrynHostUnavailable | null>(null);
@@ -95,19 +95,23 @@ export function DevHostApp(): JSX.Element {
       setNotice('选区不在夹具文档内，拒绝把它当作已授权上下文。');
       return null;
     }
-    const authorization = await contextFixture.requestAuthorization('active-document-selection', sessionId);
+    // 合成夹具模拟"宿主读到当前选区"：每次调用把实时偏移交给夹具（真实选区仍 BLOCKED_BY_HOST_CONTRACT）。
+    const fixture = new SyntheticContextFixture({
+      document: { ...SYNTHETIC_DOC, selection: { start: index, end: index + selected.length } }
+    });
+    const authorization = await fixture.requestAuthorization('active-document-selection', sessionId);
     if (!authorization) {
       setNotice('宿主拒绝授权该作用域（SCOPE_NOT_SUPPORTED）。');
       return null;
     }
-    const result = await contextFixture.readSelection(authorization, `ctx-${sessionId}`);
+    const result = await fixture.readSelection(authorization, `ctx-${sessionId}`);
     if (!result.ok) {
       setNotice(`读取选区失败：${result.reason}`);
       return null;
     }
     setNotice('');
     return result.fragment;
-  }), [contextFixture, sessionId]);
+  }), [sessionId]);
 
   const proposeCandidate = useMemo(() => (async (scope: AstrynMemoryCandidate['scope'], origin: AstrynMemoryCandidate['origin'], summary: string) => {
     const outcome = await memory.propose({ scope, origin, summary, sessionId });
@@ -219,6 +223,19 @@ export function DevHostApp(): JSX.Element {
           <div className="astryn-disclosure">选中上面的文字后点左侧「解释选中内容」。这是契约测试夹具，不代表访问了 AAOS 知识库。</div>
         </section>
 
+        <LearningPanel
+          store={learningStore}
+          modelAvailable={conversationPort !== null && resolved.info.available}
+          onImportFragment={selectionProvider}
+          onExplain={(fragment) => {
+            manager.attachContext([fragment]);
+            void manager.submit('请结合我提供的材料片段，用两三句话解释它的含义，并指出来源。').then((outcome) => {
+              if (!outcome.accepted) setNotice(`解释请求未被接受：${outcome.reason}`);
+            });
+          }}
+          readCharacterReply={() => manager.snapshot.state.streamedText}
+        />
+
         <section className="astryn-root" data-testid="devhost-memory">
           <div className="astryn-title">记忆候选（进程内夹具，刷新即销毁）</div>
           <div className="astryn-toolbar">
@@ -253,6 +270,7 @@ export function DevHostApp(): JSX.Element {
             <li>未启用麦克风、摄像头、屏幕采集与系统命令；本页面不请求任何此类权限。</li>
             <li>小栖档案在开发宿主里只存进程内（刷新即失）；正式保存归宿主（character.profile.write，BE06 未接通，保存会显式失败）。</li>
             <li>合成数据一律标注 SYNTHETIC；真实模型调用需自行配置 dev 代理，密钥不进浏览器。</li>
+            <li>学习材料与练习记录在开发宿主里只存进程内（刷新即失）；正式持久化归宿主，未接通前不做假保存。掌握度只由你的显式自评驱动，角色文本永不参与。</li>
             <li>任务状态只来自宿主回执；开发宿主里由合成模拟器的回执提供，故仍不构成真实集成证据。</li>
           </ul>
           <div className="astryn-disclosure" data-testid="devhost-notice">{notice}</div>

@@ -63,6 +63,39 @@
   font-size: 11px;
 }
 
+.devhost-group {
+  border: 1px solid #2a3358;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 8px 0 0;
+}
+
+.devhost-group legend {
+  font-size: 12px;
+  color: #9aa4cf;
+  padding: 0 4px;
+}
+
+.devhost-input,
+.devhost-textarea {
+  background: #0d1024;
+  color: #e8ecff;
+  border: 1px solid #2a3358;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.devhost-textarea {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  margin: 6px 0;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
 /* 窄视口（≤420px）下不产生横向滚动：375px 手机宽度是实测溢出点。 */
 @media (max-width: 420px) {
   .devhost-page { padding: 10px; gap: 12px; }

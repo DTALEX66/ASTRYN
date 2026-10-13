@@ -36,6 +36,47 @@ export { SseDecoder, SSE_DONE_SENTINEL } from './adapters/sse';
 export { SyntheticMemoryFixture } from './memory/synthetic-fixture';
 export { decideLifecycle, decideRead, decideWrite } from './memory/policy';
 export type { MemoryDecision } from './memory/policy';
+export {
+  ASTRYN_LEARNING_INTENTS,
+  ASTRYN_RECALL_OUTCOMES,
+  ASTRYN_REVIEW_INTERVALS_MS,
+  ASTRYN_TURN_KINDS,
+  intentAllowsAuthor,
+  knowledgeRouting,
+  linkFromFragment,
+  linkFromMaterial,
+  masteryFromOutcomes,
+  scheduleFromOutcome,
+  UNLINKED_SOURCE
+} from './learning/types';
+export type {
+  AstrynKnowledgeRouting,
+  AstrynLearningIntent,
+  AstrynLearningJourney,
+  AstrynLearningMaterial,
+  AstrynLearningMindset,
+  AstrynLearningTurn,
+  AstrynMasteryLevel,
+  AstrynMasteryReading,
+  AstrynMaterialInput,
+  AstrynOutcomeRecord,
+  AstrynRecallOutcome,
+  AstrynReviewState,
+  AstrynSourceLink,
+  AstrynTurnKind
+} from './learning/types';
+export { createLearningCompanion, LearningCompanionStore } from './learning/store';
+export type {
+  AstrynAddMaterialResult,
+  AstrynRecordOutcomeResult,
+  AstrynRecordTurnReason,
+  AstrynRecordTurnResult,
+  AstrynReminderPlan,
+  AstrynStartJourneyResult,
+  AstrynTurnInput,
+  LearningCompanionOptions,
+  LearningSnapshot
+} from './learning/store';
 export { SyntheticContextFixture, SYNTHETIC_DOC } from './context/synthetic-context';
 export { STATE_VISUALS, MOUTH_CYCLE, eyesFor, mouthPathFor } from './avatar/state-visuals';
 export { XiaoqiAvatar, describeXiaoqiFrame } from './avatar/xiaoqi-avatar';

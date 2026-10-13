@@ -43,7 +43,7 @@ m0_acceptance:
   unverified: [A17]
   not_executed: [A19]
   gates: {lint: 0, typecheck: 0, test: 0, build: 0}
-  tests: {files: 26, passed: 223}
+  tests: {files: 28, passed: 266}
 companion_program:
   plan_id: ASTRYN-COMPANION-20261013
   branch: feat/astryn-learning-companion-v1
@@ -63,5 +63,9 @@ companion_program:
   gf04_doc: docs/companion/GF04-HOST-ADAPTER.md
   gf04_port_manifest: src/adapters/host-handshake.ts
   gf04_semantics: 'fail-closed 八端口；宿主无签名面 ⇒ verify() 恒 NO_VERIFIER；launch token 头仅存在于 src/adapters/aaos-bridge.ts'
-  execution_state: GF04_completed
+  gf05_doc: docs/companion/GF05-LEARNING-JOURNEY.md
+  gf05_domain: src/learning/types.ts + src/learning/store.ts
+  gf05_semantics: '掌握度仅由显式自评驱动（basis=explicit-user-outcomes-only）；角色轮出处置信仅来自真实附带过的授权片段；闲聊/无来源轮不进知识通道且永不自动登记；提醒关闭/专注模式只抑制提示不清队列'
+  gf05_devhost_fix: '选区提供器改为把实时选区偏移交给合成夹具（原 selection:null 为死路径，M0 起浏览器内真实与合成选区均恒 NO_SELECTION）；无模型时解释按钮禁用并标注原因（原误报可用）'
+  execution_state: GF05_completed
   host_dependencies: 'BE01/BE03/BE05/BE06/BE07/BE12 in DTALEX66/ArcheAxis-Knowledge-OS; this repo never writes the host repo'

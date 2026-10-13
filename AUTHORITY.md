@@ -16,6 +16,7 @@
 | docs/tasks/M0-EXECUTION-HANDOFF.md | M0 任务依赖、边界与交接 | 执行依据 |
 | docs/tasks/M0-ACCEPTANCE-TRACKER.md | 逐项验收台账 | 已用真实证据回填；A05/A17 未通过 ⇒ 整体 PARTIAL |
 | docs/tasks/AGENT-START-PROMPT.md | 用户可转发的接手提示词 | 已转发并执行（D004） |
+| docs/tasks/AGENT-CONTINUATION-PROMPT.md | M0 上传后的完整交接提示词（含实测基线、坑清单与队列） | 当前接手入口 |
 | docs/verification/S0-BASELINE.md | 本地/远端/工具链现场基线 | 当前实测 |
 | docs/verification/M0-VALIDATION.md | 门禁退出码、测试与浏览器实测结论 | 当前实测 |
 | docs/architecture/AAOS-HOST-CAPABILITY-MAP.md | AAOS 四类能力的只读核验与可用性判定 | 只读核验产物；AAOS 零写入 |

@@ -21,6 +21,15 @@ export { SyntheticConversationPort } from './adapters/synthetic-conversation';
 export { SyntheticHostSimulator } from './adapters/synthetic-host';
 export { AaosHostBridge, AAOS_ENDPOINTS, AAOS_API_PREFIX } from './adapters/aaos-bridge';
 export type { AaosBridgeConfig, AaosTransport } from './adapters/aaos-bridge';
+export {
+  ASTRYN_PORT_MANIFEST,
+  describePortAvailability,
+  interpretVersionPayload,
+  interpretCapabilityRegistry,
+  isCompatibleHostContract,
+  readingFor
+} from './adapters/host-handshake';
+export type { AstrynPortAvailability, AstrynPortId, AstrynPortManifestEntry, AstrynHostVersionReading } from './adapters/host-handshake';
 export { resolveConversation } from './adapters/model-registry';
 export type { ModelRegistryInput, ResolvedConversation } from './adapters/model-registry';
 export { SseDecoder, SSE_DONE_SENTINEL } from './adapters/sse';
@@ -34,7 +43,7 @@ export { AVATAR_VIEW_PROFILES, avatarViewProfile, avatarViewForMode } from './av
 export type { AstrynAvatarViewId } from './avatar/render-profiles';
 export { ASTRYN_BODY_PRESETS, RESERVED_BODY_PRESETS, STATE_ACTIONS, bodyPresetFor, unreachedBodyPresets } from './avatar/state-action-matrix';
 export type { AstrynBodyPreset, AstrynStateActionSpec } from './avatar/state-action-matrix';
-export { xiaoqiSvgRenderer, renderXiaoqiMarkup, AVATAR_RENDERERS, selectAvatarRenderer } from './avatar/xiaoqi-svg-renderer';
+export { xiaoqiSvgRenderer, renderXiaoqiMarkup, AVATAR_RENDERERS, selectAvatarRenderer, resolveAvatarRenderer } from './avatar/xiaoqi-svg-renderer';
 export { redactErrorText } from './adapters/openai-compatible';
 export { CompanionShell } from './presentation/companion-shell';
 export { CompanionSettings } from './presentation/companion-settings';

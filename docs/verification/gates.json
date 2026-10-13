@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T14:44:26.546Z",
+  "generatedAt": "2026-10-13T14:53:55.541Z",
   "toolchain": {
     "node": "v26.7.0",
     "platform": "win32",
@@ -9,12 +9,12 @@
   "git": {
     "repository": true,
     "branch": "feat/astryn-learning-companion-v1",
-    "head": "7e9c2d62cb7c5f36d27ac4223726f7b1109b3735",
+    "head": "4484c9bf01d9f57701be57f1a81e698026ccb29b",
     "worktreeNote": "需 git status 判定，见台账"
   },
   "sourceTree": {
-    "files": 78,
-    "sha256": "59d3d7a1b2f3c2e696fc8f5f30f82fbd5fd1a5b07a26f4f21bb2bef35cadc4b4",
+    "files": 82,
+    "sha256": "05661b857379dc2ab384c317abb9550520d77d8bf0ae33fba6011ce6f36f7acc",
     "scopes": [
       "contracts",
       "src",
@@ -71,8 +71,8 @@
     },
     {
       "path": "contracts/host.ts",
-      "bytes": 2041,
-      "sha256": "3b5fe46df6d2ec598dd2e7798842878d00a4ef09c1e24828b399435f5fa03072"
+      "bytes": 3254,
+      "sha256": "3c3032d1993363b2d6d054ae92ab3f3079f740a389d36209507c711e755fd648"
     },
     {
       "path": "contracts/index.ts",
@@ -106,8 +106,8 @@
     },
     {
       "path": "dev-host/app.tsx",
-      "bytes": 10691,
-      "sha256": "3edda80b747b6e411109262f61ad2608a1b70e210e5baff1f58acea4c8cfd350"
+      "bytes": 12897,
+      "sha256": "36d2535e8cf9b4aa5bd79bcc8c66aa88f00d3f4a73c6442d154bb6ac41e059f5"
     },
     {
       "path": "dev-host/dev-config.ts",
@@ -151,18 +151,23 @@
     },
     {
       "path": "PROJECT_CONTRACT.yaml",
-      "bytes": 3146,
-      "sha256": "c76e5dfcf3d3be14c9feed1e87bdf3036c932016627914626ffc77a36d466b5c"
+      "bytes": 3398,
+      "sha256": "28b4b1b3fcf1c945570679a29913527a1affdb228146bb08ea0417b03c948623"
     },
     {
       "path": "src/adapters/aaos-bridge.ts",
-      "bytes": 18737,
-      "sha256": "123c9467b56d290d8c74c75b6e5a3f938ba9873c534b43b7b81587a7b10b9c11"
+      "bytes": 22755,
+      "sha256": "3358b5e7ec068699eb81c2ac46e144a5b452d44ce7c760e2f5701afb86ff43cb"
     },
     {
       "path": "src/adapters/conversation-event.ts",
       "bytes": 869,
       "sha256": "fcdd902c241c111fa22d330328b636725aa546f327080f721ac3a2c46588da61"
+    },
+    {
+      "path": "src/adapters/host-handshake.ts",
+      "bytes": 10002,
+      "sha256": "068e59ae2a9097a5607d8163dafaf808651f9ba4c2751dd188b6b4ed1a36d99c"
     },
     {
       "path": "src/adapters/model-registry.ts",
@@ -216,8 +221,8 @@
     },
     {
       "path": "src/avatar/xiaoqi-svg-renderer.ts",
-      "bytes": 2431,
-      "sha256": "2cd0556c97781aa546c80732c3300f002d50bb1ed9b07f825b6ff123f0da79f4"
+      "bytes": 3037,
+      "sha256": "f4f81f3d6fa3e272001db63fe1ebc1156b309394a191a4bd4986490ece90a03d"
     },
     {
       "path": "src/companion/profile-store.ts",
@@ -246,8 +251,8 @@
     },
     {
       "path": "src/index.ts",
-      "bytes": 3386,
-      "sha256": "adf701367a37af039f7b6a01083aece9172377163cc2f221e6ffadf6294eb090"
+      "bytes": 3743,
+      "sha256": "f3dca659efd1fd343a6c0cbd7b82ab9af55079766b520e69e44bf25b8c8ddfbd"
     },
     {
       "path": "src/interaction/companion-controller.ts",
@@ -286,8 +291,8 @@
     },
     {
       "path": "src/presentation/companion-view.tsx",
-      "bytes": 8772,
-      "sha256": "6b67dc47ebdd640240593f833a1b0768ef51d2f6b965f9a3d2e9f6eaa50c494d"
+      "bytes": 9223,
+      "sha256": "faa25dbd4509cf0ac218852365a70d91cd2632f3b0962ac25884bcf4089c973d"
     },
     {
       "path": "src/presentation/mode-registry.ts",
@@ -300,9 +305,24 @@
       "sha256": "27bbce75b7efd35e025a23169074c24db047a8570d571633aef998360d52c9e1"
     },
     {
+      "path": "tests/adapters/aaos-bridge.test.ts",
+      "bytes": 19837,
+      "sha256": "8bc6417029f7a86fea738bd7aa3a519c877b3cb9e1f22ec6535fae68cf693540"
+    },
+    {
+      "path": "tests/adapters/host-handshake.test.ts",
+      "bytes": 11747,
+      "sha256": "7ab6d3a7de9357683206c34089f291a768f94aeab8f778c3cfb8edf13dc3fe5e"
+    },
+    {
       "path": "tests/adapters/openai-compatible.test.ts",
       "bytes": 5815,
       "sha256": "08ee13987030a56b48f90b4265263a3e82697b78d116c3628d964e7f737939c8"
+    },
+    {
+      "path": "tests/adapters/port-compatibility.test.ts",
+      "bytes": 6124,
+      "sha256": "2a7aca9f08d029949bf20f4a7b8591af8d3add00e0299b30622b06cd90d9154e"
     },
     {
       "path": "tests/adapters/sse.test.ts",

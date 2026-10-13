@@ -43,7 +43,7 @@ m0_acceptance:
   unverified: [A17]
   not_executed: [A19]
   gates: {lint: 0, typecheck: 0, test: 0, build: 0}
-  tests: {files: 23, passed: 171}
+  tests: {files: 26, passed: 223}
 companion_program:
   plan_id: ASTRYN-COMPANION-20261013
   branch: feat/astryn-learning-companion-v1
@@ -60,5 +60,8 @@ companion_program:
   gf03_doc: docs/companion/GF03-ASSETS-AND-STATES.md
   gf03_asset_index: assets/character/STATE-ASSET-INDEX.json
   gf03_visual_upgrade: 'PENDING_EXTERNAL (MINIMAX DESIGN v2; rights clause required before activation; v1 original SVG stays ACTIVE)'
-  execution_state: GF03_completed
+  gf04_doc: docs/companion/GF04-HOST-ADAPTER.md
+  gf04_port_manifest: src/adapters/host-handshake.ts
+  gf04_semantics: 'fail-closed 八端口；宿主无签名面 ⇒ verify() 恒 NO_VERIFIER；launch token 头仅存在于 src/adapters/aaos-bridge.ts'
+  execution_state: GF04_completed
   host_dependencies: 'BE01/BE03/BE05/BE06/BE07/BE12 in DTALEX66/ArcheAxis-Knowledge-OS; this repo never writes the host repo'

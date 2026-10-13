@@ -8,7 +8,7 @@ import type {
   AstrynContextFragment
 } from '@astryn/contracts';
 import { toVisibleState } from '@astryn/contracts';
-import { selectAvatarRenderer } from '../avatar/xiaoqi-svg-renderer';
+import { resolveAvatarRenderer } from '../avatar/xiaoqi-svg-renderer';
 
 export interface CompanionViewProps {
   readonly state: AstrynCompanionState;
@@ -48,7 +48,10 @@ export interface AvatarViewProps {
 
 export function AvatarView({ state, profile, reducedMotion, view, renderer }: AvatarViewProps): JSX.Element {
   const visibleState = toVisibleState(state);
-  const selected = renderer ?? selectAvatarRenderer(profile.appearance.rendererId);
+  const resolution = renderer
+    ? { renderer, exact: true, reason: null as string | null }
+    : resolveAvatarRenderer(profile.appearance.rendererId);
+  const selected = resolution.renderer;
   const frame: AstrynAvatarFrame = {
     characterId: profile.characterId,
     sessionId: state.sessionId,
@@ -87,11 +90,14 @@ export function AvatarView({ state, profile, reducedMotion, view, renderer }: Av
     }
   });
 
+  // 未注册 rendererId 的静默回退是"未知当作可用"，这里显式作证：data-renderer-exact=false。
+  const exactAttr = resolution.exact ? undefined : 'false';
   if (renderFailed) {
     return (
       <div
         className="astryn-avatar astryn-avatar--fallback"
         data-renderer={selected.rendererId}
+        data-renderer-exact={exactAttr}
         data-testid="astryn-avatar-fallback"
         role="img"
         aria-label={`小栖当前状态：${visibleState}（画面渲染失败，已回退文本）`}
@@ -102,9 +108,17 @@ export function AvatarView({ state, profile, reducedMotion, view, renderer }: Av
   }
   if (markup !== undefined) {
     // markup 由内部常量与数值拼装，不含任何外部文本，见 xiaoqi-svg-renderer 的注入不变量。
-    return <div className="astryn-avatar" data-renderer={selected.rendererId} data-testid="astryn-avatar-host" dangerouslySetInnerHTML={{ __html: markup }} />;
+    return (
+      <div
+        className="astryn-avatar"
+        data-renderer={selected.rendererId}
+        data-renderer-exact={exactAttr}
+        data-testid="astryn-avatar-host"
+        dangerouslySetInnerHTML={{ __html: markup }}
+      />
+    );
   }
-  return <div className="astryn-avatar" data-renderer={selected.rendererId} data-testid="astryn-avatar-host" ref={mountHost} />;
+  return <div className="astryn-avatar" data-renderer={selected.rendererId} data-renderer-exact={exactAttr} data-testid="astryn-avatar-host" ref={mountHost} />;
 }
 
 export interface AuditChip {

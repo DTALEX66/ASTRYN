@@ -107,14 +107,37 @@
     },
     {
       "task_id": "GF04",
-      "state": "PLANNED",
-      "implementation": "NOT_EXECUTED",
-      "tests": "NOT_EXECUTED",
-      "runtime": "UNVERIFIED",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_26_FILES_223_PASSED_PLUS_DEV_HOST_EIGHT_PORT_DOM_READOUT",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_EIGHT_PORT_READOUT_FAIL_CLOSED_ON_UNCONFIGURED_HOST",
       "installation": "NOT_EXECUTED",
-      "evidence_refs": [],
-      "blocker": "host logical operations are PROPOSED_REQUIRES_BE01_FORMAL_ADMISSION; adapter works as far as negative/contract tests allow and marks real calls BLOCKED",
-      "rollback_handle": null
+      "evidence_refs": [
+        "docs/companion/GF04-HOST-ADAPTER.md"
+      ],
+      "blocker": "host logical operations are PROPOSED_REQUIRES_BE01_FORMAL_ADMISSION; adapter completes the ASTRYN-side typed/versioned/permissioned contract and marks every real call BLOCKED_BY_HOST_CONTRACT with explicit reason (never silent fallback)",
+      "rollback_handle": "git revert of the GF04 commit on feat/astryn-learning-companion-v1; contract change is additive (capability reading fields), GF00-GF03 unaffected",
+      "source_sha": "source tree sha256 05661b857379dc2ab384c317abb9550520d77d8bf0ae33fba6011ce6f36f7acc (82 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head 4484c9bf01d9f57701be57f1a81e698026ccb29b; receipt docs/verification/gates.json; anchors trackedFiles 130 problems []",
+      "changed_paths": [
+        "contracts/host.ts",
+        "src/adapters/host-handshake.ts (new)",
+        "src/adapters/aaos-bridge.ts",
+        "src/avatar/xiaoqi-svg-renderer.ts",
+        "src/presentation/companion-view.tsx",
+        "src/index.ts",
+        "dev-host/app.tsx",
+        "tests/adapters/host-handshake.test.ts (new)",
+        "tests/adapters/aaos-bridge.test.ts (new)",
+        "tests/adapters/port-compatibility.test.ts (new)",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF04-HOST-ADAPTER.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261013-225347.log); first pass gate-20261013-225258 exposed 4 real test-fixture type errors (typecheck=2 build=2) which were fixed, not waived; vitest 26 files / 223 passed; dev host DOM readout of [data-testid=devhost-ports]: 8 rows, 5 host ports 未接+HOST_CONTRACT_MISSING reason, 3 ASTRYN seams 可用, NO_VERIFIER disclosure present, console 0 errors; vite PID 23964 terminated, port 5183 free",
+      "artifact_hashes": "gates.json sourceTree.sha256=05661b857379dc2a...f7acc over 82 files; build index-DijUeU0d.js 229.30 kB gzip 75.73 kB (sha256 129f8107fcd5d420…), index-h1SbPDct.css 8.58 kB",
+      "limitations": "real AAOS integration remains UNVERIFIED (nothing was called against the live host in this task); fail-closed branches verified against a fixture transport that replays host shapes from AAOS-HOST-CAPABILITY-MAP; registry capability key candidates are documented aliases pending real key names at GF10; browser evidence is structural DOM readout (screenshot surface unavailable this session); verify() returning NO_VERIFIER is honest absence-of-verifier, not a signed-receipt pass"
     },
     {
       "task_id": "GF05",

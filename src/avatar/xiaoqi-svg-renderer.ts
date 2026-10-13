@@ -47,10 +47,25 @@ export function renderXiaoqiMarkup(frame: AstrynAvatarFrame, size?: number, view
 /** 已实现的渲染驱动。P2 的 Live2D / VRM / 3D 驱动在这里注册，而不是在 UI 里加分支。 */
 export const AVATAR_RENDERERS: readonly AstrynAvatarRenderer[] = [xiaoqiSvgRenderer];
 
-export function selectAvatarRenderer(rendererId: string): AstrynAvatarRenderer {
+export interface AstrynRendererResolution {
+  readonly renderer: AstrynAvatarRenderer;
+  /** false = 请求的 rendererId 未注册，已回退默认；reason 说明原因（未知不当可用）。 */
+  readonly exact: boolean;
+  readonly reason: string | null;
+}
+
+export function resolveAvatarRenderer(rendererId: string): AstrynRendererResolution {
   const found = AVATAR_RENDERERS.find((renderer) => renderer.rendererId === rendererId);
-  if (found) return found;
+  if (found) return { renderer: found, exact: true, reason: null };
   const fallback = AVATAR_RENDERERS[0];
   if (!fallback) throw new Error('没有已注册的渲染驱动');
-  return fallback;
+  return {
+    renderer: fallback,
+    exact: false,
+    reason: `rendererId「${rendererId}」未注册，已回退到 ${fallback.rendererId}（原始请求不静默）`
+  };
+}
+
+export function selectAvatarRenderer(rendererId: string): AstrynAvatarRenderer {
+  return resolveAvatarRenderer(rendererId).renderer;
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ASTRYN_PROTOCOL_VERSION,
   ASTRYN_PRESENTATION_MODE_SPECS,
@@ -9,8 +9,11 @@ import {
   XIAOQI_PROFILE,
   createCompanionSessionManager,
   createEphemeralProfileStore,
+  describePortAvailability,
   resolveConversation,
   type AstrynContextFragment,
+  type AstrynHostCapabilities,
+  type AstrynHostUnavailable,
   type AstrynMemoryCandidate,
   type AstrynPresentationMode
 } from '@astryn/core';
@@ -56,6 +59,28 @@ export function DevHostApp(): JSX.Element {
   );
   const [review, setReview] = useState<readonly AstrynMemoryCandidate[]>([]);
   const [notice, setNotice] = useState<string>('');
+  const [hostProbe, setHostProbe] = useState<AstrynHostCapabilities | AstrynHostUnavailable | null>(null);
+
+  // GF04 握手：配了 baseUrl 才发请求；未配置时 probeCapabilities 直接返回 HOST_CONTRACT_MISSING。
+  useEffect(() => {
+    const bridge = resolved.bridge;
+    if (!bridge) {
+      setHostProbe(null);
+      return;
+    }
+    let alive = true;
+    void bridge.probeCapabilities().then((reading) => {
+      if (alive) setHostProbe(reading);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [resolved.bridge]);
+
+  const portAvailability = useMemo(
+    () => describePortAvailability({ configured: Boolean(config.aaosBaseUrl), capabilities: hostProbe }),
+    [config.aaosBaseUrl, hostProbe]
+  );
 
   const implementedModes = ASTRYN_PRESENTATION_MODE_SPECS.filter((spec) => spec.implementedInM0);
 
@@ -166,6 +191,26 @@ export function DevHostApp(): JSX.Element {
           <ul className="devhost-list">
             {resolved.trace.map((line) => <li key={line}>{line}</li>)}
           </ul>
+        </section>
+
+        <section className="astryn-root" data-testid="devhost-ports">
+          <div className="astryn-title">宿主八端口核对（GF04 握手读数）</div>
+          <div className="astryn-state-strip">
+            <span className="astryn-chip">宿主身份：{hostProbe && !('available' in hostProbe) ? hostProbe.hostBuildIdentity ?? '未报告' : '未探测'}</span>
+            <span className="astryn-chip">协议：{hostProbe && !('available' in hostProbe) ? `${hostProbe.observedProtocol ?? '未报告'}${hostProbe.protocolConfirmed ? '' : '（未确认）'}` : '未探测'}</span>
+            <span className="astryn-chip">runtime：{hostProbe && !('available' in hostProbe) ? hostProbe.hostRuntime ?? '未报告' : '未报告'}</span>
+          </div>
+          <ul className="devhost-list">
+            {portAvailability.map((entry) => (
+              <li key={entry.port} data-testid={`devhost-port-${entry.port}`}>
+                {entry.label}｜owner={entry.owner}｜{entry.available ? '可用' : `未接`}
+                {entry.reason ? `｜${entry.reason}` : ''}
+              </li>
+            ))}
+          </ul>
+          <div className="astryn-disclosure">
+            回执权威：宿主无签名/校验面，verify() 恒 NO_VERIFIER —— 非空回执或 digest 不作为数字签名（GF04 验收条款）。
+          </div>
         </section>
 
         <section className="astryn-root" data-testid="devhost-fixture-doc">

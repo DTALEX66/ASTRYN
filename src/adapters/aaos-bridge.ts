@@ -14,6 +14,7 @@
 
 import { ASTRYN_PROTOCOL_VERSION } from '@astryn/contracts';
 import { conversationEvent } from './conversation-event';
+import { ASTRYN_PORT_MANIFEST, interpretCapabilityRegistry, interpretVersionPayload, isCompatibleHostContract, readingFor } from './host-handshake';
 import type {
   AstrynActionPort,
   AstrynActionReceipt,
@@ -30,6 +31,7 @@ import type {
   AstrynEventKind,
   AstrynEventPayloadFor,
   AstrynHostCapabilities,
+  AstrynHostCapabilityReading,
   AstrynHostPort,
   AstrynHostUnavailable,
   AstrynGrantRequest,
@@ -99,9 +101,11 @@ export class AaosHostBridge implements AstrynHostPort, AstrynReceiptVerifier {
 
   private headers(extra?: Record<string, string>): Record<string, string> {
     const token = this.config.launchTokenProvider?.() ?? null;
+    // 头名按 AAOS_HOST_HAND_VERIFIED 记录：x-archeaxis-launch-token（actor 由服务端派生）。
+    // 带 Origin 头的请求一律 403，故适配器绝不添加 origin。
     return {
       'content-type': 'application/json',
-      ...(token ? { authorization: `Bearer ${token}` } : {}),
+      ...(token ? { 'x-archeaxis-launch-token': token } : {}),
       ...(extra ?? {})
     };
   }
@@ -119,17 +123,47 @@ export class AaosHostBridge implements AstrynHostPort, AstrynReceiptVerifier {
       if (!response.ok) {
         return { available: false, code: 'AUTHORITY_REFERENCE_MISSING', detail: `AAOS Core ${AAOS_ENDPOINTS.version} 返回 ${response.status}` };
       }
-      const body = (await response.json()) as Record<string, unknown>;
+      const version = interpretVersionPayload(await response.json());
+      if (version.observedProtocol !== null && !isCompatibleHostContract(version.observedProtocol)) {
+        return {
+          available: false,
+          code: 'PROTOCOL_MISMATCH',
+          detail: `宿主报告 api_contract=${version.observedProtocol}，星栖只对接主版本 1`
+        };
+      }
+      // 能力注册表：读不到就是读不到，逐项落 UNKNOWN；绝不用默认值补齐。
+      let readings: AstrynHostCapabilityReading[] = [];
+      let registryNote: string | null = null;
+      try {
+        const registry = await this.transport.request(AAOS_ENDPOINTS.capabilities, { method: 'GET', headers: this.headers() });
+        if (registry.ok) readings = [...interpretCapabilityRegistry(await registry.json())];
+        else registryNote = `能力注册表返回 ${registry.status}：未知不当可用，全部按未确认处理。`;
+      } catch (error) {
+        registryNote = `能力注册表不可读：${String(error)}：未知不当可用，全部按未确认处理。`;
+      }
+      const capabilityState = (candidates: readonly string[]): boolean => {
+        const reading = readingFor(readings, candidates);
+        return reading !== null && reading.state === 'AVAILABLE_UNVERIFIED';
+      };
+      const protocolConfirmed = version.observedProtocol !== null && isCompatibleHostContract(version.observedProtocol);
+      // 协议未确认时，五个宿主端口一律 fail-closed（即使注册表看起来很健康）。
+      const confirmedState = (candidates: readonly string[]): boolean => protocolConfirmed && capabilityState(candidates);
       return {
         protocol: ASTRYN_PROTOCOL_VERSION,
         // 宿主只提供一次性问答，无通用流式 chat completion（能力图谱第 1 节）。
-        conversation: true,
-        memory: true,
-        context: true,
-        actions: true,
-        authoritativeReceipts: true,
+        conversation: confirmedState(ASTRYN_PORT_MANIFEST[1]?.hostCapabilityCandidates ?? []),
+        memory: confirmedState(ASTRYN_PORT_MANIFEST[2]?.hostCapabilityCandidates ?? []),
+        context: confirmedState(ASTRYN_PORT_MANIFEST[4]?.hostCapabilityCandidates ?? []),
+        actions: confirmedState(ASTRYN_PORT_MANIFEST[3]?.hostCapabilityCandidates ?? []),
+        // 宿主无签名/校验面：回执权威性无法确认。不接受非空摘要充当数字签名（GF04 验收）。
+        authoritativeReceipts: false,
         streamResume: false,
-        hostBuildIdentity: typeof body.version === 'string' ? body.version : null
+        hostBuildIdentity: version.hostBuildIdentity,
+        observedProtocol: version.observedProtocol,
+        protocolConfirmed,
+        hostRuntime: version.hostRuntime,
+        capabilityRegistry: readings,
+        capabilityRegistryNote: registryNote
       };
     } catch (error) {
       return { available: false, code: 'AUTHORITY_REFERENCE_MISSING', detail: `AAOS Core 不可达：${String(error)}` };
@@ -163,14 +197,22 @@ export class AaosHostBridge implements AstrynHostPort, AstrynReceiptVerifier {
     return () => undefined;
   }
 
-  async verify(receipt: AstrynActionReceipt): Promise<AstrynVerificationResult> {
-    if (receipt.authority === 'synthetic-fixture') {
-      return { ok: false, reason: 'UNKNOWN_ISSUER', issuer: receipt.issuedBy };
+  /**
+   * 回执校验：AAOS Core 现面没有任何签名/校验端点（能力图谱无 signing 面），
+   * 因此无论连没连上，星栖都没有校验器可用 —— 一律 NO_VERIFIER。
+   * 不接受"非空字符串回执"或 digest 冒充数字签名（GF04 验收逐字条款）。
+   * synthetic-fixture 回执只属于合成模拟器，真实适配器拒绝。
+   */
+  verify(receipt: AstrynActionReceipt): Promise<AstrynVerificationResult> {
+    if (receipt.authority !== 'aaos-core') {
+      return Promise.resolve({ ok: false, reason: 'UNKNOWN_ISSUER', issuer: receipt.issuedBy });
     }
-    if (!this.configured) return { ok: false, reason: 'NO_VERIFIER', issuer: receipt.issuedBy };
-    if (receipt.issuedBy !== 'aaos-core') return { ok: false, reason: 'UNKNOWN_ISSUER', issuer: receipt.issuedBy };
-    if (receipt.signature.length === 0) return { ok: false, reason: 'BAD_SIGNATURE', issuer: receipt.issuedBy };
-    return { ok: true, reason: 'SIGNED_BY_TRUSTED_HOST', issuer: receipt.issuedBy };
+    if (!this.configured) return Promise.resolve({ ok: false, reason: 'NO_VERIFIER', issuer: receipt.issuedBy });
+    return Promise.resolve({
+      ok: false,
+      reason: 'NO_VERIFIER',
+      issuer: receipt.issuedBy
+    });
   }
 }
 
@@ -364,9 +406,24 @@ class AaosActionPort implements AstrynActionPort {
   ) {}
 
   async probe(): Promise<{ available: boolean; reason: string | null }> {
+    // 宿主可达 ≠ 动作可用：必须协议已确认且注册表命中 AVAILABLE_UNVERIFIED（GF04 fail-closed）。
     try {
+      const versionResponse = await this.http.request(AAOS_ENDPOINTS.version, { method: 'GET', headers: this.headers() });
+      if (!versionResponse.ok) return { available: false, reason: `版本面返回 ${versionResponse.status}` };
+      const version = interpretVersionPayload(await versionResponse.json());
+      if (version.observedProtocol === null || !isCompatibleHostContract(version.observedProtocol)) {
+        return { available: false, reason: `宿主协议未确认（observed=${version.observedProtocol ?? '未报告'}）：未知不当可用` };
+      }
       const response = await this.http.request(AAOS_ENDPOINTS.capabilities, { method: 'GET', headers: this.headers() });
       if (!response.ok) return { available: false, reason: `capability registry 返回 ${response.status}` };
+      const candidates = ASTRYN_PORT_MANIFEST[3]?.hostCapabilityCandidates ?? [];
+      const reading = readingFor(interpretCapabilityRegistry(await response.json()), candidates);
+      if (!reading || reading.state !== 'AVAILABLE_UNVERIFIED') {
+        return {
+          available: false,
+          reason: reading ? `动作能力注册表状态 ${reading.state}：${reading.detail}` : `注册表未出现动作能力（候选 ${candidates.join('/')}）：未知不当可用`
+        };
+      }
       return { available: true, reason: null };
     } catch (error) {
       return { available: false, reason: `AAOS Core 不可达：${String(error)}` };
@@ -447,7 +504,8 @@ class AaosActionPort implements AstrynActionPort {
         failureCode: outcome === 'failed' ? 'UPSTREAM_REJECTED' : null,
         riskTier: request.riskTier,
         authority: 'aaos-core',
-        signature: `${jobId}:${status}`
+        // 宿主无签名面：不拿 jobId/status 拼串冒充签名；空串即"无签名材料"。
+        signature: ''
       };
       for (const listener of this.listeners) listener(receipt);
       if (outcome === 'completed' || outcome === 'failed') {

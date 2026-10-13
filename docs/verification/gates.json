@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T15:55:43.558Z",
+  "generatedAt": "2026-10-13T16:08:53.920Z",
   "toolchain": {
     "node": "v26.7.0",
     "platform": "win32",
@@ -9,7 +9,7 @@
   "git": {
     "repository": true,
     "branch": "feat/astryn-learning-companion-v1",
-    "head": "e27cec30db28e2f7a059ffa65145f134233ddaa1",
+    "head": "e1cacd505184db39f30889ccea8991bf7029131e",
     "worktreeNote": "需 git status 判定，见台账"
   },
   "sourceTree": {

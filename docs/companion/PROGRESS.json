@@ -309,14 +309,26 @@
     },
     {
       "task_id": "GF10",
-      "state": "PLANNED",
-      "implementation": "NOT_EXECUTED",
-      "tests": "NOT_EXECUTED",
-      "runtime": "UNVERIFIED",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED_JOINT_ACCEPTANCE_ROUND_NO_SOURCE_CHANGE",
+      "tests": "EXECUTED_36_FILES_319_PASSED_SAME_AS_GF09 (no new tests: every behavior observed in the joint pass is already pinned by existing tests — DUPLICATE_MATERIAL learning-journey.test.ts:86, SCOPE_SUSPENDED_BY_LOCAL_POLICY manager.test.ts+memory-panel.test.tsx, lookup-before-resend stream-retry+composer-continuity)",
+      "runtime": "DEV_HOST_JOINT_BROWSER_VERIFIED_TWO_PAGE_INSTANCES (instance 1: three slots 240/168/168 + shared session logsCount=4 single sessionId + approval awaiting->approve->executing->advance->completed with audit 应用20·丢弃0·回执通过; instance 2 reload: real Range selection import -> journey -> explain-with-authorized-fragment -> capture-explain (provenance 授权片段) -> recall (登记材料) -> outcome-correct -> mastery explicit-user-outcomes-only; memory propose->correct(revoke+replace with dual read-back)->propose->delete(ledger removal)->suspend(propose refused SCOPE_SUSPENDED_BY_LOCAL_POLICY)->resume->export(deleted absent, revoked trace present); cancel race stopClicked=true->interrupted->retry->lookup not-found->resent->idle; hide->placeholder+log retained->show; persona radio girlfriend_style_opt_in->save->revision 0->1 v3 EPHEMERAL label; console 0 errors; screenshots 07-10)",
       "installation": "NOT_EXECUTED",
-      "evidence_refs": [],
-      "blocker": "real host joint acceptance needs BE12; ASTRYN-side acceptance runs separately",
-      "rollback_handle": null
+      "evidence_refs": [
+        "docs/companion/GF10-JOINT-ACCEPTANCE.md"
+      ],
+      "blocker": "the real-host half of the joint acceptance BLOCKED_BY_HOST_CONTRACT: AAOS-side integration (BE12, FE18 formal slots, GF04 host ports, BE05 session stream, BE06 profile/memory persistence, BE01 speech) is host repo work — never substituted with synthetic results; the real-model half stays UNVERIFIED (A05) — no upstream credentials configured/permitted this session; all replies in this round come from the zero-delay synthetic fixture and are labelled SYNTHETIC end to end",
+      "rollback_handle": "git revert of the GF10 commit on feat/astryn-learning-companion-v1; the commit contains docs only (GF10-JOINT-ACCEPTANCE.md new, PROGRESS.json, STATUS.md, regenerated gates.json receipt); source tree hash identical to GF09 (8027cfe9) proves zero source drift; screenshots live in .project-local/artifacts (not committed by convention, byte-checked by the updater)",
+      "source_sha": "source tree sha256 8027cfe9186a9c4d265a8074faca1b2933c95f9b5c6f3641245a582bae0771ff (100 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head e1cacd505184db39f30889ccea8991bf7029131e; receipt docs/verification/gates.json; disk tree re-hash matched the receipt (zero source drift in this no-source-change round)",
+      "changed_paths": [
+        "docs/companion/GF10-JOINT-ACCEPTANCE.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261014-000834.log, single pass); vitest 36 files / 319 passed (identical set to GF09); vite dev server 127.0.0.1:5288 (VITE_ASTRYN_ALLOW_SYNTHETIC=1 + VITE_ASTRYN_SYNTHETIC_HOST=1) exercised via DOM readouts + 4 saved screenshots, console 0 errors, vite terminated by netstat PID 5780, port 5288 released",
+      "artifact_hashes": "gates.json sourceTree.sha256=8027cfe9186a9c4d265a8074faca1b2933c95f9b5c6f3641245a582bae0771ff (100 files); index-P5YjlFx8.js 295268 bytes sha256 03e4f907786bb3c3811038ff7109106005a63d9c9521a61fd0f91652c4925574, index-PqCch4VI.css 11670 bytes sha256 3e8d7372f43837ecad034ac17102b90fa1a51fa5d13dddb4dfc680fe3ff6ec64, index-P5YjlFx8.js.map 845331 bytes sha256 c4f7ad965d8dd56f53eaf963f373804476d58d88f54c27f60be6c7051cfdba06, m0-browser-07-gf10-learning.png 816233 bytes sha256 9fe2ca304cce72e4c16f97aa3ec7993d531e9ea652b8c5b15384f6b894c79a8e, m0-browser-08-gf10-memory.png 863326 bytes sha256 4b0f025fc6b080ef6dc3fa16ecc0ead6005811c8202cd47addf7a2863db8b165, m0-browser-09-gf10-persona-settings.png 55133 bytes sha256 c2902ed326ed0ec9a4d768b838fc1a43f1866f91bae2f95333ddce2f9013e884, m0-browser-10-gf10-joint.png 930308 bytes sha256 2883cdd99a7c199f2ef20662fda06fb37b4b3d7e11c37535c78ed8e66592b4a4 (disk bytes; vite's console kB display counts UTF-16 code units so its printed value is smaller than disk bytes for CJK content — disk bytes are authoritative)",
+      "limitations": "synthetic-fixture joint pass only: the \"real host\" half (BE12/FE18/BE05/BE06/BE01) did not happen and is recorded as BLOCKED, the \"real model\" half stays UNVERIFIED (A05); sub-second states (listen/think/speak) are not stably observable in the browser with a zero-delay fixture — nine-state semantics pinned by unit tests; devhost-new-session does NOT reset the in-process learning/memory stores (observed: mastery persisted 2 outcomes across a session change; full page reload resets) — dev-host demo wiring, not formal product semantics; input drafts remain per-view local; no new tests this round by design (joint acceptance, not a feature round); screenshots 07-10 are the browser evidence"
     },
     {
       "task_id": "GF11",

@@ -43,7 +43,7 @@ m0_acceptance:
   unverified: [A17]
   not_executed: [A19]
   gates: {lint: 0, typecheck: 0, test: 0, build: 0}
-  tests: {files: 17, passed: 136}
+  tests: {files: 19, passed: 147}
 companion_program:
   plan_id: ASTRYN-COMPANION-20261013
   branch: feat/astryn-learning-companion-v1
@@ -56,5 +56,6 @@ companion_program:
   readback: docs/companion/source-ports-readback.json
   progress_ledger: docs/companion/PROGRESS.json
   gf01_doc: docs/companion/GF01-PROFILE-AND-SETTINGS.md
-  execution_state: GF01_completed
+  gf02_doc: docs/companion/GF02-SESSION-MANAGER.md
+  execution_state: GF02_completed
   host_dependencies: 'BE01/BE03/BE05/BE06/BE07/BE12 in DTALEX66/ArcheAxis-Knowledge-OS; this repo never writes the host repo'

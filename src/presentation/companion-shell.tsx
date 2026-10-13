@@ -8,7 +8,8 @@ import type {
   AstrynPresentationMode,
   AstrynReceiptVerifier
 } from '@astryn/contracts';
-import { AstrynCompanionController } from '../interaction/companion-controller';
+import { createCompanionSessionManager } from '../interaction/session-manager';
+import type { CompanionSessionManager, CompanionSessionPorts, CompanionSessionSnapshot } from '../interaction/session-manager';
 import type { AstrynProfileLoad, AstrynProfileStore } from '../companion/profile-store';
 import { ApprovalCard, AvatarView, ChatLog, Composer, StatusStrip } from './companion-view';
 import type { TranscriptEntry } from './companion-view';
@@ -29,6 +30,12 @@ export interface CompanionShellProps {
   readonly selectionProvider?: (() => Promise<AstrynContextFragment | null>) | undefined;
   /** 仅开发宿主的合成模拟器使用：把用户决定回写成一条权威回执。 */
   readonly onTaskAdvance?: ((taskId: string, outcome: 'approval-granted' | 'approval-denied' | 'started' | 'completed' | 'failed', detail?: string) => void) | undefined;
+  /**
+   * 共享会话管理器：多个呈现或宿主级控制共用同一实例时由宿主传入并持有生命周期。
+   * 不传时组件自建进程内管理器，卸载即释放（StrictMode 安全的延迟销毁）。
+   * 组件从不销毁传入的管理器。
+   */
+  readonly manager?: CompanionSessionManager | null;
 }
 
 function loadNoteText(note: AstrynProfileLoad['note']): string | null {
@@ -49,7 +56,6 @@ function loadNoteText(note: AstrynProfileLoad['note']): string | null {
 export function CompanionShell(props: CompanionShellProps): JSX.Element {
   const [hidden, setHidden] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [profile, setProfile] = useState<AstrynCharacterProfile>(props.profile ?? XIAOQI_PROFILE);
   const [contextFragment, setContextFragment] = useState<AstrynContextFragment | null>(props.initialContext ?? null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -57,62 +63,68 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
 
   const store = props.profileStore ?? null;
 
-  // 只有会话或宿主端口变化才重建控制器；档案更新走 setProfile，
-  // 否则打开设置面板会把会话连续性（守卫状态、历史、在途请求）一起拆掉。
-  const ports = useMemo(
-    () => ({
+  // 组件自建的管理器：构造保持纯净（首个视图 retain 时才 attach），被丢弃的实例不订阅宿主端口。
+  const [ownedManager] = useState(() =>
+    createCompanionSessionManager(
+      {
+        sessionId: props.sessionId,
+        profile: props.profile ?? XIAOQI_PROFILE,
+        conversation: props.conversation ?? null,
+        actions: props.actions ?? null,
+        verifier: props.verifier ?? null
+      },
+      { disposeWhenUnobserved: true }
+    )
+  );
+  const manager = props.manager ?? ownedManager;
+  const [snapshot, setSnapshot] = useState<CompanionSessionSnapshot>(() => manager.snapshot);
+
+  // 视图生命周期与快照订阅：retain 触发 start，release 后在无视图时按规则暂停渲染；
+  // 呈现方式变化（panel/embedded）不触碰会话运行时，记录连续。
+  useEffect(() => {
+    const release = manager.retainView(props.mode === 'embedded' ? 'embedded' : 'panel');
+    const unsubscribe = manager.subscribe(() => setSnapshot(manager.snapshot));
+    setSnapshot(manager.snapshot);
+    return () => {
+      unsubscribe();
+      release();
+    };
+  }, [manager, props.mode]);
+
+  // 端口变化时配置管理器；挂载时不覆盖管理者自带的端口配置。
+  const lastPorts = useRef<CompanionSessionPorts | null>(null);
+  useEffect(() => {
+    const next: CompanionSessionPorts = {
       sessionId: props.sessionId,
       conversation: props.conversation ?? null,
       actions: props.actions ?? null,
       verifier: props.verifier ?? null
-    }),
-    [props.sessionId, props.conversation, props.actions, props.verifier]
-  );
-
-  const profileRef = useRef(profile);
-  useEffect(() => {
-    profileRef.current = profile;
-  }, [profile]);
-
-  const [revision, setRevision] = useState(0);
-  const [controller, setController] = useState(() => new AstrynCompanionController({ ...ports, profile: props.profile ?? XIAOQI_PROFILE }));
-
-  useEffect(() => {
-    setController(() => new AstrynCompanionController({ ...ports, profile: profileRef.current }));
-  }, [ports]);
-
-  useEffect(() => {
-    controller.setProfile(profile);
-  }, [controller, profile]);
-
-  useEffect(() => {
-    const detach = controller.attach();
-    const unsubscribe = controller.subscribe(() => setRevision((n) => n + 1));
-    return () => {
-      unsubscribe();
-      detach();
-      controller.dispose();
     };
-  }, [controller]);
+    const last = lastPorts.current;
+    lastPorts.current = next;
+    if (!last) return;
+    manager.configurePorts(next);
+  }, [manager, props.sessionId, props.conversation, props.actions, props.verifier]);
 
   useEffect(() => {
     if (!store) return;
     let cancelled = false;
-    void store.load().then((result) => {
+    void manager.ensureProfileLoaded(store).then((result) => {
       if (cancelled) return;
-      setProfile(result.profile);
       setNotice(loadNoteText(result.note));
     });
     return () => {
       cancelled = true;
     };
-  }, [store]);
+  }, [manager, store]);
+
+  const profile = snapshot.profile;
+  const state = snapshot.state;
 
   useEffect(() => {
     setReducedMotion(profile.appearance.reducedMotion);
   }, [profile]);
 
-  const state = controller.currentState;
   const synthetic = props.conversation?.evidenceLevel === 'SYNTHETIC';
 
   const transcript = useMemo<readonly TranscriptEntry[]>(() => {
@@ -125,7 +137,7 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
         tone: 'normal'
       });
     }
-    for (const message of controller.transcript) {
+    for (const message of snapshot.transcript) {
       entries.push({
         role: message.role === 'system' ? 'system' : message.role,
         text: message.content,
@@ -133,18 +145,25 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
         tone: 'normal'
       });
     }
-    if (state.streamedText.length > 0) {
+    // 已完成的回复会补记进 transcript；此处只渲染"尚未落账"的在途文本，避免同一句话出现两遍。
+    const committedTail = snapshot.transcript.at(-1);
+    const streamedCommitted = committedTail?.role === 'assistant' && committedTail.content === state.streamedText;
+    if (state.streamedText.length > 0 && !streamedCommitted) {
       entries.push({ role: 'assistant', text: state.streamedText, synthetic, tone: 'normal' });
     }
     if (state.failure) {
       entries.push({ role: 'system', text: `${state.failure.code}：${state.failure.message}`, synthetic: false, tone: 'error' });
     }
     return entries;
-  }, [controller, state.streamedText, state.failure, synthetic, contextFragment, revision]);
+  }, [snapshot, state.streamedText, state.failure, synthetic, contextFragment]);
 
   const handleSubmit = useCallback((text: string) => {
-    void controller.submit(text);
-  }, [controller]);
+    void manager.submit(text);
+  }, [manager]);
+
+  const handleProfileChange = useCallback((next: AstrynCharacterProfile) => {
+    manager.setProfile(next);
+  }, [manager]);
 
   const handleExplain = useCallback(() => {
     const provider = props.selectionProvider;
@@ -152,21 +171,22 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
     void provider().then((fragment) => {
       if (!fragment) return;
       setContextFragment(fragment);
-      controller.attachContext([fragment]);
-      void controller.submit(`请解释我选中的这段内容，并给出它的来源标识。`);
+      manager.attachContext([fragment]);
+      void manager.submit(`请解释我选中的这段内容，并给出它的来源标识。`);
     });
-  }, [controller, props.selectionProvider]);
+  }, [manager, props.selectionProvider]);
 
   const handleSave = useCallback(() => {
     if (!store) {
       setNotice('未配置档案存储端口：修改仅在本会话内生效，不会被保存。');
       return;
     }
+    const current = manager.snapshot.profile;
     setSaving(true);
-    void store.save(profile, profile.profileRevision).then((result) => {
+    void store.save(current, current.profileRevision).then((result) => {
       setSaving(false);
       if (result.ok) {
-        setProfile(result.profile);
+        manager.setProfile(result.profile);
         setNotice(`已保存（修订 ${result.profile.profileRevision}）→ ${store.label}`);
         return;
       }
@@ -176,12 +196,12 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
       }
       setNotice(`保存不可用：${result.message}`);
     });
-  }, [store, profile]);
+  }, [store, manager]);
 
   const handleReset = useCallback(() => {
-    setProfile((current) => ({ ...XIAOQI_PROFILE, profileRevision: current.profileRevision }));
+    manager.setProfile({ ...XIAOQI_PROFILE, profileRevision: manager.snapshot.profile.profileRevision });
     setNotice('已恢复默认（尚未保存）。');
-  }, []);
+  }, [manager]);
 
   const streaming = state.conversation === 'thinking' || state.conversation === 'speaking';
 
@@ -215,11 +235,11 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
           <StatusStrip
             state={state}
             audit={{
-              applied: controller.audit.applied,
-              rejected: controller.audit.rejected,
-              lastRejectedReason: controller.audit.lastRejectedReason,
+              applied: snapshot.audit.applied,
+              rejected: snapshot.audit.rejected,
+              lastRejectedReason: snapshot.audit.lastRejectedReason,
               verification: (() => {
-                const verification = controller.audit.lastVerification;
+                const verification = snapshot.audit.lastVerification;
                 if (!verification) return null;
                 if (verification.ok) return '通过';
                 return verification.reason + (verification.hasVerifier ? '' : '（未提供校验器）');
@@ -240,7 +260,7 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
             >
               {settingsOpen ? '返回对话' : '设置'}
             </button>
-            <button type="button" className="astryn-btn" data-testid="astryn-reply-length" onClick={() => setProfile(withOverrides(profile, { expressionStyle: { replyLength: profile.expressionStyle.replyLength === 'brief' ? 'detailed' : 'brief' } }))}>
+            <button type="button" className="astryn-btn" data-testid="astryn-reply-length" onClick={() => manager.setProfile(withOverrides(profile, { expressionStyle: { replyLength: profile.expressionStyle.replyLength === 'brief' ? 'detailed' : 'brief' } }))}>
               回复长度：{profile.expressionStyle.replyLength}
             </button>
             {props.selectionProvider ? (
@@ -285,7 +305,7 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
           storagePersistent={store ? store.persistent : false}
           saving={saving}
           notice={notice}
-          onChange={setProfile}
+          onChange={handleProfileChange}
           onSave={handleSave}
           onReset={handleReset}
           onClose={() => setSettingsOpen(false)}
@@ -297,9 +317,9 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
             streaming={streaming}
             disabled={false}
             onSubmit={handleSubmit}
-            onCancel={() => controller.cancel('user')}
-            onFocus={() => controller.notifyFocus('composer')}
-            onBlur={() => controller.notifyBlur('composer')}
+            onCancel={() => manager.cancel('user')}
+            onFocus={() => manager.notifyFocus('composer')}
+            onBlur={() => manager.notifyBlur('composer')}
           />
         </>
       )}

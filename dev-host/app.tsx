@@ -6,6 +6,8 @@ import {
   SyntheticContextFixture,
   SyntheticHostSimulator,
   SyntheticMemoryFixture,
+  XIAOQI_PROFILE,
+  createCompanionSessionManager,
   createEphemeralProfileStore,
   resolveConversation,
   type AstrynContextFragment,
@@ -28,6 +30,23 @@ export function DevHostApp(): JSX.Element {
   const sessionId = `dev-session-${sessionSeed}`;
 
   const simulator = useMemo(() => (config.syntheticHostEnabled ? new SyntheticHostSimulator() : null), [config.syntheticHostEnabled]);
+  const conversationPort = sourceOverride === 'none' ? null : resolved.port;
+  // 会话运行时归管理器所有：切换会话或模型来源即换实例；最后一个视图离开后延迟销毁，
+  // 清理与重建发生在同一批次时不会拆掉正在复用的运行时。
+  const manager = useMemo(
+    () =>
+      createCompanionSessionManager(
+        {
+          sessionId,
+          profile: XIAOQI_PROFILE,
+          conversation: conversationPort,
+          actions: simulator,
+          verifier: simulator
+        },
+        { disposeWhenUnobserved: true }
+      ),
+    [sessionId, conversationPort, simulator]
+  );
   const memory = useMemo(() => new SyntheticMemoryFixture(), []);
   // 开发回退：进程内，刷新即失。正式档案保存归宿主（character.profile.write，BE06 未接通）。
   const profileStore = useMemo(() => createEphemeralProfileStore(), []);
@@ -78,9 +97,10 @@ export function DevHostApp(): JSX.Element {
           key={sessionId}
           mode={mode === 'embedded' ? 'embedded' : 'panel'}
           sessionId={sessionId}
-          conversation={sourceOverride === 'none' ? null : resolved.port}
+          conversation={conversationPort}
           actions={simulator}
           verifier={simulator}
+          manager={manager}
           profileStore={profileStore}
           selectionProvider={selectionProvider}
           onTaskAdvance={simulator ? (taskId, outcome, detail) => simulator.advance(taskId, outcome, detail) : undefined}

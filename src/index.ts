@@ -8,6 +8,14 @@ export { createEphemeralProfileStore, createHostProfileStore } from './companion
 export type { AstrynProfileStore, AstrynProfileLoad, AstrynProfileSave } from './companion/profile-store';
 export { AstrynCompanionController } from './interaction/companion-controller';
 export type { CompanionControllerDeps, ControllerAudit } from './interaction/companion-controller';
+export { CompanionSessionManager, createCompanionSessionManager } from './interaction/session-manager';
+export type {
+  AstrynSubmitOutcome,
+  CompanionManagerDeps,
+  CompanionSessionManagerOptions,
+  CompanionSessionPorts,
+  CompanionSessionSnapshot
+} from './interaction/session-manager';
 export { OpenAiCompatibleConversationPort } from './adapters/openai-compatible';
 export { SyntheticConversationPort } from './adapters/synthetic-conversation';
 export { SyntheticHostSimulator } from './adapters/synthetic-host';

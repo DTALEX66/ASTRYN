@@ -279,6 +279,8 @@ export class AstrynCompanionController {
           sessionId: this.deps.sessionId,
           requestId
         }];
+        // 历史是会话状态的一部分：补记完成后必须推送，否则订阅方会永久缓存住缺本轮回复的快照。
+        this.publish();
       }
     }
     return { requestId };

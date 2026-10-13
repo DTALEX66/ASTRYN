@@ -35,14 +35,34 @@
     },
     {
       "task_id": "GF02",
-      "state": "PLANNED",
-      "implementation": "NOT_EXECUTED",
-      "tests": "NOT_EXECUTED",
-      "runtime": "UNVERIFIED",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_19_FILES_147_PASSED_PLUS_DEV_HOST_BROWSER_SMOKE",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_SHARED_SESSION_MANAGER",
       "installation": "NOT_EXECUTED",
-      "evidence_refs": [],
-      "blocker": "GF01 completed; BE05 (host session stream) still pending — ASTRYN-side session-manager extraction can proceed and marks host stream calls BLOCKED",
-      "rollback_handle": null
+      "evidence_refs": [
+        "docs/companion/GF02-SESSION-MANAGER.md"
+      ],
+      "blocker": "host session stream (BE05) BLOCKED_BY_HOST_CONTRACT; ASTRYN-side session manager completed on existing ports",
+      "rollback_handle": "git revert of the GF02 commit on feat/astryn-learning-companion-v1; linear history, nothing rewritten",
+      "source_sha": "source tree sha256 9a04f3a025a0d8b17dcab6e7e3d530dc4e17d2be5a7c9fe196f53d09d829653e (72 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head 3a85821a55cd969b5fc11fac874bd64ec48b03ec; receipt docs/verification/gates.json",
+      "changed_paths": [
+        "src/interaction/session-manager.ts (new)",
+        "src/presentation/companion-shell.tsx",
+        "src/interaction/companion-controller.ts",
+        "src/index.ts",
+        "dev-host/app.tsx",
+        "tests/interaction/session-manager.test.ts (new)",
+        "tests/presentation/shared-session.test.tsx (new)",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF02-SESSION-MANAGER.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log .project-local/runs/gate-20261013-221934.log); vitest 19 files / 147 passed; dev host browser smoke on 127.0.0.1:5183 with VITE_ASTRYN_ALLOW_SYNTHETIC=1 (DOM evidence, 0 console errors)",
+      "artifact_hashes": "gates.json sourceTree.sha256=9a04f3a0...935e over 72 files; build index-COfKJKMr.js 221.05 kB gzip 72.68 kB",
+      "limitations": "runtime evidence is synthetic-port dev host only; real host session stream (BE05) not connected and marked BLOCKED_BY_HOST_CONTRACT; browser evidence is structural DOM readout (no screenshot surface) not pixel evidence"
     },
     {
       "task_id": "GF03",

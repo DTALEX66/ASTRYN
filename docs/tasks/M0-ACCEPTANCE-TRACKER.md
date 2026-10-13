@@ -23,7 +23,7 @@
 | A15 | 无秘密/无许可素材/权重/私人数据 | PASS | REAL | lockfile 320 包许可总账（无 GPL/AGPL/LGPL；唯一 CC-BY-4.0 是构建期数据集 `caniuse-lite`，见 DEPENDENCIES.md §3）；密钥样式扫描禁 `sk-…`/私钥块；`assets/third-party/` 空；`.gitignore` 排除 `.env`/`*.sqlite`/`*.safetensors`/`*.gguf`/`.project-local/`；请求体测试断言不含 `api_key`/`authorization`；未提交任何个人对话或运行数据 |
 | A16 | AAOS 工作树/队列未被修改 | PASS | REAL | 对 AAOS 仅执行只读命令（`ls`/`sed -n`/`grep`/`git rev-parse`/`git log -1`/`git status --short`）与文件读取；唯一写入是 ASTRYN 内的 `docs/architecture/AAOS-HOST-CAPABILITY-MAP.md`。核验时 AAOS HEAD `0574c3ac`、分支 `codex/conversation-closure-20261013`、工作树干净。未访问 E:/F:，未扫描其他同级项目 |
 | A17 | 真实 AAOS 集成 | **UNVERIFIED** | NO_EVIDENCE | 能力图谱结论：Core 无通用流式 chat completion（AAOS 自己用双方法 404 测试断言其不存在）；记忆晋升永远 human-only 且 Consumer 枚举不含星栖；无"当前选区"广播；无事件推送面（只能轮询 job）。星栖侧适配器已按这些事实实现，但**没有一次真实宿主调用** |
-| A18 | 远端 CI | **PASS** | REAL | run **38324785775**（https://github.com/DTALEX66/ASTRYN/actions/runs/38324785775），触发 commit `5603f34`，`completed/success`。两个矩阵作业 `gates (20.19)` 与 `gates (22.12)` 各 10 步全 success：Install from lockfile、Lint、Typecheck、Unit tests、Build dev host、No secrets in tracked sources、No third-party model weights or binaries。**首跑 `b42eee2` 是红的**（run 38324323712）：秘密扫描步骤拦下我测试里的字面 `sk- 前缀加 12 位以上字母数字`，同时发现 `.gitattributes` 把归档 CRLF 归一化导致其不再匹配 SHA-256 收据；两者在 `5603f34` 修复后转绿 |
+| A18 | 远端 CI | **PASS** | REAL | 当前绿：run **38325744854** @ `2a671f6`，https://github.com/DTALEX66/ASTRYN/actions/runs/38325744854 ，Node 20.19 与 22.12 两矩阵各 10 步 success（含秘密扫描与素材检查）。**过程并非一次通过**：`b42eee2` 红（测试内嵌凭据样式字面量 + 归档被行尾规范化破坏 SHA-256）、`ce07148` 与 `eb1f4b5` 红（文档正文又引用了同一字面量，扫描器按设计命中）；一次 test=0 回执是误报（那次 shell 未把 node 放进 PATH，vitest 根本没跑），已重跑并刷新。扫描器四次都站对了边 |
 | A19 | 已安装运行/用户验收 | NOT_EXECUTED | NO_EVIDENCE | 未安装任何正式程序；本轮浏览器验证不等于你的验收 |
 
 ## 2. 整体判定

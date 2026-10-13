@@ -25,7 +25,7 @@
 - **本地已是 Git 仓库并已上远端**：用户指令"全部上传"构成该操作授权（D015）。`git init -b main` → 两个正向提交 `b42eee2`（M0 全量）→ `5603f34`（修复 CI 拦出的两处缺陷），HEAD `5603f3430d862410b852705dd55213e95eda2d52` 与服务端 `refs/heads/main` 逐字符一致。**未 force push、未改写已发布历史**；推送前确认远端为 0 ref，不存在覆盖他人工作。
 - 仓库是 **public**：105 个文件已公开可见。文档内已参数化用户目录（`$HOME` 形式），不再含 Windows 用户名；`E:\` 仅出现在"未访问 E 盘"的声明句里。
 - 行尾策略：`.gitattributes` 统一 LF，`docs/tasks/archive/**` 显式 `-text -eol` 按字节原样存储，归档 SHA-256 与收据一致（CI 首跑拦出的缺陷，已修）。
-- 远端 CI：run `38324785775` 在 Node 20.19 与 22.12 两矩阵 `success`，10 步全绿（含秘密扫描与素材检查）。
+- 远端 CI：当前 HEAD `2a671f6` run 38325744854 双矩阵 success。过程中 4 次红/误报均如实记录在台账 A18：扫描器三次拦下我们自己写的字面凭据样式与归档行尾破坏，另一次本地 test=0 回执是 shell 未含 node 路径导致的空跑。
 - Git 全局配置含 `url.git@github.com:.insteadof=https://github.com/`，因此 origin 虽写作 HTTPS，实际走 SSH。未修改任何全局配置；提交身份沿用已有的 `DTALEX66`。
 - AAOS 本地根存在且为 Git 仓库（核验时 HEAD `0574c3ac`，工作树干净）。本轮对 AAOS **零写入**。
 - PATH 内无 node/npm；本轮绑定 `$HOME/AppData/Local/hermes/tools/node-26.7.0-win32-x64`（Node 26.7.0 / npm 11.19.0），npm 缓存限定在 `.project-local/runs/cache/npm`。

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T00:08:13.617Z",
+  "generatedAt": "2026-10-13T00:11:34.318Z",
   "toolchain": {
     "node": "v26.7.0",
     "platform": "win32",
@@ -9,7 +9,7 @@
   "git": {
     "repository": true,
     "branch": "main",
-    "head": "eb1f4b577d0c689ff10f6c9fdc5f48d5f407fc97",
+    "head": "2a671f60f2a65e392c49eaf02ba018a0f8d2e183",
     "worktreeNote": "需 git status 判定，见台账"
   },
   "sourceTree": {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  ASTRYN_HOST_SLOT_SPECS,
   ASTRYN_PROTOCOL_VERSION,
   ASTRYN_PRESENTATION_MODE_SPECS,
   SYNTHETIC_DOC,
@@ -18,7 +19,7 @@ import {
   type AstrynHostUnavailable,
   type AstrynPresentationMode
 } from '@astryn/core';
-import { CompanionShell } from '@astryn/core';
+import { AstrynCompanionEntry, CompanionShell } from '@astryn/core';
 import { readDevConfig } from './dev-config';
 import { LearningPanel } from './learning-panel';
 import { MemoryPanel } from './memory-panel';
@@ -58,6 +59,12 @@ export function DevHostApp(): JSX.Element {
   const memoryManager = useMemo(() => new MemoryManager({ port: memory, sessionId }), [memory, sessionId]);
   // 学习陪伴状态独立于会话运行时：新会话不清空材料与练习记录（进程内，刷新即失）。
   const learningStore = useMemo(() => createLearningCompanion(), []);
+  // GF08：学习专注模式是宿主给出的状态读数，经 focus 属性驱动呈现层收敛（星栖不自行推断）。
+  const [learningFocus, setLearningFocus] = useState<boolean>(() => learningStore.snapshot.mindset.focusMode);
+  useEffect(
+    () => learningStore.subscribe(() => setLearningFocus(learningStore.snapshot.mindset.focusMode)),
+    [learningStore]
+  );
   // 开发回退：进程内，刷新即失。正式档案保存归宿主（character.profile.write，BE06 未接通）。
   const profileStore = useMemo(() => createEphemeralProfileStore(), []);
   const [notice, setNotice] = useState<string>('');
@@ -219,6 +226,34 @@ export function DevHostApp(): JSX.Element {
           <div className="astryn-disclosure">选中上面的文字后点左侧「解释选中内容」。这是契约测试夹具，不代表访问了 AAOS 知识库。</div>
         </section>
 
+        <section className="astryn-root" data-testid="devhost-slots">
+          <div className="astryn-title">
+            宿主槽位共用会话（GF08）<span className="astryn-evidence-tag astryn-evidence-tag--synthetic">SYNTHETIC</span>
+          </div>
+          <div className="devhost-slot-row">
+            {ASTRYN_HOST_SLOT_SPECS.map((spec) => (
+              <div className="devhost-slot" key={spec.slot} data-slot-demo={spec.slot}>
+                <AstrynCompanionEntry
+                  key={`${sessionId}-${spec.slot}`}
+                  slot={spec.slot}
+                  sessionId={sessionId}
+                  conversation={conversationPort}
+                  actions={simulator}
+                  verifier={simulator}
+                  manager={manager}
+                  focus={learningFocus}
+                  onTaskAdvance={simulator ? (taskId, outcome, detail) => simulator.advance(taskId, outcome, detail) : undefined}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="astryn-disclosure">
+            三处槽位（{ASTRYN_HOST_SLOT_SPECS.map((spec) => spec.label).join(' / ')}）与左侧主视图共用同一会话管理器：
+            任一处发送，各处记录同步；卸载单个槽位不停止会话。角色大小 240 / 168（专注 112）、对话高度与隐藏足迹全部引用
+            frontend tokens，宿主容器可覆盖。学习面板的「专注模式」开关会即刻让三处呈现同步收敛（focus 属性）。
+          </div>
+        </section>
+
         <LearningPanel
           store={learningStore}
           modelAvailable={conversationPort !== null && resolved.info.available}
@@ -238,6 +273,7 @@ export function DevHostApp(): JSX.Element {
           <div className="astryn-title">边界声明</div>
           <ul className="devhost-list">
             <li>本宿主是开发工具，不是第二个正式前端；正式形态由 AAOS 前端挂载。</li>
+            <li>槽位演示（GF08）证明主页/阅读/侧边三处呈现共用同一会话管理器与同一组宿主端口（无第二模型中心）；正式槽位由 AAOS 前端（FE18）写入，本页面不构成正式集成证据。</li>
             <li>未启用麦克风、摄像头、屏幕采集与系统命令；本页面不请求任何此类权限。</li>
             <li>小栖档案在开发宿主里只存进程内（刷新即失）；正式保存归宿主（character.profile.write，BE06 未接通，保存会显式失败）。</li>
             <li>合成数据一律标注 SYNTHETIC；真实模型调用需自行配置 dev 代理，密钥不进浏览器。</li>

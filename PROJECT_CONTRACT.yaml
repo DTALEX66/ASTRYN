@@ -73,5 +73,8 @@ companion_program:
   gf07_doc: docs/companion/GF07-STREAM-AND-RETRY.md
   gf07_domain: contracts/conversation.ts + src/interaction/companion-controller.ts + src/presentation/companion-view.tsx
   gf07_semantics: '重试保留输入与材料标签并以新 requestId 重发；未知执行结果的失败码（NETWORK/TIMEOUT/MALFORMED_STREAM/ABORTED/UNKNOWN）先经正式流合同 lookupRequest 查询原请求再决定：completed/in-progress 扣留不重发（HELD_BACK 防重复执行）且输入放回输入框，端口无查询能力时如实标注 RESENT_WITHOUT_LOOKUP（宿主合同缺项）；停止与关视图不同：隐藏角色不取消会话（隐藏期间跑完、恢复可见），用户停止后晚到增量与迟到权威事件被 SETTLED_REQUEST 静默丢弃、任务状态不因此改变；合成夹具不保留已结束请求（lookup 恒 not-found，不写正式记录）'
-  execution_state: GF07_completed
+  gf08_doc: docs/companion/GF08-SLOTS-AND-HANDOFF.md
+  gf08_domain: contracts/presentation.ts + src/presentation/host-entry.tsx + src/presentation/astryn.css + dev-host/app.tsx
+  gf08_semantics: '正式宿主入口 AstrynCompanionEntry：槽位（home/reading/sidebar）决定模式与取景档（home=embedded+hero，reading=embedded+sidebar，sidebar=panel+sidebar）；会话归宿主传入的共享 manager，三个槽位共用同一实例——一次提交只调端口一遍、任一处发送各处记录同步、逐个卸载不停止会话、全部卸载后重开仍拿完整记录；入口不构造任何模型端口（无第二个模型中心），未注入 conversation 即显示 NO MODEL；角色大小/对话区高度/隐藏足迹/专注收敛全部引用前端 tokens（--astryn-avatar-size-{hero,avatar,sidebar,home,reading,focus}、--astryn-log-height-*、--astryn-hidden-min-height），宿主在容器上覆盖 base 令牌即可改尺寸，无需改组件代码；专注是宿主给出的状态（如学习专注模式）经 focus 属性传入，星栖不自行推断；CSS 中 focus 规则必须写在槽位映射之后（同特异性靠书写顺序，顺序即语义，有门禁测试钉住）'
+  execution_state: GF08_completed
   host_dependencies: 'BE01/BE03/BE05/BE06/BE07/BE12 in DTALEX66/ArcheAxis-Knowledge-OS; this repo never writes the host repo'

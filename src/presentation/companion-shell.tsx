@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { XIAOQI_PROFILE, withOverrides } from '@astryn/contracts';
+import { XIAOQI_PROFILE, hostSlotSpec, withOverrides } from '@astryn/contracts';
 import type {
   AstrynActionPort,
   AstrynCharacterProfile,
   AstrynContextFragment,
   AstrynConversationPort,
+  AstrynHostSlot,
   AstrynPresentationMode,
   AstrynReceiptVerifier
 } from '@astryn/contracts';
 import { createCompanionSessionManager } from '../interaction/session-manager';
 import type { CompanionSessionManager, CompanionSessionPorts, CompanionSessionSnapshot } from '../interaction/session-manager';
-import { avatarViewForMode } from '../avatar/render-profiles';
+import { avatarViewForMode, avatarViewProfile } from '../avatar/render-profiles';
 import type { AstrynProfileLoad, AstrynProfileStore } from '../companion/profile-store';
 import { ApprovalCard, AvatarView, ChatLog, Composer, RetryBar, StatusStrip } from './companion-view';
 import type { TranscriptEntry } from './companion-view';
@@ -37,6 +38,16 @@ export interface CompanionShellProps {
    * 组件从不销毁传入的管理器。
    */
   readonly manager?: CompanionSessionManager | null;
+  /**
+   * 宿主槽位（GF08）：主页 / 阅读嵌入 / 侧边面板。只影响取景档与尺寸令牌链，
+   * 不改变模式（模式由调用方从 hostSlotSpec 取，正式入口 AstrynCompanionEntry 已代劳）。
+   */
+  readonly slot?: AstrynHostSlot | null;
+  /**
+   * 专注呈现：宿主告知"用户正在专注"（如学习专注模式开启），角色与对话区
+   * 收敛到专注令牌尺寸。星栖不自行推断专注，只呈现宿主给出的状态。
+   */
+  readonly focus?: boolean;
 }
 
 function loadNoteText(note: AstrynProfileLoad['note']): string | null {
@@ -130,6 +141,9 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
   }, [profile]);
 
   const synthetic = props.conversation?.evidenceLevel === 'SYNTHETIC';
+
+  // 槽位决定取景档（GF08）：主页 hero、阅读/侧边 sidebar；无槽位的直接用法退回模式映射。
+  const view = props.slot ? avatarViewProfile(hostSlotSpec(props.slot).avatarView) : avatarViewForMode(props.mode);
 
   const transcript = useMemo<readonly TranscriptEntry[]>(() => {
     const entries: TranscriptEntry[] = [];
@@ -245,7 +259,14 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
 
   if (hidden) {
     return (
-      <div className={`astryn-root astryn-root--${props.mode}`} data-testid="astryn-hidden-placeholder">
+      <div
+        className={`astryn-root astryn-root--${props.mode}`}
+        data-testid="astryn-hidden-placeholder"
+        data-hidden="true"
+        data-slot={props.slot ?? undefined}
+        data-avatar-view={view.id}
+        data-focus={props.focus ? 'true' : undefined}
+      >
         <span className="astryn-disclosure">小栖已隐藏。</span>
         <button type="button" className="astryn-btn" data-testid="astryn-show" onClick={() => setHidden(false)}>恢复角色</button>
       </div>
@@ -253,7 +274,13 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
   }
 
   return (
-    <div className={`astryn-root astryn-root--${props.mode}`} data-testid="astryn-shell">
+    <div
+      className={`astryn-root astryn-root--${props.mode}`}
+      data-testid="astryn-shell"
+      data-slot={props.slot ?? undefined}
+      data-avatar-view={view.id}
+      data-focus={props.focus ? 'true' : undefined}
+    >
       <div className="astryn-header">
         <div>
           <div className="astryn-title">{profile.displayName} · 星栖</div>
@@ -268,7 +295,7 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
       </div>
 
       <div className="astryn-stage">
-        <AvatarView state={state} profile={profile} reducedMotion={reducedMotion} view={avatarViewForMode(props.mode)} />
+        <AvatarView state={state} profile={profile} reducedMotion={reducedMotion} view={view} />
         <div className="astryn-stage-meta">
           <StatusStrip
             state={state}

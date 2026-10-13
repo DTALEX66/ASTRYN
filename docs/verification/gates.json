@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T15:30:06.831Z",
+  "generatedAt": "2026-10-13T15:41:55.255Z",
   "toolchain": {
     "node": "v26.7.0",
     "platform": "win32",
@@ -9,12 +9,12 @@
   "git": {
     "repository": true,
     "branch": "feat/astryn-learning-companion-v1",
-    "head": "f1bf14e5e3df93f751e75f3da9bbee60be46b2cf",
+    "head": "14f0e0d358e65cb990e57867b390f6555117f8f2",
     "worktreeNote": "需 git status 判定，见台账"
   },
   "sourceTree": {
-    "files": 93,
-    "sha256": "d0a223a0dd84e7e41b197fb77c2914e704d48886fe782dc6a748b61029321008",
+    "files": 96,
+    "sha256": "ce9846f0f7c70fba44bce87e5c42c48c6a84a6f8432866fe9172a9fff06f6cb4",
     "scopes": [
       "contracts",
       "src",
@@ -86,8 +86,8 @@
     },
     {
       "path": "contracts/presentation.ts",
-      "bytes": 1833,
-      "sha256": "76fd4c991d2fa90045164ff2a93cc7cb0b22dafef64992928da06159826114bb"
+      "bytes": 4183,
+      "sha256": "161e762c576529aaaf4114c7f4899959a501e02daf1c346465f12f5f08d05b1e"
     },
     {
       "path": "contracts/protocol.ts",
@@ -106,8 +106,8 @@
     },
     {
       "path": "dev-host/app.tsx",
-      "bytes": 12577,
-      "sha256": "aef8972dcce7a73aa1f173e0eaf383a4f1331793d0373cb7a26466f79fdda510"
+      "bytes": 14813,
+      "sha256": "4e856a8b4715ca979590661f2fbe6c1edb74bc18d816aa7f7a6053495a2da187"
     },
     {
       "path": "dev-host/dev-config.ts",
@@ -116,8 +116,8 @@
     },
     {
       "path": "dev-host/dev-host.css",
-      "bytes": 2221,
-      "sha256": "a3f046ebb3640c525ff6583e70867d8b5d904f5721a90aae04dec74f19039468"
+      "bytes": 2432,
+      "sha256": "5a2005b2a110103aa16b975b7523d7bf3297f37ef25118b6f985dc87d94a6928"
     },
     {
       "path": "dev-host/index.html",
@@ -161,8 +161,8 @@
     },
     {
       "path": "PROJECT_CONTRACT.yaml",
-      "bytes": 5442,
-      "sha256": "fae22b037032bcf496eecfe9dbf6522d9dbb514982e4544ec322e4299575580a"
+      "bytes": 6655,
+      "sha256": "dd7a942c30978f6d69de16e71a8fff9b45789d4b89dcba21ac5e1f138b45417a"
     },
     {
       "path": "src/adapters/aaos-bridge.ts",
@@ -261,8 +261,8 @@
     },
     {
       "path": "src/index.ts",
-      "bytes": 5149,
-      "sha256": "01801a1a0238859a350f08e66989a28bb9b42570e11c4110004a3ddb79ab07b1"
+      "bytes": 5291,
+      "sha256": "dec567b4044791749990fb35bfb216d761782fd2f5b2c602991fb1e0917a7012"
     },
     {
       "path": "src/interaction/companion-controller.ts",
@@ -301,8 +301,8 @@
     },
     {
       "path": "src/presentation/astryn.css",
-      "bytes": 10824,
-      "sha256": "f2fdbf2e363060d5510b574c79baba457cdbd0174fbc28041e4dd2bf4bec6bef"
+      "bytes": 13051,
+      "sha256": "4a4949650262e5bb1cc7505539444c1ef077413aa0632e5455524f946aeb0a9f"
     },
     {
       "path": "src/presentation/companion-settings.tsx",
@@ -311,13 +311,18 @@
     },
     {
       "path": "src/presentation/companion-shell.tsx",
-      "bytes": 16796,
-      "sha256": "a6a7ff136fe07a47d03dd61133917a58526c17d684773fd3c8101f863d760c4f"
+      "bytes": 17911,
+      "sha256": "9a134af8fb81b073acf3043dadb18b5ab4a5a99f8f1696ff222ea04914e65f57"
     },
     {
       "path": "src/presentation/companion-view.tsx",
       "bytes": 11707,
       "sha256": "f1e231b8b496849e1519e4f3676f06619aa97adc8c5d58859a6a2361cfc2e113"
+    },
+    {
+      "path": "src/presentation/host-entry.tsx",
+      "bytes": 1303,
+      "sha256": "ee8572ea5c2bd3f7f0c282e8b407a07534fb8ca3035d14df3c59e14d45d431b7"
     },
     {
       "path": "src/presentation/mode-registry.ts",
@@ -483,6 +488,16 @@
       "path": "tests/presentation/composer-continuity.test.tsx",
       "bytes": 9427,
       "sha256": "dbdbe02c1feef201ded17e3d79b424f82606a0feeadf2e950d4bfdb0c91727fa"
+    },
+    {
+      "path": "tests/presentation/host-slots.test.tsx",
+      "bytes": 6960,
+      "sha256": "df0d5a4993b0234e5755b912cc87f8cec8ce7b2181279d24497b95525e8c4de2"
+    },
+    {
+      "path": "tests/presentation/presentation-tokens.test.ts",
+      "bytes": 3321,
+      "sha256": "aea599cbc7f5502c5cb0946b8c7652e7ac871425cae36a969b30e0ba35ba9f8a"
     },
     {
       "path": "tests/presentation/shared-session.test.tsx",

@@ -238,14 +238,36 @@
     },
     {
       "task_id": "GF08",
-      "state": "PLANNED",
-      "implementation": "NOT_EXECUTED",
-      "tests": "NOT_EXECUTED",
-      "runtime": "UNVERIFIED",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_34_FILES_303_PASSED_INCL_GF08_10 (host-slots 5 + presentation-tokens 5)",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_THREE_SLOTS_SHARED_SESSION (submit from home slot -> aside + all three slot logs show the same reply; focus toggle -> data-focus=true on all three, avatar 112px, log 160px; hidden -> data-hidden=true with slot retained, min-height 72px; host stylesheet override of the reading slot token -> svg 128px, removed -> back to 168px; console 0 errors)",
       "installation": "NOT_EXECUTED",
-      "evidence_refs": [],
-      "blocker": null,
-      "rollback_handle": null
+      "evidence_refs": [
+        "docs/companion/GF08-SLOTS-AND-HANDOFF.md"
+      ],
+      "blocker": "FE18 formal slot wiring BLOCKED_BY_HOST_CONTRACT (AAOS frontend has no slot contract yet); floating/pet/voice-only modes stay P2-blocked by native window/tray/ASR-TTS needs as declared in contracts/presentation.ts",
+      "rollback_handle": "git revert of the GF08 commit on feat/astryn-learning-companion-v1; contract/CSS changes additive (new tokens/rules; log max-height moved from literal 240px to a token with the same value); new files src/presentation/host-entry.tsx + tests/presentation/host-slots.test.tsx + tests/presentation/presentation-tokens.test.ts; no migration and no host-side writes",
+      "source_sha": "source tree sha256 ce9846f0f7c70fba44bce87e5c42c48c6a84a6f8432866fe9172a9fff06f6cb4 (96 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head 14f0e0d358e65cb990e57867b390f6555117f8f2; receipt docs/verification/gates.json",
+      "changed_paths": [
+        "contracts/presentation.ts",
+        "src/presentation/host-entry.tsx (new)",
+        "src/presentation/companion-shell.tsx",
+        "src/presentation/astryn.css",
+        "src/index.ts",
+        "dev-host/app.tsx",
+        "dev-host/dev-host.css",
+        "tests/presentation/host-slots.test.tsx (new)",
+        "tests/presentation/presentation-tokens.test.ts (new)",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF08-SLOTS-AND-HANDOFF.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261013-234143.log, single pass); vitest 34 files / 303 passed; slot falsification: planting a slot-ignore in host-entry made host-slots test 1 red (1 failed | 4 passed), reverted to green; vite dev server 127.0.0.1:5183 (VITE_ASTRYN_ALLOW_SYNTHETIC=1) exercised via DOM readout, console 0 errors, vite terminated by netstat PID 14640, port 5183 released",
+      "artifact_hashes": "gates.json sourceTree.sha256=ce9846f0f7c70fba44bce87e5c42c48c6a84a6f8432866fe9172a9fff06f6cb4 (96 files); build index-jeSTOzBq.js 284009 bytes sha256 b87de972b22109913d5858c51c35e809cc20532a71327279e2cc981dce8b9a2b, index-PqCch4VI.css 11670 bytes sha256 3e8d7372f43837ecad034ac17102b90fa1a51fa5d13dddb4dfc680fe3ff6ec64, index-jeSTOzBq.js.map 805180 bytes sha256 9752f9f72655df763928a5dade3c7240c5602d477ea577751a563c42324feb01 (disk bytes; vite's console kB display counts UTF-16 code units so its printed value is smaller than disk bytes for CJK content — disk bytes are authoritative)",
+      "limitations": "browser evidence is structural DOM readout (no screenshot surface this session); input draft is per-view local (each view keeps its own draft; the conversation record is shared); focus source in dev-host is the learning panel mindset.focusMode (demo wiring) while the formal contract is a host-supplied focus prop (Astryn never infers focus); SVG width attribute remains as no-CSS fallback; hidden footprint is a min-height (72px) not a pixel promise; panel width min(360px,100%) is not slot-token-governed; dev-host app.tsx slot row remains browser-smoke-only (no test imports it); a slot rendered without the shared manager prop would create its own session — locked semantics apply to the shared-manager wiring"
     },
     {
       "task_id": "GF09",

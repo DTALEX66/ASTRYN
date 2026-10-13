@@ -116,3 +116,7 @@
   .devhost-page { padding: 10px; gap: 12px; }
   .devhost-aside, .devhost-main { flex: 1 1 100%; width: 100%; }
 }
+
+/* GF08：宿主槽位演示（三处挂载共用同一会话）。 */
+.devhost-slot-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+.devhost-slot { flex: 1 1 280px; min-width: 0; }

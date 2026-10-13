@@ -107,6 +107,8 @@ export type { AstrynBodyPreset, AstrynStateActionSpec } from './avatar/state-act
 export { xiaoqiSvgRenderer, renderXiaoqiMarkup, AVATAR_RENDERERS, selectAvatarRenderer, resolveAvatarRenderer } from './avatar/xiaoqi-svg-renderer';
 export { redactErrorText } from './adapters/openai-compatible';
 export { CompanionShell } from './presentation/companion-shell';
+export { AstrynCompanionEntry } from './presentation/host-entry';
+export type { AstrynCompanionEntryProps } from './presentation/host-entry';
 export { CompanionSettings } from './presentation/companion-settings';
 export type { CompanionSettingsProps } from './presentation/companion-settings';
 export { availableModes } from './presentation/mode-registry';

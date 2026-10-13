@@ -43,6 +43,24 @@
   /* 焦点：键盘可见性不依赖 UA 默认环 */
   --astryn-focus-ring: 2px solid var(--astryn-accent);
 
+  /* 呈现尺寸（GF08）：角色大小 / 对话区高度 / 隐藏足迹一律走令牌。
+     宿主覆盖点就是这些变量本身——在槽位容器上改写 base 令牌即可，
+     无需改组件代码（选择器须命中 .astryn-root 本体，见集成交接说明）。 */
+  --astryn-avatar-size-hero: 240px;
+  --astryn-avatar-size-avatar: 96px;
+  --astryn-avatar-size-sidebar: 168px;
+  --astryn-avatar-size-home: 240px;
+  --astryn-avatar-size-reading: 168px;
+  --astryn-avatar-size-focus: 112px;
+  --astryn-log-height-home: 240px;
+  --astryn-log-height-reading: 240px;
+  --astryn-log-height-sidebar: 240px;
+  --astryn-log-height-focus: 160px;
+  --astryn-hidden-min-height: 72px;
+  /* 生效值：默认按侧边档；槽位/取景/专注规则按下方顺序覆盖。 */
+  --astryn-avatar-size: var(--astryn-avatar-size-sidebar);
+  --astryn-log-max-height: var(--astryn-log-height-sidebar);
+
   font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
   color: var(--astryn-text);
   background: var(--astryn-bg);
@@ -59,6 +77,17 @@
 
 .astryn-root--panel { width: min(360px, 100%); box-sizing: border-box; }
 .astryn-root--embedded { width: 100%; box-sizing: border-box; }
+
+/* 槽位与取景档 → 尺寸令牌的映射（GF08）。
+   focus 规则必须写在槽位映射之后：同等特异性下靠书写顺序取胜（勿调序）。 */
+.astryn-root[data-avatar-view="hero"] { --astryn-avatar-size: var(--astryn-avatar-size-hero); }
+.astryn-root[data-avatar-view="avatar"] { --astryn-avatar-size: var(--astryn-avatar-size-avatar); }
+.astryn-root[data-avatar-view="sidebar"] { --astryn-avatar-size: var(--astryn-avatar-size-sidebar); }
+.astryn-root[data-slot="home"] { --astryn-avatar-size: var(--astryn-avatar-size-home); --astryn-log-max-height: var(--astryn-log-height-home); }
+.astryn-root[data-slot="reading"] { --astryn-avatar-size: var(--astryn-avatar-size-reading); --astryn-log-max-height: var(--astryn-log-height-reading); }
+.astryn-root[data-slot="sidebar"] { --astryn-avatar-size: var(--astryn-avatar-size-sidebar); --astryn-log-max-height: var(--astryn-log-height-sidebar); }
+.astryn-root[data-focus="true"] { --astryn-avatar-size: var(--astryn-avatar-size-focus); --astryn-log-max-height: var(--astryn-log-height-focus); }
+.astryn-root[data-hidden="true"] { min-height: var(--astryn-hidden-min-height); }
 
 /* panel 宽度容不下 200px 头像 + 状态列并排（实测只剩 ~120px 给文字，处处断词）。
    因此 panel 模式下角色居中在上、状态与操作在下；embedded 有更宽容器时保持并排。 */
@@ -82,7 +111,8 @@
 
 .astryn-stage { display: flex; align-items: center; gap: var(--astryn-space-4); }
 .astryn-avatar { line-height: 0; flex: 0 0 auto; }
-.astryn-avatar svg { display: block; }
+/* 角色大小经 --astryn-avatar-size → --astryn-avatar-size-{slot/view}（GF08）。 */
+.astryn-avatar svg { display: block; width: var(--astryn-avatar-size); height: auto; }
 .astryn-avatar--fallback { display: flex; align-items: center; }
 .astryn-stage-meta { flex: 1 1 auto; min-width: 0; }
 
@@ -115,7 +145,7 @@
 
 .astryn-log {
   display: flex; flex-direction: column; gap: var(--astryn-space-4);
-  max-height: 240px; overflow-y: auto; padding: var(--astryn-space-3);
+  max-height: var(--astryn-log-max-height); overflow-y: auto; padding: var(--astryn-space-3);
   background: var(--astryn-surface); border: 1px solid var(--astryn-line);
   border-radius: var(--astryn-radius-lg);
 }

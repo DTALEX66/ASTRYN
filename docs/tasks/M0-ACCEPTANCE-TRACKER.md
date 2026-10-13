@@ -6,7 +6,7 @@
 | ID | 验收 | 状态 | 证据级别 | 实际证据 |
 | --- | --- | --- | --- | --- |
 | A00 | 原任务归档无损 | PASS | REAL | 本轮重新计算：`ASTRYN-DEVELOPMENT-START-V1.0.txt` 实测 SHA-256 `866C151DB45E0D0ADFCAFA9F059A836DF859D830420B65AB95673FDD4B08450F`（20,960 字节 / 527 行），与 `ARCHIVE-RECEIPT.md` 记录的哈希逐字符相等 ⇒ MATCH=true。本轮未改写该文件；22 个既有文件全数保留（S0 §5） |
-| A01 | 本地/远端身份正确，无错误重建 | **PARTIAL** | REAL | 远端：`git ls-remote` exit 0 且 0 ref + `api.github.com/repos/DTALEX66/ASTRYN` → HTTP 200、`size=0`、`visibility=public` ⇒ 仓库存在且为空，未被重复创建。本地：`.git` 不存在（`NOT_A_GIT_REPOSITORY`），本轮未 `git init`/clone ⇒ **本地-远端关联这一半未完成**，因 Git 方案需你确认（S0 §6 列 G1/G2/G3） |
+| A01 | 本地/远端身份正确，无错误重建 | **PASS** | REAL | 推送前复核：远端 `ls-remote` 返回 **0 ref**（空仓库，确认不会覆盖任何东西）后才 `git init -b main`。现本地 HEAD `5603f34` == 服务端 `refs/heads/main` `5603f3430d862410b852705dd55213e95eda2d52`（逐字符比对）。远端 tree 105 个 blob，归档原件 `git hash-object` 与远端 blob sha 一致且字节数 20960、SHA-256 等于收据值。未使用 force push，历史为 `b42eee2` → `5603f34` 两个正向提交 |
 | A02 | 宿主按文档启动 | PASS | SYNTHETIC | `npm run dev` → Vite ready 236 ms，`http://127.0.0.1:5183/` HTTP 200；embedded/panel 两模式类名与宽度实测切换（408/388px）；`presentation-modes.test.ts` 断言只承认这两种，其余带阻塞原因。级别为 SYNTHETIC：页面数据源是合成夹具 |
 | A03 | 原创小栖可见 | PASS | REAL（画面）/ SYNTHETIC（数据） | 截图 `m0-browser-02-idle-v2.png`、`m0-browser-03-awaiting-approval.png`；几何断言 avatar 200×233 且 `>40×40`；来源声明 `assets/original/README.md`；`no-sensitive-apis.test.ts` 强制 `assets/third-party/` 为空；SVG 不含 `<image`/`href`/外部 URL |
 | A04 | 表情动作由真实交互事件驱动 | PASS | SYNTHETIC | 浏览器：聚焦输入框 `idle→listening`（环色 `#5ad1c8→#7aa2ff`）；提交后 `data-expression-frame` 由 0 增至 **4**，等于真实到达的 delta 数（帧号在 reducer 内递增，不接受外部传入、无定时器）；审批时 `awaiting_approval`+`?`+琥珀环，完成时 `completed`+`✓`+绿环。测试：`companion-shell.test.tsx`、`approval-flow.test.tsx` |
@@ -23,16 +23,18 @@
 | A15 | 无秘密/无许可素材/权重/私人数据 | PASS | REAL | lockfile 320 包许可总账（无 GPL/AGPL/LGPL；唯一 CC-BY-4.0 是构建期数据集 `caniuse-lite`，见 DEPENDENCIES.md §3）；密钥样式扫描禁 `sk-…`/私钥块；`assets/third-party/` 空；`.gitignore` 排除 `.env`/`*.sqlite`/`*.safetensors`/`*.gguf`/`.project-local/`；请求体测试断言不含 `api_key`/`authorization`；未提交任何个人对话或运行数据 |
 | A16 | AAOS 工作树/队列未被修改 | PASS | REAL | 对 AAOS 仅执行只读命令（`ls`/`sed -n`/`grep`/`git rev-parse`/`git log -1`/`git status --short`）与文件读取；唯一写入是 ASTRYN 内的 `docs/architecture/AAOS-HOST-CAPABILITY-MAP.md`。核验时 AAOS HEAD `0574c3ac`、分支 `codex/conversation-closure-20261013`、工作树干净。未访问 E:/F:，未扫描其他同级项目 |
 | A17 | 真实 AAOS 集成 | **UNVERIFIED** | NO_EVIDENCE | 能力图谱结论：Core 无通用流式 chat completion（AAOS 自己用双方法 404 测试断言其不存在）；记忆晋升永远 human-only 且 Consumer 枚举不含星栖；无"当前选区"广播；无事件推送面（只能轮询 job）。星栖侧适配器已按这些事实实现，但**没有一次真实宿主调用** |
-| A18 | 远端 CI | NOT_EXECUTED | NO_EVIDENCE | `.github/workflows/ci.yml` 存在（node 20.19/22.12 矩阵 + 五道门禁 + 两项秘密/素材自查），但本地非 Git 仓库、无远端授权 ⇒ 只是配置，不报 CI PASS |
+| A18 | 远端 CI | **PASS** | REAL | run **38324785775**（https://github.com/DTALEX66/ASTRYN/actions/runs/38324785775），触发 commit `5603f34`，`completed/success`。两个矩阵作业 `gates (20.19)` 与 `gates (22.12)` 各 10 步全 success：Install from lockfile、Lint、Typecheck、Unit tests、Build dev host、No secrets in tracked sources、No third-party model weights or binaries。**首跑 `b42eee2` 是红的**（run 38324323712）：秘密扫描步骤拦下我测试里的字面 `sk-abcdef123456`，同时发现 `.gitattributes` 把归档 CRLF 归一化导致其不再匹配 SHA-256 收据；两者在 `5603f34` 修复后转绿 |
 | A19 | 已安装运行/用户验收 | NOT_EXECUTED | NO_EVIDENCE | 未安装任何正式程序；本轮浏览器验证不等于你的验收 |
 
 ## 2. 整体判定
 
-**M0 = PARTIAL（可运行、可测试、契约完整；真实模型与真实宿主两项外部依赖未完成）。**
+**M0 = PARTIAL（可运行、可测试、契约完整、已上远端且 exact-SHA CI 全绿；真实模型与真实宿主两项外部依赖未完成）。**
 
-已达成启动任务的实质衡量标准前半段：星栖拥有了自己的可运行角色体验（A02–A04、A06–A08 全绿），建立了与 AAOS 一致的能力边界（A09–A13、A16 全绿），并留下了可直接接入 AAOS 的工程基础（类型化 Host Adapter + 按实测端点建模的桥）。
+已达成启动任务的实质衡量标准前半段：星栖拥有了自己的可运行角色体验（A02–A04、A06–A08 全绿），建立了与 AAOS 一致的能力边界（A09–A13、A16 全绿），并留下了可直接接入 AAOS 的工程基础（类型化 Host Adapter + 按实测端点建模的桥）。A01 远端身份已确立，A14 门禁本地与远端双绿，A18 为 `5603f34` 上的 success。
 
-未达成的是必须依赖外部授权的两项：A05（真实模型凭据）与 A17（AAOS 集成任务），以及 A01 的 Git 关联（等你定方案）。A19 由你判定。
+未达成的三项全部取决于外部输入：**A05** 需要你提供获准凭据；**A17** 需要 AAOS 集成任务授权（宿主合同本身缺位）；**A19** 由你判定。
+
+CI 首跑为红（run 38324323712），拦出两个本仓库自身缺陷：测试内嵌字面凭据样式、`.gitattributes` 归一化破坏了归档字节完整性。两者已修复并转绿——门禁起作用了，不是被绕过去了。
 
 依据台账原有规则：**A05/A17 未通过，整体不得写成全项 COMPLETE。**
 

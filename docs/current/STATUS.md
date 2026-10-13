@@ -22,11 +22,13 @@
 
 ## 现场事实（本轮实测，勿从历史推断）
 
-- 本地仍不是 Git 仓库：`.git` 不存在。本轮未 `git init`、未 clone、未 commit/push（D003 继续有效，Git 方案待你确认）。
-- 远端 `DTALEX66/ASTRYN` 存在、public、`size=0`、无任何 ref（空仓库）。
-- Git 全局配置含 `url.git@github.com:.insteadof=https://github.com/`，因此任何 GitHub HTTPS 操作实际走 SSH —— 这是先前 known_hosts 拒绝的原因，也是选定 Git 方案前必须考虑的事实。
-- AAOS 本地根存在且为 Git 仓库（核验时 HEAD `0574c3ac`，分支 `codex/conversation-closure-20261013`，工作树干净）。本轮对 AAOS **零写入**。
-- PATH 内无 node/npm；本轮绑定 `%LOCALAPPDATA%\hermes\tools\node-26.7.0-win32-x64`（Node 26.7.0 / npm 11.19.0），npm 缓存限定在 `.project-local/runs/cache/npm`。
+- **本地已是 Git 仓库并已上远端**：用户指令"全部上传"构成该操作授权（D015）。`git init -b main` → 两个正向提交 `b42eee2`（M0 全量）→ `5603f34`（修复 CI 拦出的两处缺陷），HEAD `5603f3430d862410b852705dd55213e95eda2d52` 与服务端 `refs/heads/main` 逐字符一致。**未 force push、未改写已发布历史**；推送前确认远端为 0 ref，不存在覆盖他人工作。
+- 仓库是 **public**：105 个文件已公开可见。文档内已参数化用户目录（`$HOME` 形式），不再含 Windows 用户名；`E:\` 仅出现在"未访问 E 盘"的声明句里。
+- 行尾策略：`.gitattributes` 统一 LF，`docs/tasks/archive/**` 显式 `-text -eol` 按字节原样存储，归档 SHA-256 与收据一致（CI 首跑拦出的缺陷，已修）。
+- 远端 CI：run `38324785775` 在 Node 20.19 与 22.12 两矩阵 `success`，10 步全绿（含秘密扫描与素材检查）。
+- Git 全局配置含 `url.git@github.com:.insteadof=https://github.com/`，因此 origin 虽写作 HTTPS，实际走 SSH。未修改任何全局配置；提交身份沿用已有的 `DTALEX66`。
+- AAOS 本地根存在且为 Git 仓库（核验时 HEAD `0574c3ac`，工作树干净）。本轮对 AAOS **零写入**。
+- PATH 内无 node/npm；本轮绑定 `$HOME/AppData/Local/hermes/tools/node-26.7.0-win32-x64`（Node 26.7.0 / npm 11.19.0），npm 缓存限定在 `.project-local/runs/cache/npm`。
 
 ## 最短接续队列（T10）
 
@@ -34,7 +36,7 @@
 
 | # | 任务 | 输入 | 范围 | 完成定义 | 所需授权 |
 | --- | --- | --- | --- | --- | --- |
-| 1 | **Git 关联方案定案并执行**（G1 本地 init / G2 clone 到新目录后迁入 / G3 继续无 Git） | `docs/verification/S0-BASELINE.md` §2、§6 | 仅 ASTRYN；须保留现有全部文件；注意 HTTPS→SSH 全局重写 | 本地有仓库、`git status` 可读、首轮提交范围经你确认 | **需要你决定方案**（含 `git init` 或 clone 目标路径）；commit/push 分别再确认 |
+| 1 | ~~Git 关联方案定案并执行~~ **已完成** | 用户指令"全部上传"（D015） | `git init -b main` + 推送 DTALEX66/ASTRYN，未 force push | A01 PASS、A18 PASS（run 38324785775 双矩阵 success） | 后续 push/PR/release 仍需逐次确认 |
 | 2 | 真实模型验证（A05） | 你提供的上游 base URL + 凭据 + 模型名；`VITE_ASTRYN_DEV_*` 与 `ASTRYN_DEV_MODEL_*` | 只跑通 `OpenAiCompatibleConversationPort` 与 dev 代理 | 一次真实流式回复 + 一次取消 + 一次上游错误，记录非敏感参数与结果，不保存私人正文 | 付费调用需明确许可；凭据只进代理进程环境 |
 | 3 | AAOS 宿主契约确认（A17 前置） | `AAOS-HOST-CAPABILITY-MAP.md` §ASTRYN 侧结论 | 确认 `GenerationRequest`/`MemoryCandidateWrite`/`ConsumerIdentity`/`ActionExecution` 四项形状；确认星栖能否成为被命名 Consumer | 每个 Port 有可复核的 AAOS 端点/版本/权限依据，或明确记为合同缺失 | AAOS 侧只需读；若要 AAOS 新增消费者枚举，须**集成任务授权** |
 | 4 | AAOS 原生挂载（P1） | 已实现的 `embedded`/`panel` 组件与 `AstrynHostPort` | 在 AAOS 前端内挂载星栖，接统一会话与 job 轮询 | 同一 AAOS 工作区内完成一次角色交互闭环，任务态来自真实 job 状态 | **修改 AAOS 正式源码需单独授权** |

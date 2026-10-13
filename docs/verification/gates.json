@@ -1,19 +1,20 @@
 {
-  "schemaVersion": 1,
-  "generatedAt": "2026-10-12T23:57:03.310Z",
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-13T00:03:58.163Z",
   "toolchain": {
     "node": "v26.7.0",
     "platform": "win32",
-    "note": "npm 由 %LOCALAPPDATA%/hermes/tools/node-26.7.0-win32-x64 的 npm-cli.js 调用；缓存限定 .project-local/runs/cache/npm"
+    "note": "npm 由项目外已装运行时经 npm-cli.js 调用；缓存限定 .project-local/runs/cache/npm"
   },
   "git": {
-    "repository": false,
-    "reason": "NOT_A_GIT_REPOSITORY；本轮未 git init（DECISIONS D003）",
-    "substitute": "sourceTree.sha256 为内容锚点，Git 定案后应改为记录 exact commit"
+    "repository": true,
+    "branch": "main",
+    "head": "5603f3430d862410b852705dd55213e95eda2d52",
+    "worktreeNote": "需 git status 判定，见台账"
   },
   "sourceTree": {
     "files": 64,
-    "sha256": "02fce12c26b263db7aa9c493b7b9400b05bca7e480a1a04e18d3932e6343abcf",
+    "sha256": "8b6d56d4a9c17ea5649b8cc27f49bf922ccba3b509a946fdf66d2af0c679dac4",
     "scopes": [
       "contracts",
       "src",
@@ -150,8 +151,8 @@
     },
     {
       "path": "PROJECT_CONTRACT.yaml",
-      "bytes": 1555,
-      "sha256": "4a1b4738a5e4d09020b0d9bc2d62ed7bcfa503f6e17d0137cc23fd88eff8e10a"
+      "bytes": 1818,
+      "sha256": "d92f7321add3e95285058b2d6e186fcec7b4eca4f48631af0f9a73cf2e2576df"
     },
     {
       "path": "src/adapters/aaos-bridge.ts",

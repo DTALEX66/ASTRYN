@@ -18,4 +18,8 @@
 | D013 | 2026-10-13 | 无 Git 期间以 `docs/verification/gates.json`（源码树内容哈希 + 门禁退出码 + 工具链绑定）作为证据锚点；Git 定案后改为记录 exact commit | 风险登记册 Q3：报告与现场可能脱节且无法自证 | 有效 |
 | D014 | 2026-10-13 | 技能插件缺依赖时在 `.project-local/runs/node-libs` 项目内补齐并用 `module.register()` 解析钩子接入；不修改插件缓存、不装全局包。浏览器修订号不匹配时显式 `executablePath` 指向本机已有构建，不下载运行时 | 实测偏离已记录于 `docs/verification/design-a11y.md` §1 | 有效 |
 
+| D015 | 2026-10-13 | 执行上传：`git init -b main` + 推送 `DTALEX66/ASTRYN`（public），分支取 `main` 而非全局默认的 `master` | 用户指令"全部上传"；推送前实测远端 0 ref（空仓库），不存在覆盖；未 force push、未改全局配置、沿用已有提交身份 DTALEX66。**本条覆盖 D003 与合同 `acceptance.no_git_initialization_or_remote_write`，原文保留以显示决策链** | 有效，替代 D003 |
+| D016 | 2026-10-13 | `docs/tasks/archive/**` 以 `-text -eol` 按字节原样存储，不参与行尾规范化；其余文本统一 LF | CI 首跑（run 38324323712）暴露：`* text=auto eol=lf` 把归档 CRLF 归一化，远端 blob 20434 != 磁盘 20960 字节，归档不再匹配 ARCHIVE-RECEIPT 的 SHA-256。修复后 staged 与远端字节数 20960、SHA-256 与收据逐字符一致 | 有效 |
+| D017 | 2026-10-13 | 测试与夹具中不得出现字面凭据样式串，需要时运行时拼装 | CI 秘密扫描步骤拦下 `sk-abcdef123456` 字面量。扫描器行为正确，改的是我们自己 | 有效 |
+
 新增替代决策需明确旧 ID、新决定、理由及授权来源，不静默改写历史。

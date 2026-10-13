@@ -16,9 +16,12 @@ write_scope:
   - 'D:\All projects\ASTRYN'
 external_operations: not_authorized_by_this_contract
 development_execution: executed_partial
-git_state: not_a_repository_no_init_per_D003
+git_state: repository_main_pushed
+git_head: 5603f3430d862410b852705dd55213e95eda2d52
+git_remote: https://github.com/DTALEX66/ASTRYN
+remote_ci: 'run 38324785775 success on node 20.19 and 22.12'
 host_integration: UNVERIFIED
-git_identity: UNVERIFIED
+git_identity: VERIFIED_LOCAL_EQ_REMOTE
 architecture:
   astryn: [character, companionship, expression, rendering, presentation]
   aaos: [model_services, memory, context, tasks, permissions, authoritative_storage]
@@ -29,7 +32,7 @@ acceptance:
   - authority_links_resolve_locally
   - directory_roles_documented
   - external_references_marked_unverified
-  - no_git_initialization_or_remote_write
+  - no_git_initialization_or_remote_write  # 已由 D015（用户"全部上传"指令）在本阶段后覆盖，保留原文以显示决策链
 m0_acceptance:
   ledger: docs/tasks/M0-ACCEPTANCE-TRACKER.md
   verdict: PARTIAL

@@ -100,6 +100,16 @@ src/.gitkeep                      tests/.gitkeep
 | `curl https://api.github.com/repos/DTALEX66/ASTRYN` | HTTP 200，`size=0`、`visibility=public`、`default_branch=main`、`created_at=2026-10-12T16:11:14Z` |
 | `sha256(归档原文)` | `866C151DB45E0D0ADFCAFA9F059A836DF859D830420B65AB95673FDD4B08450F`（20,960 字节 / 527 行）与 ARCHIVE-RECEIPT 记录逐字符相等 |
 
-## 7. 证据级别
+## 7. 后续变更追加（同日，非改写上文）
+
+上文 §1–§6 记录的是 T00 时刻的现场，保持原样。之后用户下达"全部上传"指令（D015），现场已变：
+
+- 本地已 `git init -b main`，两次正向提交 `b42eee2` → `5603f34`，已推送 `DTALEX66/ASTRYN`（推送前实测远端 0 ref）。
+- `git_identity` 由 UNVERIFIED 变为已核验：本地 HEAD 与服务端 `refs/heads/main` 逐字符一致。
+- 远端 CI run `38324785775` 在 Node 20.19 / 22.12 两矩阵 success。
+- §6 表中 G1/G2/G3 三选一的问题以 **G1** 落地；G2/G3 不再适用。
+- 全程未 force push、未修改全局配置或凭据、未访问 E:/F:。
+
+## 8. 证据级别
 
 本文件所有结论级别：`NO_EVIDENCE` 项已标明；其余为本地实测（终端输出），不涉及真实模型与 AAOS 集成。`REAL` 级别仅适用于远端 API 与 git 命令的实际返回值，已在 §2 原样转录。

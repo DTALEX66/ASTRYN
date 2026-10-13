@@ -2,7 +2,7 @@
 
 AAOS 原生的角色化交互与陪伴子系统，默认角色为小栖。
 
-当前阶段：**M0 已实现并可运行**（开发宿主、原创角色、文本交互、事件驱动状态机、宿主契约、测试）。真实模型 `NOT_TESTED`，AAOS 集成 `UNVERIFIED`，整体判定 **PARTIAL** —— 逐项证据见 [M0 验收台账](docs/tasks/M0-ACCEPTANCE-TRACKER.md)。本地仍不是 Git 仓库，未做任何提交。
+当前阶段：**M0 已实现并可运行**（开发宿主、原创角色、文本交互、事件驱动状态机、宿主契约、测试），已推送到 `DTALEX66/ASTRYN@5603f34`，远端 CI 双矩阵 success。真实模型 `NOT_TESTED`，AAOS 集成 `UNVERIFIED`，整体判定 **PARTIAL** —— 逐项证据见 [M0 验收台账](docs/tasks/M0-ACCEPTANCE-TRACKER.md)。
 
 ## 快速开始
 

@@ -24,13 +24,13 @@
 | # | 风险 | 证据 | 影响 / 可能性 | 现有缓解 | 建议动作 | 所需授权 |
 | --- | --- | --- | --- | --- | --- | --- |
 | Q1 | **`trust=authoritative` 不是安全边界**。星栖运行在浏览器同一 JS  realm 内，任何代码都能构造 `source:'host-task', trust:'authoritative'` 的事件；守卫只能保证"经过校验器的才权威"，不能阻止有人绕过校验器直接 `dispatch` | `companion-controller.dispatch()` 是公开方法；`AstrynReceiptVerifier` 只在 `ingestReceipt` 路径上被调用 | 高 / 中（P1 接入后若引入插件或远程内容即成真问题） | 事件构造集中在 controller；`rebase()` 强制降级传输层事件 | 把 `dispatch` 收窄为仅 controller 内部可达（或引入只有 bridge 能拿到的 capability token）；在 AAOS 侧对 job 结果做二次确认 | 需要 AAOS 侧接口设计参与 |
-| Q2 | **AAOS 端点假设会过期**。模型与适配器按 2026-10-13 的 HEAD `0574c3ac` 建模，AAOS 一变即失真，而本地无 Git 无法做 exact-SHA 锚定 | `AAOS-HOST-CAPABILITY-MAP.md`；`S0-BASELINE.md` §1 | 中 / 高（AAOS 活跃开发中） | 端点集中在 `AAOS_ENDPOINTS` 常量；证据索引逐条标 `medium` 置信度 | 增加一个只读校验脚本：比对 AAOS 当前 HEAD 与文档记录，漂移即红；Git 定案后把 SHA 写进 receipt | 校验脚本可自主加；写 SHA 需 Git 授权 |
-| Q3 | **无版本锚点**：所有"实测通过"的结论无法绑定到确切字节，重跑即可能与报告不一致 | 本地 `NOT_A_GIT_REPOSITORY` | 中 / 高 | 门禁日志与截图保留在 `.project-local`；台账逐项写命令与退出码 | 生成 `docs/verification/gates.json`：记录各门禁退出码、测试计数与源码树内容哈希（不依赖 Git） | 可自主执行（本轮未做，列为下一步） |
+| Q2 | **AAOS 端点假设会过期**。模型与适配器按 2026-10-13 的 HEAD `0574c3ac` 建模，AAOS 一变即失真 | `AAOS-HOST-CAPABILITY-MAP.md`；`S0-BASELINE.md` §1 | 中 / 高（AAOS 活跃开发中） | 端点集中在 `AAOS_ENDPOINTS` 常量；证据索引逐条标 `medium` 置信度 | **仍开放**：增加只读漂移检查脚本，比对 AAOS 当前 HEAD 与文档记录，漂移即红并纳入 `npm run verify` | 脚本可自主加 |
+| Q3 | ~~无版本锚点~~ **已关闭（D015）** | 本地已 `git init -b main` 并推送；`gates.json` 现同时记录 git HEAD 与源码树哈希 | — | 原为内容哈希替代方案 | 已升级为真锚点：`head 5603f3430d862410b852705dd55213e95eda2d52`，与服务端 ref 逐字符一致；后续 CI 结果可绑 exact SHA | 已闭环 |
 | Q4 | **合成与真实只靠标签区分**。`SYNTHETIC` 徽标是渲染约定，若未来某个端口忘记声明 `evidenceLevel`，界面无法分辨 | `AstrynConversationPort.evidenceLevel` 为必填字段，但类型系统不校验其诚实性 | 中 / 中 | 三个端口都显式声明；UI 强制显示；`presentation-modes` 与 `architecture-risks` 测试覆盖 | 让宿主适配器成为 `evidenceLevel` 的唯一签发点（端口构造时由宿主注入，不由实现自填） | 可自主执行 |
 | Q5 | **记忆/上下文真实接入完全缺位**（A11/A12 的宿主侧） | AAOS Consumer 闭集不含星栖；无"当前选区"合同 | 高 / 确定 | 契约显式返回 `BLOCKED_BY_HOST_CONTRACT`，未用夹具冒充 | 集成任务：与 AAOS 确认 Consumer 枚举与选区投影 | AAOS 集成授权 |
 | Q6 | **真实模型从未跑过**（A05）。流式解析、取消、超时只有 stub 证据 | 无获准凭据 | 中 / 确定 | 合成与真实路径物理分离；`MODEL_UNAVAILABLE` 明确 | 用户提供凭据后跑一次真实三段验证（成功 / 取消 / 上游错误） | 用户授权 + 可能付费 |
 | Q7 | **无障碍证据依赖单一工具**。axe 现在能判定全部节点（`incomplete=[]`），但 `reduced-motion` 的真实生效只做了 CSS 声明级断言 | `DESIGN.md` 验证节；`a11y-final.log` | 低 / 中 | 令牌与焦点环有门禁；`data-motion` 有 UI 测试 | 加一条 CDP `Emulation.setEmulatedMedia` 场景，实测动画确实停止 | 可自主执行 |
-| Q8 | **CI 配置从未运行**（A18）。`.github/workflows/ci.yml` 里的命令与本地绑定（Node 26.7.0）不同（矩阵 20.19/22.12） | 无远端、无 push | 中 / 中 | 命令与本地完全同名同脚本 | Git 定案后首推即验证；若 20.19 失败就收紧 `engines` | Git 授权 |
+| Q8 | ~~CI 配置从未运行~~ **已关闭（D015）** | run 38324785775 @ `5603f34`：Node 20.19 与 22.12 两矩阵各 10 步 success | — | 首跑为红（run 38324323712），拦出测试内嵌字面凭据样式与归档被行尾规范化两个真实缺陷，均已在 `5603f34` 修复 | 已闭环；`engines >=20.19` 经两版本实测成立 | 已闭环 |
 
 ## 3. 质量属性判断
 

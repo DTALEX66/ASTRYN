@@ -64,19 +64,42 @@ for (let i = 0; i < argv.length; i += 1) {
 
 const missing = Object.entries(stages).filter(([, code]) => code !== 0);
 
+/** 不用 child_process：直接读 .git 里的 HEAD 与 ref 文件解析当前提交。 */
+function readGitAnchor() {
+  const gitDir = join(ROOT, '.git');
+  if (!existsSync(gitDir)) {
+    return { repository: false, reason: '无 .git 目录', substitute: 'sourceTree.sha256 为内容锚点' };
+  }
+  const head = readFileSync(join(gitDir, 'HEAD'), 'utf8').trim();
+  const refMatch = head.match(/^ref:\s+(.+)$/);
+  let sha = head;
+  let branch = '(detached)';
+  if (refMatch?.[1]) {
+    branch = refMatch[1].replace(/^refs\/heads\//, '');
+    const refPath = join(gitDir, refMatch[1]);
+    if (existsSync(refPath)) {
+      sha = readFileSync(refPath, 'utf8').trim();
+    } else {
+      const packed = existsSync(join(gitDir, 'packed-refs')) ? readFileSync(join(gitDir, 'packed-refs'), 'utf8') : '';
+      sha = (packed.match(new RegExp(`^([0-9a-f]{40}) ${refMatch[1]}$`, 'm'))?.[1]) ?? 'UNRESOLVED';
+    }
+  }
+  const worktreeClean = (() => {
+    const index = join(gitDir, 'index');
+    return existsSync(index) ? '需 git status 判定，见台账' : 'no index';
+  })();
+  return { repository: true, branch, head: sha, worktreeNote: worktreeClean };
+}
+
 const receipt = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   generatedAt: new Date().toISOString(),
   toolchain: {
     node: process.version,
     platform: process.platform,
-    note: 'npm 由 %LOCALAPPDATA%/hermes/tools/node-26.7.0-win32-x64 的 npm-cli.js 调用；缓存限定 .project-local/runs/cache/npm'
+    note: 'npm 由项目外已装运行时经 npm-cli.js 调用；缓存限定 .project-local/runs/cache/npm'
   },
-  git: {
-    repository: false,
-    reason: 'NOT_A_GIT_REPOSITORY；本轮未 git init（DECISIONS D003）',
-    substitute: 'sourceTree.sha256 为内容锚点，Git 定案后应改为记录 exact commit'
-  },
+  git: readGitAnchor(),
   sourceTree: {
     files: entries.length,
     sha256: treeHash,

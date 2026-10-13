@@ -3,6 +3,9 @@ import {
   ASTRYN_HOST_SLOT_SPECS,
   ASTRYN_PROTOCOL_VERSION,
   ASTRYN_PRESENTATION_MODE_SPECS,
+  ASTRYN_SPEECH_CONTRACT_OWNER,
+  ASTRYN_SPEECH_PROPOSAL,
+  ASTRYN_SPEECH_UNCONNECTED_REASON,
   SYNTHETIC_DOC,
   SyntheticContextFixture,
   SyntheticHostSimulator,
@@ -254,6 +257,22 @@ export function DevHostApp(): JSX.Element {
           </div>
         </section>
 
+        <section className="astryn-root" data-testid="devhost-speech">
+          <div className="astryn-title">语音接口外壳（GF09 · {ASTRYN_SPEECH_PROPOSAL.state}）</div>
+          <div className="astryn-state-strip">
+            <span className="astryn-chip">提议：{ASTRYN_SPEECH_PROPOSAL.fields.length} 个字段 / {ASTRYN_SPEECH_PROPOSAL.rules.length} 条规则</span>
+            <span className="astryn-chip">合同属主：{ASTRYN_SPEECH_CONTRACT_OWNER}</span>
+          </div>
+          <ul className="devhost-list">
+            <li data-testid="devhost-speech-fields">字段：{ASTRYN_SPEECH_PROPOSAL.fields.join(' / ')}</li>
+            <li data-testid="devhost-speech-rules">规则：{ASTRYN_SPEECH_PROPOSAL.rules.join('；')}</li>
+            <li data-testid="devhost-speech-reason">{ASTRYN_SPEECH_UNCONNECTED_REASON}</li>
+          </ul>
+          <div className="astryn-disclosure">
+            设置页（左侧「设置 → 声音」）显示四项能力读数、口型模式与偏好；未接通时试听/停止/按住说话保持禁用，不播放任何语音。
+          </div>
+        </section>
+
         <LearningPanel
           store={learningStore}
           modelAvailable={conversationPort !== null && resolved.info.available}
@@ -274,6 +293,7 @@ export function DevHostApp(): JSX.Element {
           <ul className="devhost-list">
             <li>本宿主是开发工具，不是第二个正式前端；正式形态由 AAOS 前端挂载。</li>
             <li>槽位演示（GF08）证明主页/阅读/侧边三处呈现共用同一会话管理器与同一组宿主端口（无第二模型中心）；正式槽位由 AAOS 前端（FE18）写入，本页面不构成正式集成证据。</li>
+            <li>语音（GF09）只实现前端字段、设置与回放外壳：未接语音端口时运行按钮保持禁用并显示未接通原因，不播放任何语音；ASR/TTS/音频主时钟归宿主（BE01 未登记），正式接通前保持文本模式。</li>
             <li>未启用麦克风、摄像头、屏幕采集与系统命令；本页面不请求任何此类权限。</li>
             <li>小栖档案在开发宿主里只存进程内（刷新即失）；正式保存归宿主（character.profile.write，BE06 未接通，保存会显式失败）。</li>
             <li>合成数据一律标注 SYNTHETIC；真实模型调用需自行配置 dev 代理，密钥不进浏览器。</li>

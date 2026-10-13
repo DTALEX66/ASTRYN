@@ -4,6 +4,8 @@
  *
  * v2（GF01）：人格（persona）、主动程度、学习偏好与声音连接从表达风格里分开配置；
  * 档案带 schemaVersion + profileRevision，并声明宿主保存去向（profile 的持久化归宿主）。
+ * v3（GF09）：声音节补全前端配置字段（朗读/麦克风/字幕/音量）；未接通语音端口时
+ * 它们只是偏好，运行状态由话音可用性读数决定——不播放假语音。
  */
 
 export interface AstrynCharacterExpressionStyle {
@@ -27,8 +29,14 @@ export interface AstrynCharacterVoiceStyle {
   readonly styleId: string;
   readonly speakingRate: number;
   readonly pitchOffset: number;
-  /** 声音端口由宿主提供（GF09 预留）；未接通前保持 false，不得播放假语音。 */
+  /** 朗读偏好：可预先开启；语音端口未接通时仅记录偏好，不产生任何播放（GF09）。 */
   readonly enabled: boolean;
+  /** 麦克风偏好：默认关闭；采集归宿主权限面，ASTRYN 前端不直接采集（GF09）。 */
+  readonly microphone: boolean;
+  /** 字幕偏好：接通后随朗读显示；未接通期间对话记录本身即文本（GF09）。 */
+  readonly subtitles: boolean;
+  /** 播放音量 0–1：只影响将来的真实播放，未接通不生效（GF09）。 */
+  readonly volume: number;
   readonly connectionRef: string | null;
 }
 
@@ -92,7 +100,7 @@ export function personaSpec(id: AstrynCompanionPersonaId): AstrynCompanionPerson
 }
 
 export interface AstrynCharacterProfile {
-  readonly schemaVersion: 2;
+  readonly schemaVersion: 3;
   /** 每次成功保存自增；用于乐观并发与冲突检测（宿主与开发回退共用同一语义）。 */
   readonly profileRevision: number;
   readonly characterId: string;
@@ -129,7 +137,7 @@ export const ASTRYN_PROFILE_STORAGE = {
 export const DEFAULT_CHARACTER_ID = 'xiaoqi' as const;
 
 export const XIAOQI_PROFILE: AstrynCharacterProfile = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   profileRevision: 0,
   characterId: DEFAULT_CHARACTER_ID,
   displayName: '小栖',
@@ -162,7 +170,7 @@ export const XIAOQI_PROFILE: AstrynCharacterProfile = {
   },
   initiative: { proactiveNudging: false, nudgingCadence: 'off' },
   learning: { explanationDepth: 'standard', examplesFirst: false, quizMe: false },
-  voiceStyle: { styleId: 'xiaoqi-soft-zh', speakingRate: 1.0, pitchOffset: 0, enabled: false, connectionRef: null },
+  voiceStyle: { styleId: 'xiaoqi-soft-zh', speakingRate: 1.0, pitchOffset: 0, enabled: false, microphone: false, subtitles: true, volume: 1, connectionRef: null },
   appearance: { rendererId: 'xiaoqi-svg-v1', theme: 'nightfall', scale: 1, reducedMotion: false }
 };
 
@@ -190,8 +198,8 @@ export function withOverrides(
 
 export interface ProfileMigrationResult {
   readonly profile: AstrynCharacterProfile;
-  /** null = 输入已是 v2；否则说明迁移/回退原因。 */
-  readonly note: 'MIGRATED_V1_TO_V2' | 'EMPTY_DEFAULT' | 'INVALID_FALLBACK' | null;
+  /** null = 输入已是 v3；否则说明迁移/回退原因。 */
+  readonly note: 'MIGRATED_V1_TO_V3' | 'MIGRATED_V2_TO_V3' | 'EMPTY_DEFAULT' | 'INVALID_FALLBACK' | null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -208,7 +216,8 @@ const PERSONA_IDS: readonly AstrynCompanionPersonaId[] = ASTRYN_COMPANION_PERSON
 export function migrateCharacterProfile(raw: unknown): ProfileMigrationResult {
   if (raw === null || raw === undefined) return { profile: XIAOQI_PROFILE, note: 'EMPTY_DEFAULT' };
   if (!isRecord(raw)) return { profile: XIAOQI_PROFILE, note: 'INVALID_FALLBACK' };
-  if (raw.schemaVersion !== 1 && raw.schemaVersion !== 2) return { profile: XIAOQI_PROFILE, note: 'INVALID_FALLBACK' };
+  if (raw.schemaVersion !== 1 && raw.schemaVersion !== 2 && raw.schemaVersion !== 3)
+    return { profile: XIAOQI_PROFILE, note: 'INVALID_FALLBACK' };
 
   const base = XIAOQI_PROFILE;
   const styleSource = isRecord(raw.expressionStyle) ? raw.expressionStyle : {};
@@ -224,7 +233,7 @@ export function migrateCharacterProfile(raw: unknown): ProfileMigrationResult {
 
   const profile: AstrynCharacterProfile = {
     ...base,
-    profileRevision: raw.schemaVersion === 2 && typeof raw.profileRevision === 'number' ? raw.profileRevision : 0,
+    profileRevision: raw.schemaVersion !== 1 && typeof raw.profileRevision === 'number' ? raw.profileRevision : 0,
     persona: pick(raw.persona, PERSONA_IDS, base.persona),
     displayName: typeof raw.displayName === 'string' && raw.displayName.length > 0 ? raw.displayName : base.displayName,
     expressionStyle: {
@@ -247,6 +256,12 @@ export function migrateCharacterProfile(raw: unknown): ProfileMigrationResult {
       speakingRate: typeof voiceSource.speakingRate === 'number' ? voiceSource.speakingRate : base.voiceStyle.speakingRate,
       pitchOffset: typeof voiceSource.pitchOffset === 'number' ? voiceSource.pitchOffset : base.voiceStyle.pitchOffset,
       enabled: typeof voiceSource.enabled === 'boolean' ? voiceSource.enabled : false,
+      microphone: typeof voiceSource.microphone === 'boolean' ? voiceSource.microphone : base.voiceStyle.microphone,
+      subtitles: typeof voiceSource.subtitles === 'boolean' ? voiceSource.subtitles : base.voiceStyle.subtitles,
+      volume:
+        typeof voiceSource.volume === 'number' && Number.isFinite(voiceSource.volume)
+          ? Math.min(1, Math.max(0, voiceSource.volume))
+          : base.voiceStyle.volume,
       connectionRef: typeof voiceSource.connectionRef === 'string' ? voiceSource.connectionRef : null
     },
     appearance: {
@@ -256,5 +271,7 @@ export function migrateCharacterProfile(raw: unknown): ProfileMigrationResult {
       reducedMotion: typeof appearanceSource.reducedMotion === 'boolean' ? appearanceSource.reducedMotion : base.appearance.reducedMotion
     }
   };
-  return { profile, note: raw.schemaVersion === 1 ? 'MIGRATED_V1_TO_V2' : null };
+  const note =
+    raw.schemaVersion === 1 ? 'MIGRATED_V1_TO_V3' : raw.schemaVersion === 2 ? 'MIGRATED_V2_TO_V3' : null;
+  return { profile, note };
 }

@@ -37,10 +37,11 @@ describe('小栖设置视图（GF01）', () => {
     expect((screen.getByTestId('astryn-persona-girlfriend_style_opt_in') as HTMLInputElement).checked).toBe(false);
     expect(screen.queryByTestId('astryn-persona-optin-note')).toBe(null);
 
-    const voiceEnable = screen.getByTestId('astryn-voice-enable') as HTMLInputElement;
-    expect(voiceEnable.disabled).toBe(true);
-    expect(voiceEnable.checked).toBe(false);
-    expect(screen.getByTestId('astryn-voice-note').textContent).toContain('未接通');
+    // 语音（GF09）：未接端口时四项读数未接，运行按钮禁用，原因如实显示。
+    expect(screen.getByTestId('astryn-speech-avail-tts').getAttribute('data-available')).toBe('false');
+    expect(screen.getByTestId('astryn-voice-note').textContent).toContain('BLOCKED_BY_HOST_CONTRACT');
+    expect((screen.getByTestId('astryn-voice-sample') as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByTestId('astryn-voice-enabled') as HTMLInputElement).checked).toBe(false);
 
     const storage = screen.getByTestId('astryn-settings-storage').textContent ?? '';
     expect(storage).toContain('进程内');

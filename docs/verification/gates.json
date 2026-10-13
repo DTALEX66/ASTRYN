@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T15:41:55.255Z",
+  "generatedAt": "2026-10-13T15:55:43.558Z",
   "toolchain": {
     "node": "v26.7.0",
     "platform": "win32",
@@ -9,12 +9,12 @@
   "git": {
     "repository": true,
     "branch": "feat/astryn-learning-companion-v1",
-    "head": "14f0e0d358e65cb990e57867b390f6555117f8f2",
+    "head": "e27cec30db28e2f7a059ffa65145f134233ddaa1",
     "worktreeNote": "需 git status 判定，见台账"
   },
   "sourceTree": {
-    "files": 96,
-    "sha256": "ce9846f0f7c70fba44bce87e5c42c48c6a84a6f8432866fe9172a9fff06f6cb4",
+    "files": 100,
+    "sha256": "8027cfe9186a9c4d265a8074faca1b2933c95f9b5c6f3641245a582bae0771ff",
     "scopes": [
       "contracts",
       "src",
@@ -51,8 +51,8 @@
     },
     {
       "path": "contracts/character.ts",
-      "bytes": 12323,
-      "sha256": "1f6bdb5b549eb1cfb92763e51c94b25506ab1fdda92b5a1e53cf8ffd65bc36b8"
+      "bytes": 13536,
+      "sha256": "9b8c3ee948d5c3424fa7ccacda190e9b5508ab5d67acd1b518b76c7cd8723fbc"
     },
     {
       "path": "contracts/context.ts",
@@ -76,8 +76,8 @@
     },
     {
       "path": "contracts/index.ts",
-      "bytes": 301,
-      "sha256": "e25422eb4c74ac0868d15c46984255149e8d881a2157c2b5a04def05cf549956"
+      "bytes": 327,
+      "sha256": "15085ce6ac6fefacde1e4c87d04d652f8e169b5168e142af52dfaf39910ba0c4"
     },
     {
       "path": "contracts/memory.ts",
@@ -95,6 +95,11 @@
       "sha256": "a04eecc8941cb1521830334e699602d1028ac31e8296585f8e65531b7053255b"
     },
     {
+      "path": "contracts/speech.ts",
+      "bytes": 5407,
+      "sha256": "e2a2624fcc83b861978374283cd5cd034c5fce9447723de5e24c9a242af2dc3e"
+    },
+    {
       "path": "contracts/state.ts",
       "bytes": 3851,
       "sha256": "5948d4d3c5558f5793967f544f781c51f1bf4df9058b4bbcc2ff75964136f13f"
@@ -106,8 +111,8 @@
     },
     {
       "path": "dev-host/app.tsx",
-      "bytes": 14813,
-      "sha256": "4e856a8b4715ca979590661f2fbe6c1edb74bc18d816aa7f7a6053495a2da187"
+      "bytes": 16310,
+      "sha256": "d3a455ed1b757ee8af39ffc2d159de04aa719d7a8e36dfd686d75c11cdbe1a48"
     },
     {
       "path": "dev-host/dev-config.ts",
@@ -161,8 +166,8 @@
     },
     {
       "path": "PROJECT_CONTRACT.yaml",
-      "bytes": 6655,
-      "sha256": "dd7a942c30978f6d69de16e71a8fff9b45789d4b89dcba21ac5e1f138b45417a"
+      "bytes": 8166,
+      "sha256": "9647768a3256e91a9af1f23e87e3602ec0fe1a4a50d2ee3d39b5056d7e07b63d"
     },
     {
       "path": "src/adapters/aaos-bridge.ts",
@@ -236,8 +241,8 @@
     },
     {
       "path": "src/companion/profile-store.ts",
-      "bytes": 3617,
-      "sha256": "16d2dedd4897e73716f472f1d53abd7baa6a0976122f742f4f125bbc8a5269e8"
+      "bytes": 3639,
+      "sha256": "1f75e1cb62fd1e6e5ce777218c7cf0b6cfb57dc6909e25459de3bacc3207d672"
     },
     {
       "path": "src/companion/prompt-composer.ts",
@@ -261,8 +266,8 @@
     },
     {
       "path": "src/index.ts",
-      "bytes": 5291,
-      "sha256": "dec567b4044791749990fb35bfb216d761782fd2f5b2c602991fb1e0917a7012"
+      "bytes": 5552,
+      "sha256": "557c457bb72c3553011c7c929167624d8aec9134ff4e8356bbdb4ff6f4cc5bb2"
     },
     {
       "path": "src/interaction/companion-controller.ts",
@@ -306,13 +311,13 @@
     },
     {
       "path": "src/presentation/companion-settings.tsx",
-      "bytes": 10635,
-      "sha256": "ca3d5728a340fffeaa4e51fab1d71c01201d30ce14441b6aab53706fce771c23"
+      "bytes": 17828,
+      "sha256": "4daafbead69f8a91b7faeb0a6847ab9a1db2fec7225d2cb0afe8b72c07607f54"
     },
     {
       "path": "src/presentation/companion-shell.tsx",
-      "bytes": 17911,
-      "sha256": "9a134af8fb81b073acf3043dadb18b5ab4a5a99f8f1696ff222ea04914e65f57"
+      "bytes": 19962,
+      "sha256": "3693332a2a726d81fea0d8f926221d028e6dfacc98aa7e875fe375a30dc9d053"
     },
     {
       "path": "src/presentation/companion-view.tsx",
@@ -333,6 +338,11 @@
       "path": "src/presentation/use-companion.ts",
       "bytes": 1187,
       "sha256": "27bbce75b7efd35e025a23169074c24db047a8570d571633aef998360d52c9e1"
+    },
+    {
+      "path": "src/speech/playback.ts",
+      "bytes": 11403,
+      "sha256": "60c850d13042c74f979d9c49a8bd0204db70b07c85f5ccc9a08f431b2f0cdd2c"
     },
     {
       "path": "tests/adapters/aaos-bridge.test.ts",
@@ -401,8 +411,8 @@
     },
     {
       "path": "tests/companion/character-profile.test.ts",
-      "bytes": 5985,
-      "sha256": "dbc959325307df13676824a6270bed008f83e4da54594b2439572c2260e01cb7"
+      "bytes": 7541,
+      "sha256": "95a4796097557ef7521fc8ae3caaec09aac401f1d948631183cfe46aaa00b345"
     },
     {
       "path": "tests/companion/guard.test.ts",
@@ -411,8 +421,8 @@
     },
     {
       "path": "tests/companion/profile-store.test.ts",
-      "bytes": 3140,
-      "sha256": "b1628dd7e49a5006647340c9f0ca00f7a65cc38e9ff1bb8449a59c738d69c159"
+      "bytes": 3200,
+      "sha256": "965f11d342aa2a00dfb5fc32d748e48c6adc67c06104844d0ac371a55a99bf29"
     },
     {
       "path": "tests/companion/reducer.test.ts",
@@ -476,8 +486,8 @@
     },
     {
       "path": "tests/presentation/companion-settings.test.tsx",
-      "bytes": 6365,
-      "sha256": "1697d3fb39b44e5b3e6493c365a755e206f2456cac1fe88c0994ad7445e657d5"
+      "bytes": 6608,
+      "sha256": "369f207592c15e06cfdb2d8641398751643daa0c2136308276a2a792cd97a23e"
     },
     {
       "path": "tests/presentation/companion-shell.test.tsx",
@@ -505,9 +515,19 @@
       "sha256": "33f7298ce820473e79fb2d2ba334b11e35827b911aad627836fc41e0c670ee13"
     },
     {
+      "path": "tests/presentation/voice-settings.test.tsx",
+      "bytes": 6704,
+      "sha256": "f90a88dbcaef18abba559a470bf776fee2b2f3ce27b9534bfae76d6cd823c79a"
+    },
+    {
       "path": "tests/setup.ts",
       "bytes": 122,
       "sha256": "39729d14bbe6d1c06e8a8f58de9812cf3b3a20680047440b75da49f7cc44992c"
+    },
+    {
+      "path": "tests/speech/speech-shell.test.ts",
+      "bytes": 12571,
+      "sha256": "e4e61b7fec4c5d293c07d066b99bf0d7178a849f9478948e6128f844bbda6a71"
     },
     {
       "path": "tsconfig.json",

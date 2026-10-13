@@ -271,14 +271,41 @@
     },
     {
       "task_id": "GF09",
-      "state": "PLANNED",
-      "implementation": "NOT_EXECUTED",
-      "tests": "NOT_EXECUTED",
-      "runtime": "UNVERIFIED",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_36_FILES_319_PASSED_INCL_GF09_14 (speech-shell 11 + voice-settings 3)",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_DISABLED_SPEECH_SHELL_WITH_PREFERENCE_DEGRADATION (devhost-speech section renders verbatim proposal state/12 fields/3 rules + BLOCKED_BY_HOST_CONTRACT/BE01 reason; voice fieldset four availability chips all data-available=false with sample/stop/mic-hold/style disabled and reason titles; mouth mode 文本帧; runtime 空闲; document.querySelectorAll(audio)===0; toggling the 朗读 preference on shows the text-mode-only note and off removes it; screenshot m0-browser-04-gf09-voice-settings.png; console 0 errors)",
       "installation": "NOT_EXECUTED",
-      "evidence_refs": [],
-      "blocker": null,
-      "rollback_handle": null
+      "evidence_refs": [
+        "docs/companion/GF09-SPEECH-SHELL.md"
+      ],
+      "blocker": "real speech runtime (ASR/TTS/audio master clock) BLOCKED_BY_HOST_CONTRACT: speech_optional proposal not admitted by BE01 (formalization gate: schemas/DTOs, exact native route, contract+negative tests, identical version+checksum all pending); ASTRYN side completes front-end fields, settings and the playback shell with the runtime explicitly disabled, never a fake voice",
+      "rollback_handle": "git revert of the GF09 commit on feat/astryn-learning-companion-v1; new files contracts/speech.ts + src/speech/playback.ts + tests/speech/speech-shell.test.ts + tests/presentation/voice-settings.test.tsx; profile schema raised to v3 with additive defaults and new migration notes (v1/v2 files still parse); settings voice fieldset is a behavior replacement (revert restores the GF01 voice section); no migration script and no host-side writes",
+      "source_sha": "source tree sha256 8027cfe9186a9c4d265a8074faca1b2933c95f9b5c6f3641245a582bae0771ff (100 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head e27cec30db28e2f7a059ffa65145f134233ddaa1; receipt docs/verification/gates.json; disk tree re-hash after falsification restores matched the receipt",
+      "changed_paths": [
+        "contracts/speech.ts (new)",
+        "src/speech/playback.ts (new)",
+        "contracts/character.ts",
+        "contracts/index.ts",
+        "src/companion/profile-store.ts",
+        "src/index.ts",
+        "src/presentation/companion-settings.tsx",
+        "src/presentation/companion-shell.tsx",
+        "dev-host/app.tsx",
+        "tests/speech/speech-shell.test.ts (new)",
+        "tests/presentation/voice-settings.test.tsx (new)",
+        "tests/companion/character-profile.test.ts",
+        "tests/companion/profile-store.test.ts",
+        "tests/presentation/companion-settings.test.tsx",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF09-SPEECH-SHELL.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261013-235531.log, single pass); vitest 36 files / 319 passed; two falsification plants: (1) viseme branch removed from resolveMouthMode -> speech-shell 2 failed | 9 passed; (2) NO_PORT refusal set status speaking -> speech-shell 1 failed | 10 passed; both restored byte-identical (sha256 re-verified) and re-run green; vite dev server 127.0.0.1:5261 (VITE_ASTRYN_ALLOW_SYNTHETIC=1) exercised via DOM readout + screenshot, console 0 errors, vite terminated by netstat PID 10844, port released",
+      "artifact_hashes": "gates.json sourceTree.sha256=8027cfe9186a9c4d265a8074faca1b2933c95f9b5c6f3641245a582bae0771ff (100 files); index-P5YjlFx8.js 295268 bytes sha256 03e4f907786bb3c3811038ff7109106005a63d9c9521a61fd0f91652c4925574, index-PqCch4VI.css 11670 bytes sha256 3e8d7372f43837ecad034ac17102b90fa1a51fa5d13dddb4dfc680fe3ff6ec64, index-P5YjlFx8.js.map 845331 bytes sha256 c4f7ad965d8dd56f53eaf963f373804476d58d88f54c27f60be6c7051cfdba06, m0-browser-04-gf09-voice-settings.png 41244 bytes sha256 10c735670c717a7138bc69af68b964e58f39ce9f6999f32f4413caa97258d487 (disk bytes; vite's console kB display counts UTF-16 code units so its printed value is smaller than disk bytes for CJK content — disk bytes are authoritative)",
+      "limitations": "no real speech runtime this task: ASR/TTS/audio master clock remain BLOCKED_BY_HOST_CONTRACT (BE01); the audio clock has no real source in M0 — subtitle projection and stop semantics are pinned by synthetic-clock unit tests only; mouth rendering still text-frame driven (resolveMouthMode + viseme fields are the future mouth-driver contract surface); voiceStyle preferences are stored but unconsumed at runtime while the port is absent; connection-shape (synthetic port button flow) has unit tests but no browser screenshot — the screenshot only proves the unconnected form; dev-host speech section wiring remains browser-smoke-only (no test imports app.tsx); stop-sync semantics are shell-state-machine guarantees pending a real player that must obey the port AbortSignal"
     },
     {
       "task_id": "GF10",

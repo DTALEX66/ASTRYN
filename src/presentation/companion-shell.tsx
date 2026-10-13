@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { XIAOQI_PROFILE, hostSlotSpec, withOverrides } from '@astryn/contracts';
+import { XIAOQI_PROFILE, hostSlotSpec, unconnectedSpeechAvailability, withOverrides } from '@astryn/contracts';
 import type {
   AstrynActionPort,
   AstrynCharacterProfile,
@@ -7,12 +7,16 @@ import type {
   AstrynConversationPort,
   AstrynHostSlot,
   AstrynPresentationMode,
-  AstrynReceiptVerifier
+  AstrynReceiptVerifier,
+  AstrynSpeechAvailability,
+  AstrynSpeechPort
 } from '@astryn/contracts';
 import { createCompanionSessionManager } from '../interaction/session-manager';
 import type { CompanionSessionManager, CompanionSessionPorts, CompanionSessionSnapshot } from '../interaction/session-manager';
 import { avatarViewForMode, avatarViewProfile } from '../avatar/render-profiles';
 import type { AstrynProfileLoad, AstrynProfileStore } from '../companion/profile-store';
+import { createSpeechPlayback, readSpeechAvailability } from '../speech/playback';
+import type { SpeechPlaybackSnapshot } from '../speech/playback';
 import { ApprovalCard, AvatarView, ChatLog, Composer, RetryBar, StatusStrip } from './companion-view';
 import type { TranscriptEntry } from './companion-view';
 import { CompanionSettings } from './companion-settings';
@@ -48,6 +52,11 @@ export interface CompanionShellProps {
    * 收敛到专注令牌尺寸。星栖不自行推断专注，只呈现宿主给出的状态。
    */
   readonly focus?: boolean;
+  /**
+   * 语音端口（GF09 提议，BE01 未登记）：缺席即如实未接通——设置页保持禁用并显示原因，
+   * 不播放任何占位语音。接通后由宿主音频引擎驱动块流与时钟。
+   */
+  readonly speech?: AstrynSpeechPort | null;
 }
 
 function loadNoteText(note: AstrynProfileLoad['note']): string | null {
@@ -56,8 +65,10 @@ function loadNoteText(note: AstrynProfileLoad['note']): string | null {
       return null;
     case 'EMPTY_DEFAULT':
       return '尚无已保存档案，使用默认配置。';
-    case 'MIGRATED_V1_TO_V2':
-      return '已从 v1 档案迁移到 v2。';
+    case 'MIGRATED_V1_TO_V3':
+      return '已从 v1 档案迁移到 v3（声音节补全默认值）。';
+    case 'MIGRATED_V2_TO_V3':
+      return '已从 v2 档案迁移到 v3（声音节补全，偏好保持原值）。';
     case 'INVALID_FALLBACK':
       return '档案无法识别，已回退默认配置（原档案未被改写）。';
     case 'HOST_UNAVAILABLE_DEFAULT':
@@ -135,6 +146,36 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
 
   const profile = snapshot.profile;
   const state = snapshot.state;
+
+  // GF09：语音回放外壳。端口缺席时 speak 直接拒绝（不播放占位语音），
+  // 设置页据此保持运行按钮禁用并显示未接通原因。
+  const speechPlayback = useMemo(
+    () => createSpeechPlayback({ sessionId: props.sessionId, port: props.speech ?? null }),
+    [props.sessionId, props.speech]
+  );
+  const [speechState, setSpeechState] = useState<SpeechPlaybackSnapshot>(() => speechPlayback.snapshot);
+  useEffect(() => {
+    setSpeechState(speechPlayback.snapshot);
+    return speechPlayback.subscribe(() => setSpeechState(speechPlayback.snapshot));
+  }, [speechPlayback]);
+  const [speechAvailability, setSpeechAvailability] = useState<AstrynSpeechAvailability>(() =>
+    unconnectedSpeechAvailability()
+  );
+  useEffect(() => {
+    let cancelled = false;
+    void readSpeechAvailability(props.speech ?? null).then((reading) => {
+      if (!cancelled) setSpeechAvailability(reading);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [props.speech]);
+  const handleSpeechSample = useCallback((text: string) => {
+    speechPlayback.speak(text);
+  }, [speechPlayback]);
+  const handleSpeechStop = useCallback(() => {
+    speechPlayback.stop('user');
+  }, [speechPlayback]);
 
   useEffect(() => {
     setReducedMotion(profile.appearance.reducedMotion);
@@ -370,6 +411,10 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
           storagePersistent={store ? store.persistent : false}
           saving={saving}
           notice={notice}
+          speechAvailability={speechAvailability}
+          speechState={speechState}
+          onSpeechSample={handleSpeechSample}
+          onSpeechStop={handleSpeechStop}
           onChange={handleProfileChange}
           onSave={handleSave}
           onReset={handleReset}

@@ -49,8 +49,9 @@ describe('档案存储端口（GF01）', () => {
       expressionStyle: { proactiveNudging: true, replyLength: 'detailed' }
     });
     const loaded = await seeded.load();
-    expect(loaded.note).toBe('MIGRATED_V1_TO_V2');
+    expect(loaded.note).toBe('MIGRATED_V1_TO_V3');
     expect(loaded.profile.initiative.proactiveNudging).toBe(true);
+    expect(loaded.profile.voiceStyle.subtitles).toBe(true);
   });
 
   it('宿主存储未接通：读取回退默认并标注原因，写入显式失败且指认依赖', async () => {

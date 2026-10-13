@@ -1,5 +1,19 @@
-import { ASTRYN_COMPANION_PERSONAS, withOverrides } from '@astryn/contracts';
-import type { AstrynCharacterProfile } from '@astryn/contracts';
+import { ASTRYN_COMPANION_PERSONAS, ASTRYN_MOUTH_MODE_LABELS, withOverrides } from '@astryn/contracts';
+import type { AstrynCharacterProfile, AstrynSpeechAvailability, AstrynSpeechFeature } from '@astryn/contracts';
+import type { SpeechPlaybackSnapshot } from '../speech/playback';
+
+const SPEECH_FEATURES: readonly AstrynSpeechFeature[] = ['microphone', 'asr', 'tts', 'playback'];
+const SPEECH_FEATURE_LABELS: Readonly<Record<AstrynSpeechFeature, string>> = {
+  microphone: '麦克风',
+  asr: '语音识别',
+  tts: '朗读',
+  playback: '音频播放'
+};
+const SPEECH_STATUS_LABELS: Readonly<Record<SpeechPlaybackSnapshot['status'], string>> = {
+  idle: '空闲',
+  speaking: '朗读中',
+  finished: '本段结束'
+};
 
 export interface CompanionSettingsProps {
   readonly profile: AstrynCharacterProfile;
@@ -9,6 +23,11 @@ export interface CompanionSettingsProps {
   readonly saving: boolean;
   /** 上一次保存的结果说明（成功/冲突/宿主未接通），null 表示尚未保存过。 */
   readonly notice: string | null;
+  /** 语音能力可用性读数（GF09）：未接通的原因必须原样显示。 */
+  readonly speechAvailability: AstrynSpeechAvailability;
+  readonly speechState: SpeechPlaybackSnapshot;
+  readonly onSpeechSample: (text: string) => void;
+  readonly onSpeechStop: () => void;
   readonly onChange: (profile: AstrynCharacterProfile) => void;
   readonly onSave: () => void;
   readonly onReset: () => void;
@@ -20,9 +39,25 @@ export interface CompanionSettingsProps {
  * 只改表达层（人格语气、主动性、学习偏好、外观）；边界与授权规则不可在此修改。
  */
 export function CompanionSettings(props: CompanionSettingsProps): JSX.Element {
-  const { profile, storageLabel, storagePersistent, saving, notice, onChange, onSave, onReset, onClose } = props;
+  const {
+    profile,
+    storageLabel,
+    storagePersistent,
+    saving,
+    notice,
+    speechAvailability,
+    speechState,
+    onSpeechSample,
+    onSpeechStop,
+    onChange,
+    onSave,
+    onReset,
+    onClose
+  } = props;
   const set = (overrides: Parameters<typeof withOverrides>[1]): void => onChange(withOverrides(profile, overrides));
   const selectedPersona = ASTRYN_COMPANION_PERSONAS.find((spec) => spec.id === profile.persona);
+  const speechUnavailableReason =
+    SPEECH_FEATURES.map((feature) => speechAvailability[feature]).find((entry) => !entry.available)?.reason ?? null;
 
   return (
     <section className="astryn-settings" data-testid="astryn-settings" aria-label="小栖设置">
@@ -210,13 +245,149 @@ export function CompanionSettings(props: CompanionSettingsProps): JSX.Element {
 
       <fieldset className="astryn-settings-group" data-testid="astryn-settings-voice">
         <legend>声音</legend>
-        <label className="astryn-settings-inline">
-          <input type="checkbox" data-testid="astryn-voice-enable" checked={false} disabled readOnly />
-          启用语音（未接通）
-        </label>
+        <div className="astryn-settings-row-group" role="group" aria-label="语音能力可用性">
+          {SPEECH_FEATURES.map((feature) => {
+            const entry = speechAvailability[feature];
+            return (
+              <span
+                key={feature}
+                className="astryn-chip"
+                data-testid={`astryn-speech-avail-${feature}`}
+                data-available={entry.available ? 'true' : 'false'}
+              >
+                {SPEECH_FEATURE_LABELS[feature]}：{entry.available ? '可用' : '未接'}
+              </span>
+            );
+          })}
+        </div>
         <p className="astryn-disclosure" data-testid="astryn-voice-note">
-          声音端口依赖宿主合同（GF09 预留）：未接通前不播放任何语音，也不播放占位音效。
+          {speechUnavailableReason ?? '语音端口已接通：朗读、字幕与口型按音频主时钟（audio playback clock）同步。'}
         </p>
+        <label className="astryn-settings-row">
+          <span>音色</span>
+          <select data-testid="astryn-voice-style" value={profile.voiceStyle.styleId} disabled>
+            <option value={profile.voiceStyle.styleId}>{profile.voiceStyle.styleId}</option>
+          </select>
+        </label>
+        <p className="astryn-disclosure">音色目录归宿主（语音端口未接通）：当前仅登记默认音色，接通后再开放选择。</p>
+        <label className="astryn-settings-row">
+          <span>语速 {profile.voiceStyle.speakingRate.toFixed(2)}</span>
+          <input
+            type="range"
+            min={0.5}
+            max={2}
+            step={0.05}
+            data-testid="astryn-voice-rate"
+            value={profile.voiceStyle.speakingRate}
+            onChange={(event) => set({ voiceStyle: { speakingRate: Number(event.target.value) } })}
+          />
+        </label>
+        <label className="astryn-settings-row">
+          <span>音高 {profile.voiceStyle.pitchOffset > 0 ? `+${profile.voiceStyle.pitchOffset}` : profile.voiceStyle.pitchOffset}</span>
+          <input
+            type="range"
+            min={-6}
+            max={6}
+            step={1}
+            data-testid="astryn-voice-pitch"
+            value={profile.voiceStyle.pitchOffset}
+            onChange={(event) => set({ voiceStyle: { pitchOffset: Number(event.target.value) } })}
+          />
+        </label>
+        <label className="astryn-settings-row">
+          <span>音量 {Math.round(profile.voiceStyle.volume * 100)}%</span>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            data-testid="astryn-voice-volume"
+            value={profile.voiceStyle.volume}
+            onChange={(event) => set({ voiceStyle: { volume: Number(event.target.value) } })}
+          />
+        </label>
+        <label className="astryn-settings-inline">
+          <input
+            type="checkbox"
+            data-testid="astryn-voice-enabled"
+            checked={profile.voiceStyle.enabled}
+            onChange={(event) => set({ voiceStyle: { enabled: event.target.checked } })}
+          />
+          朗读（偏好；语音端口接通后生效）
+        </label>
+        <label className="astryn-settings-inline">
+          <input
+            type="checkbox"
+            data-testid="astryn-voice-microphone"
+            checked={profile.voiceStyle.microphone}
+            onChange={(event) => set({ voiceStyle: { microphone: event.target.checked } })}
+          />
+          允许语音输入（麦克风偏好）
+        </label>
+        <label className="astryn-settings-inline">
+          <input
+            type="checkbox"
+            data-testid="astryn-voice-subtitles"
+            checked={profile.voiceStyle.subtitles}
+            onChange={(event) => set({ voiceStyle: { subtitles: event.target.checked } })}
+          />
+          朗读时显示字幕
+        </label>
+        <div className="astryn-toolbar astryn-toolbar--spaced">
+          <button
+            type="button"
+            className="astryn-btn"
+            data-testid="astryn-voice-sample"
+            disabled={!speechAvailability.tts.available || speechState.status === 'speaking'}
+            title={speechAvailability.tts.reason ?? undefined}
+            onClick={() => onSpeechSample(`你好，我是${profile.displayName}。`)}
+          >
+            试听一段
+          </button>
+          <button
+            type="button"
+            className="astryn-btn"
+            data-testid="astryn-voice-stop"
+            disabled={speechState.status !== 'speaking'}
+            title={
+              speechState.status !== 'speaking'
+                ? speechAvailability.playback.reason ?? '当前没有正在朗读的段。'
+                : undefined
+            }
+            onClick={onSpeechStop}
+          >
+            停止朗读
+          </button>
+          <button
+            type="button"
+            className="astryn-btn"
+            data-testid="astryn-voice-mic-hold"
+            disabled={!speechAvailability.microphone.available}
+            title={speechAvailability.microphone.reason ?? undefined}
+            onClick={() => undefined}
+          >
+            按住说话
+          </button>
+        </div>
+        <p className="astryn-disclosure" data-testid="astryn-voice-mouth-mode">
+          口型模式：{ASTRYN_MOUTH_MODE_LABELS[speechState.mouthMode]}；M0 呈现层仍为文本帧口型，音素选帧属未来口型驱动器。
+        </p>
+        <p className="astryn-disclosure" data-testid="astryn-voice-runtime">
+          朗读状态：{SPEECH_STATUS_LABELS[speechState.status]}
+          {speechState.status !== 'idle' && speechState.provenance ? ` · 来源 ${speechState.provenance}` : ''}
+        </p>
+        {speechState.subtitle !== null ? (
+          <p className="astryn-disclosure" data-testid="astryn-voice-subtitle">字幕：{speechState.subtitle}</p>
+        ) : null}
+        {speechState.lastNotice ? (
+          <p className="astryn-disclosure" data-testid="astryn-voice-last-notice">{speechState.lastNotice}</p>
+        ) : null}
+        <p className="astryn-disclosure">麦克风采集归宿主权限面：星栖前端不直接采集；未接通前此偏好不启用任何采集。</p>
+        {profile.voiceStyle.enabled && !speechAvailability.tts.available ? (
+          <p className="astryn-disclosure" data-testid="astryn-voice-preference-note">
+            朗读偏好已开启，但语音端口未接通（BE01）：当前保持文本模式，不播放任何语音。
+          </p>
+        ) : null}
       </fieldset>
 
       <div className="astryn-toolbar astryn-settings-actions">

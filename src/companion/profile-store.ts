@@ -18,7 +18,7 @@ export interface AstrynProfileStore {
 export interface AstrynProfileLoad {
   readonly profile: AstrynCharacterProfile;
   /** 返回档案的来源说明，供界面与日志如实标注。 */
-  readonly note: 'LOADED' | 'EMPTY_DEFAULT' | 'MIGRATED_V1_TO_V2' | 'INVALID_FALLBACK' | 'HOST_UNAVAILABLE_DEFAULT';
+  readonly note: 'LOADED' | 'EMPTY_DEFAULT' | 'MIGRATED_V1_TO_V3' | 'MIGRATED_V2_TO_V3' | 'INVALID_FALLBACK' | 'HOST_UNAVAILABLE_DEFAULT';
 }
 
 export type AstrynProfileSave =

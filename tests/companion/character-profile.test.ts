@@ -10,7 +10,7 @@ import {
   withOverrides
 } from '@astryn/core';
 
-describe('人物档案 v2（GF01）', () => {
+describe('人物档案 v3（GF01/GF09）', () => {
   it('人格目录：默认学习伴侣，女友语气必须由本人显式选择', () => {
     expect(ASTRYN_COMPANION_PERSONAS).toHaveLength(3);
     expect(ASTRYN_COMPANION_PERSONAS.filter((spec) => spec.optIn).map((spec) => spec.id)).toEqual(['girlfriend_style_opt_in']);
@@ -26,7 +26,7 @@ describe('人物档案 v2（GF01）', () => {
     expect(ASTRYN_PROFILE_STORAGE.devFallback).toContain('EPHEMERAL_DEV_MEMORY');
   });
 
-  it('v1 档案迁移到 v2：proactiveNudging 从表达风格搬到主动程度', () => {
+  it('v1 档案迁移到 v3：proactiveNudging 搬到主动程度，声音节补全默认值', () => {
     const v1 = {
       schemaVersion: 1,
       characterId: 'xiaoqi',
@@ -42,13 +42,46 @@ describe('人物档案 v2（GF01）', () => {
       appearance: { rendererId: 'xiaoqi-svg-v1', theme: 'nightfall', scale: 1, reducedMotion: false }
     };
     const { profile, note } = migrateCharacterProfile(v1);
-    expect(note).toBe('MIGRATED_V1_TO_V2');
-    expect(profile.schemaVersion).toBe(2);
+    expect(note).toBe('MIGRATED_V1_TO_V3');
+    expect(profile.schemaVersion).toBe(3);
     expect(profile.initiative).toEqual({ proactiveNudging: true, nudgingCadence: 'low' });
     expect(profile.expressionStyle.replyLength).toBe('detailed');
     expect(profile.expressionStyle).not.toHaveProperty('proactiveNudging');
     expect(profile.voiceStyle.enabled).toBe(false);
+    expect(profile.voiceStyle.microphone).toBe(false);
+    expect(profile.voiceStyle.subtitles).toBe(true);
+    expect(profile.voiceStyle.volume).toBe(1);
     expect(profile.profileRevision).toBe(0);
+  });
+
+  it('v2 档案迁移到 v3：声音偏好保持原值，前端字段补默认', () => {
+    const { profile, note } = migrateCharacterProfile({
+      schemaVersion: 2,
+      profileRevision: 4,
+      voiceStyle: { styleId: 'xiaoqi-soft-zh', speakingRate: 1.5, pitchOffset: 1, enabled: true, connectionRef: 'conn-1' }
+    });
+    expect(note).toBe('MIGRATED_V2_TO_V3');
+    expect(profile.schemaVersion).toBe(3);
+    expect(profile.profileRevision).toBe(4);
+    expect(profile.voiceStyle.enabled).toBe(true);
+    expect(profile.voiceStyle.speakingRate).toBe(1.5);
+    expect(profile.voiceStyle.pitchOffset).toBe(1);
+    expect(profile.voiceStyle.connectionRef).toBe('conn-1');
+    expect(profile.voiceStyle.microphone).toBe(false);
+    expect(profile.voiceStyle.subtitles).toBe(true);
+    expect(profile.voiceStyle.volume).toBe(1);
+  });
+
+  it('音量越界值被夹到 0–1；v3 输入不再标注迁移', () => {
+    const { profile, note } = migrateCharacterProfile({
+      schemaVersion: 3,
+      voiceStyle: { volume: 5, subtitles: false, microphone: true }
+    });
+    expect(note).toBe(null);
+    expect(profile.voiceStyle.volume).toBe(1);
+    expect(profile.voiceStyle.subtitles).toBe(false);
+    expect(profile.voiceStyle.microphone).toBe(true);
+    expect(migrateCharacterProfile({ schemaVersion: 3, voiceStyle: { volume: -2 } }).profile.voiceStyle.volume).toBe(0);
   });
 
   it('空档案与损坏档案回退默认并给出可区分的原因', () => {

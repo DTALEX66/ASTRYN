@@ -76,5 +76,8 @@ companion_program:
   gf08_doc: docs/companion/GF08-SLOTS-AND-HANDOFF.md
   gf08_domain: contracts/presentation.ts + src/presentation/host-entry.tsx + src/presentation/astryn.css + dev-host/app.tsx
   gf08_semantics: '正式宿主入口 AstrynCompanionEntry：槽位（home/reading/sidebar）决定模式与取景档（home=embedded+hero，reading=embedded+sidebar，sidebar=panel+sidebar）；会话归宿主传入的共享 manager，三个槽位共用同一实例——一次提交只调端口一遍、任一处发送各处记录同步、逐个卸载不停止会话、全部卸载后重开仍拿完整记录；入口不构造任何模型端口（无第二个模型中心），未注入 conversation 即显示 NO MODEL；角色大小/对话区高度/隐藏足迹/专注收敛全部引用前端 tokens（--astryn-avatar-size-{hero,avatar,sidebar,home,reading,focus}、--astryn-log-height-*、--astryn-hidden-min-height），宿主在容器上覆盖 base 令牌即可改尺寸，无需改组件代码；专注是宿主给出的状态（如学习专注模式）经 focus 属性传入，星栖不自行推断；CSS 中 focus 规则必须写在槽位映射之后（同特异性靠书写顺序，顺序即语义，有门禁测试钉住）'
-  execution_state: GF08_completed
+  gf09_doc: docs/companion/GF09-SPEECH-SHELL.md
+  gf09_domain: contracts/speech.ts + src/speech/playback.ts + contracts/character.ts + src/presentation/companion-settings.tsx
+  gf09_semantics: '语音端口提议与任务包 speech_optional 逐字一致（state=FRONTEND_FIELDS_NOW_RUNTIME_OPTIONAL，12 字段/3 规则；正式登记 BLOCKED_BY_HOST_CONTRACT 归 BE01，formalization_gate 四项原样保存）；回放外壳以音频回放时钟为投影基准（tick 单调，回退读数忽略），字幕按 segments 与时钟交叠投影、utterance 结束保留末条、停止清空；块守卫：跨会话（FOREIGN_SESSION）/旧 utterance（STALE_UTTERANCE）/乱序重复（OUT_OF_ORDER）拒收，结清后到达的块一律作废（NOT_SPEAKING）；停止原子复位音频订阅（abort 信号）、字幕与嘴形，迟到块不改变投影；口型三态 resolveMouthMode：无音频=文本帧、有音频无音素=基础口型、有音素=viseme——缺音素时间戳仅标基础口型，M0 渲染器嘴型仍由文本帧驱动（音素选帧属未来口型驱动器）；档案 v3 声音节补全前端字段（enabled/microphone/subtitles/volume，迁移 MIGRATED_V1_TO_V3/MIGRATED_V2_TO_V3，音量夹 0–1），偏好可编辑但未接通时运行按钮（试听/停止/按住说话）保持禁用并原样显示未接通原因，不播放任何语音；星栖前端不直接采集麦克风（采集归宿主权限面），无 audio 元素、无占位语音，均有门禁测试钉住'
+  execution_state: GF09_completed
   host_dependencies: 'BE01/BE03/BE05/BE06/BE07/BE12 in DTALEX66/ArcheAxis-Knowledge-OS; this repo never writes the host repo'

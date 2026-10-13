@@ -98,6 +98,14 @@ export type {
   LearningSnapshot
 } from './learning/store';
 export { SyntheticContextFixture, SYNTHETIC_DOC } from './context/synthetic-context';
+export { consumeSpeechChunks, createSpeechPlayback, readSpeechAvailability } from './speech/playback';
+export type {
+  SpeechIngestResult,
+  SpeechPlaybackController,
+  SpeechPlaybackSnapshot,
+  SpeechSpeakResult,
+  SpeechStopResult
+} from './speech/playback';
 export { STATE_VISUALS, MOUTH_CYCLE, eyesFor, mouthPathFor } from './avatar/state-visuals';
 export { XiaoqiAvatar, describeXiaoqiFrame } from './avatar/xiaoqi-avatar';
 export { AVATAR_VIEW_PROFILES, avatarViewProfile, avatarViewForMode } from './avatar/render-profiles';

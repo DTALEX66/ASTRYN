@@ -64,6 +64,12 @@ for (let i = 0; i < argv.length; i += 1) {
 
 const missing = Object.entries(stages).filter(([, code]) => code !== 0);
 
+/** 空阶段块会写出一份"看起来像回执、实际什么都没判"的文件，静默通过比失败更危险。 */
+if (Object.keys(stages).length === 0) {
+  process.stderr.write('record-gates: 未收到任何 --stage name=EXIT 参数，拒绝写入空回执。用法见文件头注释。\n');
+  process.exit(2);
+}
+
 /** 不用 child_process：直接读 .git 里的 HEAD 与 ref 文件解析当前提交。 */
 function readGitAnchor() {
   const gitDir = join(ROOT, '.git');

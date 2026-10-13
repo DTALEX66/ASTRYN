@@ -1,5 +1,5 @@
 import { ASTRYN_CONVERSATION_STATES, ASTRYN_TASK_STATES } from '@astryn/contracts';
-import type { AstrynAvatarFrame, AstrynAvatarRenderer, AstrynVisibleState } from '@astryn/contracts';
+import type { AstrynAvatarFrame, AstrynAvatarRenderer, AstrynAvatarViewProfile, AstrynVisibleState } from '@astryn/contracts';
 import { STATE_VISUALS } from './state-visuals';
 import { XiaoqiAvatar, describeXiaoqiFrame } from './xiaoqi-avatar';
 
@@ -26,7 +26,7 @@ export const xiaoqiSvgRenderer: AstrynAvatarRenderer = {
   budget: { compositedOnly: true, respectReducedMotion: true, maxAmbientAnimations: 2 },
   supportedStates: SUPPORTED,
   supports: (state) => state in STATE_VISUALS,
-  renderMarkup: (frame, size = 200) => XiaoqiAvatar({ frame, size }),
+  renderMarkup: (frame, size, view) => XiaoqiAvatar({ frame, size, view }),
   createFrame: (): AstrynAvatarFrame => ({
     characterId: 'xiaoqi',
     sessionId: '',
@@ -40,8 +40,8 @@ export const xiaoqiSvgRenderer: AstrynAvatarRenderer = {
   describe: (frame) => describeXiaoqiFrame(frame)
 };
 
-export function renderXiaoqiMarkup(frame: AstrynAvatarFrame, size = 200): string {
-  return XiaoqiAvatar({ frame, size });
+export function renderXiaoqiMarkup(frame: AstrynAvatarFrame, size?: number, view?: AstrynAvatarViewProfile): string {
+  return XiaoqiAvatar({ frame, size, view });
 }
 
 /** 已实现的渲染驱动。P2 的 Live2D / VRM / 3D 驱动在这里注册，而不是在 UI 里加分支。 */

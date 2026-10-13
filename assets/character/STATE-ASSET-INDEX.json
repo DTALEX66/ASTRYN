@@ -1,0 +1,53 @@
+{
+  "schema": "astryn.character-assets/v1",
+  "updated": "2026-10-13",
+  "character": {
+    "id": "xiaoqi",
+    "displayName": "小栖",
+    "universe": "ASTRYN｜星栖（ArcheAxis 学习陪伴子系统）"
+  },
+  "provenance": {
+    "origin": "original",
+    "license": "原创（本项目撰写），未使用任何第三方角色模型、贴图或素材",
+    "realPersonReference": false,
+    "note": "验收红线：不得把参考真人截图硬裁人像作为产品人物资产；任何真人参考素材不得进入本目录。"
+  },
+  "runtime": {
+    "rendererId": "xiaoqi-svg-v1",
+    "renderSource": "src/avatar/xiaoqi-avatar.ts",
+    "visualTokens": "src/avatar/state-visuals.ts",
+    "stateActions": "src/avatar/state-action-matrix.ts",
+    "renderProfiles": ["hero", "avatar", "sidebar"],
+    "expressionDriver": "text-event-frame（真实文本事件的离散帧；非音素口型，不得宣称音素口型）"
+  },
+  "states": [
+    "idle",
+    "listening",
+    "thinking",
+    "speaking",
+    "interrupted",
+    "awaiting_approval",
+    "executing",
+    "completed",
+    "failed"
+  ],
+  "versions": [
+    {
+      "id": "v1",
+      "kind": "original-svg-baseline",
+      "status": "ACTIVE",
+      "assets": "内联 SVG（构建期由 src/avatar/xiaoqi-avatar.ts 计算；无位图文件）",
+      "note": "外观升级必须保留本源与版本记录；v1 永远可作为渲染失败与升级回退的下限"
+    },
+    {
+      "id": "v2",
+      "kind": "upgraded-raster-2d",
+      "status": "PENDING_EXTERNAL",
+      "producer": "MINIMAX DESIGN（外部执行，由用户转交简报）",
+      "brief": "docs/companion/GF03-VISUAL-ASSET-BRIEF.md",
+      "targetDir": "assets/character/upgraded/v1/",
+      "deliveryRule": "回传时逐张附 文件名/用途/生成参数或种子/知悉的权利条款；落库后本清单升级为 v2 并逐张登记哈希",
+      "knownGaps": "尚未回传；当前产品画面 100% 来自 v1 内联 SVG"
+    }
+  ]
+}

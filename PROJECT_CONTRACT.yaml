@@ -43,7 +43,7 @@ m0_acceptance:
   unverified: [A17]
   not_executed: [A19]
   gates: {lint: 0, typecheck: 0, test: 0, build: 0}
-  tests: {files: 19, passed: 147}
+  tests: {files: 23, passed: 171}
 companion_program:
   plan_id: ASTRYN-COMPANION-20261013
   branch: feat/astryn-learning-companion-v1
@@ -57,5 +57,8 @@ companion_program:
   progress_ledger: docs/companion/PROGRESS.json
   gf01_doc: docs/companion/GF01-PROFILE-AND-SETTINGS.md
   gf02_doc: docs/companion/GF02-SESSION-MANAGER.md
-  execution_state: GF02_completed
+  gf03_doc: docs/companion/GF03-ASSETS-AND-STATES.md
+  gf03_asset_index: assets/character/STATE-ASSET-INDEX.json
+  gf03_visual_upgrade: 'PENDING_EXTERNAL (MINIMAX DESIGN v2; rights clause required before activation; v1 original SVG stays ACTIVE)'
+  execution_state: GF03_completed
   host_dependencies: 'BE01/BE03/BE05/BE06/BE07/BE12 in DTALEX66/ArcheAxis-Knowledge-OS; this repo never writes the host repo'

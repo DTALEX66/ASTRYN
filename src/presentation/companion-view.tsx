@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type {
   AstrynAvatarFrame,
+  AstrynAvatarRenderer,
+  AstrynAvatarViewProfile,
   AstrynCharacterProfile,
   AstrynCompanionState,
   AstrynContextFragment
@@ -34,9 +36,19 @@ function rejectedTotal(rejected: Readonly<Record<string, number>>): number {
   return Object.values(rejected).reduce((sum, count) => sum + count, 0);
 }
 
-export function AvatarView({ state, profile, reducedMotion }: Pick<CompanionViewProps, 'state' | 'profile' | 'reducedMotion'>): JSX.Element {
+export interface AvatarViewProps {
+  readonly state: AstrynCompanionState;
+  readonly profile: AstrynCharacterProfile;
+  readonly reducedMotion: boolean;
+  /** 呈现档（首页/头像/侧边）。缺省用渲染器的整幅半身。 */
+  readonly view?: AstrynAvatarViewProfile | undefined;
+  /** 驱动注入：故障注入测试与宿主自定义驱动；缺省按 profile.appearance.rendererId 选择。 */
+  readonly renderer?: AstrynAvatarRenderer | undefined;
+}
+
+export function AvatarView({ state, profile, reducedMotion, view, renderer }: AvatarViewProps): JSX.Element {
   const visibleState = toVisibleState(state);
-  const renderer = selectAvatarRenderer(profile.appearance.rendererId);
+  const selected = renderer ?? selectAvatarRenderer(profile.appearance.rendererId);
   const frame: AstrynAvatarFrame = {
     characterId: profile.characterId,
     sessionId: state.sessionId,
@@ -48,22 +60,51 @@ export function AvatarView({ state, profile, reducedMotion }: Pick<CompanionView
     reducedMotion
   };
   const mountHost = useRef<HTMLDivElement | null>(null);
-  const markup = renderer.renderMarkup?.(frame);
+  const [mountFailed, setMountFailed] = useState(false);
+
+  // 渲染失败可回退：标记渲染抛错或命令式挂载失败时，退到可读的文本状态行，
+  // 绝不把错误细节或外部文本写进 DOM（注入不变量的另一半）。
+  let markup: string | undefined;
+  let renderFailed = mountFailed;
+  if (!renderFailed) {
+    try {
+      markup = selected.renderMarkup?.(frame, undefined, view);
+    } catch {
+      renderFailed = true;
+    }
+  }
 
   // 命令式驱动（WebGL / Live2D）走 mount 分支；SVG 驱动走标记分支。UI 不认识具体实现。
   useEffect(() => {
-    if (markup !== undefined || !renderer.mount || !mountHost.current) return;
-    const instance = renderer.mount(mountHost.current, frame);
-    return () => {
-      instance.dispose();
-    };
+    if (renderFailed || markup !== undefined || !selected.mount || !mountHost.current) return;
+    try {
+      const instance = selected.mount(mountHost.current, frame);
+      return () => {
+        instance.dispose();
+      };
+    } catch {
+      setMountFailed(true);
+    }
   });
 
-  // markup 由内部常量与数值拼装，不含任何外部文本，见 xiaoqi-svg-renderer 的注入不变量。
-  if (markup !== undefined) {
-    return <div className="astryn-avatar" data-renderer={renderer.rendererId} data-testid="astryn-avatar-host" dangerouslySetInnerHTML={{ __html: markup }} />;
+  if (renderFailed) {
+    return (
+      <div
+        className="astryn-avatar astryn-avatar--fallback"
+        data-renderer={selected.rendererId}
+        data-testid="astryn-avatar-fallback"
+        role="img"
+        aria-label={`小栖当前状态：${visibleState}（画面渲染失败，已回退文本）`}
+      >
+        <span className="astryn-chip">状态：{visibleState}（渲染失败，文本回退）</span>
+      </div>
+    );
   }
-  return <div className="astryn-avatar" data-renderer={renderer.rendererId} data-testid="astryn-avatar-host" ref={mountHost} />;
+  if (markup !== undefined) {
+    // markup 由内部常量与数值拼装，不含任何外部文本，见 xiaoqi-svg-renderer 的注入不变量。
+    return <div className="astryn-avatar" data-renderer={selected.rendererId} data-testid="astryn-avatar-host" dangerouslySetInnerHTML={{ __html: markup }} />;
+  }
+  return <div className="astryn-avatar" data-renderer={selected.rendererId} data-testid="astryn-avatar-host" ref={mountHost} />;
 }
 
 export interface AuditChip {

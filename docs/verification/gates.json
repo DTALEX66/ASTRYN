@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T14:19:43.988Z",
+  "generatedAt": "2026-10-13T14:44:26.546Z",
   "toolchain": {
     "node": "v26.7.0",
     "platform": "win32",
@@ -9,12 +9,12 @@
   "git": {
     "repository": true,
     "branch": "feat/astryn-learning-companion-v1",
-    "head": "3a85821a55cd969b5fc11fac874bd64ec48b03ec",
+    "head": "7e9c2d62cb7c5f36d27ac4223726f7b1109b3735",
     "worktreeNote": "需 git status 判定，见台账"
   },
   "sourceTree": {
-    "files": 72,
-    "sha256": "9a04f3a025a0d8b17dcab6e7e3d530dc4e17d2be5a7c9fe196f53d09d829653e",
+    "files": 78,
+    "sha256": "59d3d7a1b2f3c2e696fc8f5f30f82fbd5fd1a5b07a26f4f21bb2bef35cadc4b4",
     "scopes": [
       "contracts",
       "src",
@@ -46,8 +46,8 @@
     },
     {
       "path": "contracts/avatar.ts",
-      "bytes": 2082,
-      "sha256": "38cb9f0a802a8c4670b599b630269d46d137f19d7369790a72a755cf65f5df02"
+      "bytes": 2610,
+      "sha256": "e65a0c09b185777c629aea5c8e48ac322df16679c9f17b2b0e04ef6aeaa8c476"
     },
     {
       "path": "contracts/character.ts",
@@ -151,8 +151,8 @@
     },
     {
       "path": "PROJECT_CONTRACT.yaml",
-      "bytes": 2899,
-      "sha256": "2a3eca38eac587c0f8d8d1de61f5d701414760ce221d3a204780694d0ffcfab8"
+      "bytes": 3146,
+      "sha256": "c76e5dfcf3d3be14c9feed1e87bdf3036c932016627914626ffc77a36d466b5c"
     },
     {
       "path": "src/adapters/aaos-bridge.ts",
@@ -195,19 +195,29 @@
       "sha256": "45086e97c4cb3dce252845365e3eab8c2185d45e78ae6a244c5983267995a6df"
     },
     {
+      "path": "src/avatar/render-profiles.ts",
+      "bytes": 1463,
+      "sha256": "9ddd39db07b18702fe75853cd82b51015db826a3e88f03c0a2866680f9038842"
+    },
+    {
+      "path": "src/avatar/state-action-matrix.ts",
+      "bytes": 2569,
+      "sha256": "716f2c66550123f1b9459518dd54e388cbe487430b6027fc08a1c335f4e1b0bc"
+    },
+    {
       "path": "src/avatar/state-visuals.ts",
       "bytes": 3206,
       "sha256": "9567d3242d893542cb69e90f1cf00ab865002c2e6b35592e82ac998845f7f4b6"
     },
     {
       "path": "src/avatar/xiaoqi-avatar.ts",
-      "bytes": 8564,
-      "sha256": "4586dfce79eba83cbd72931f4aaa71f4c0fdc05eb05c48f9d25be5c12fd8d55f"
+      "bytes": 9136,
+      "sha256": "9436e6163cee36be766e06cd4e39ea9c86e69a6cd159682c1886c02512680553"
     },
     {
       "path": "src/avatar/xiaoqi-svg-renderer.ts",
-      "bytes": 2359,
-      "sha256": "85eb8867deba9c4f858d5a00d5035855bf6260201af77661cf49640594f1e642"
+      "bytes": 2431,
+      "sha256": "2cd0556c97781aa546c80732c3300f002d50bb1ed9b07f825b6ff123f0da79f4"
     },
     {
       "path": "src/companion/profile-store.ts",
@@ -236,8 +246,8 @@
     },
     {
       "path": "src/index.ts",
-      "bytes": 2962,
-      "sha256": "78f912683576f164c2ee3a6029a04f555b68faccda6f0a5e6c00fbd200b6d890"
+      "bytes": 3386,
+      "sha256": "adf701367a37af039f7b6a01083aece9172377163cc2f221e6ffadf6294eb090"
     },
     {
       "path": "src/interaction/companion-controller.ts",
@@ -261,8 +271,8 @@
     },
     {
       "path": "src/presentation/astryn.css",
-      "bytes": 9704,
-      "sha256": "d6f61c9ddd743c1770c9ee62f6829b2d23db58c78cc27ec3403ec69236a834da"
+      "bytes": 9769,
+      "sha256": "63cac9b0481584939a5279ab7026d8f101a41e5b2709fb5a645a3d0b16ce8aab"
     },
     {
       "path": "src/presentation/companion-settings.tsx",
@@ -271,13 +281,13 @@
     },
     {
       "path": "src/presentation/companion-shell.tsx",
-      "bytes": 14413,
-      "sha256": "1ad44043ff6886f6d1252e0edeca11708e67df85aec6bbd12841aeafe2bd531a"
+      "bytes": 14513,
+      "sha256": "221d3da187f7bcc5e6e41eb4d5acdfc7cf976298fac4ac6248cb782ebe50235c"
     },
     {
       "path": "src/presentation/companion-view.tsx",
-      "bytes": 7314,
-      "sha256": "7eced5141f4520c8f8ec0b44e751de5f6489f37a943e99abc23f2da3590647f1"
+      "bytes": 8772,
+      "sha256": "6b67dc47ebdd640240593f833a1b0768ef51d2f6b965f9a3d2e9f6eaa50c494d"
     },
     {
       "path": "src/presentation/mode-registry.ts",
@@ -300,9 +310,24 @@
       "sha256": "5b12ccff19745d03eeab2e88cb0d9294fc9b1ab6983f165100df35546feec3f8"
     },
     {
+      "path": "tests/avatar/render-profiles.test.ts",
+      "bytes": 4512,
+      "sha256": "ca79fce6cd6494e669078b5c75d342ae1c70af50a25c527ce9e8e2d63d459db8"
+    },
+    {
+      "path": "tests/avatar/state-action-matrix.test.ts",
+      "bytes": 3202,
+      "sha256": "167c4fcc75132184d3e9fe1b7920e9c0cfe644abdbbd5350f672cc1e4570e5bf"
+    },
+    {
       "path": "tests/boundary/architecture-risks.test.tsx",
       "bytes": 6628,
       "sha256": "12df6b93f3d3b1fd74d6f1aa5e79f1bf6c74e4e51a4351777a44be2661cb0261"
+    },
+    {
+      "path": "tests/boundary/character-assets.test.ts",
+      "bytes": 2672,
+      "sha256": "96d48f23b60a712bce2f8bc704cc4c321bff9df706179377513acd32ece9ac21"
     },
     {
       "path": "tests/boundary/design-tokens.test.ts",
@@ -368,6 +393,11 @@
       "path": "tests/presentation/approval-flow.test.tsx",
       "bytes": 4216,
       "sha256": "752b72b02321206bac42ca415d816372cfb447b2e3b04a647460025c4714eb03"
+    },
+    {
+      "path": "tests/presentation/avatar-fallback.test.tsx",
+      "bytes": 3745,
+      "sha256": "9579de4065367c2b4e72045317447be487d01d185bb174ed9d29aff12d66d44b"
     },
     {
       "path": "tests/presentation/companion-settings.test.tsx",

@@ -10,6 +10,7 @@ import type {
 } from '@astryn/contracts';
 import { createCompanionSessionManager } from '../interaction/session-manager';
 import type { CompanionSessionManager, CompanionSessionPorts, CompanionSessionSnapshot } from '../interaction/session-manager';
+import { avatarViewForMode } from '../avatar/render-profiles';
 import type { AstrynProfileLoad, AstrynProfileStore } from '../companion/profile-store';
 import { ApprovalCard, AvatarView, ChatLog, Composer, StatusStrip } from './companion-view';
 import type { TranscriptEntry } from './companion-view';
@@ -230,7 +231,7 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
       </div>
 
       <div className="astryn-stage">
-        <AvatarView state={state} profile={profile} reducedMotion={reducedMotion} />
+        <AvatarView state={state} profile={profile} reducedMotion={reducedMotion} view={avatarViewForMode(props.mode)} />
         <div className="astryn-stage-meta">
           <StatusStrip
             state={state}

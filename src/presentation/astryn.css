@@ -83,6 +83,7 @@
 .astryn-stage { display: flex; align-items: center; gap: var(--astryn-space-4); }
 .astryn-avatar { line-height: 0; flex: 0 0 auto; }
 .astryn-avatar svg { display: block; }
+.astryn-avatar--fallback { display: flex; align-items: center; }
 .astryn-stage-meta { flex: 1 1 auto; min-width: 0; }
 
 .astryn-spin { transform-box: fill-box; transform-origin: center; animation: astryn-spin 6s linear infinite; }

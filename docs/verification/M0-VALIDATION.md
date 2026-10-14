@@ -123,3 +123,13 @@
 ## 9. 研究补全
 
 方向 2/3/5/7/9 补研 43 个候选（工作记录在 `.project-local/runs/research/gap-*.md`），并入 `docs/research/OPEN-SOURCE-MATRIX.md` §3。要点：P2 渲染首选 Rive（唯一"运行时 MIT + 官方 React 绑定 + 状态机数据驱动"齐备）；语音首选 sherpa-onnx + silero-vad + Kokoro 且**归 AAOS**，星栖只取呈现时机；Tauri 2.12.3 的桌宠能力已文档+源码双层确证，并纠正 `acceptFirstMouse`（macOS 专用，非鼠标穿透）与 `visibleOnAllWorkspaces`（Windows 不支持）两处误解。**全部候选零运行验证。**
+
+# 第五轮：raster 默认下的 a11y 重扫与两处回归修复（2026-10-14）
+
+第二轮 §7 的扫描证据停留在 SVG 渲染时代；GF05–GF09 面板扩充、D018 默认渲染器切换后未重扫（审计项 D12）。本轮回对当前代码（`xiaoqi-raster-v2` 默认）做真实重扫。
+
+- 工具与视口同 §7（同一 `@axe-core/playwright` 规则集、chromium-1228、三视口 × 两态共 6 屏）；脚本 `.project-local/runs/node-libs/a11y-scan.mjs`。
+- 修复后读数：axe 违规 **0** / `incomplete=[]` / `inapplicable=40`；键盘焦点环缺失 **0**、触控目标 <24px **0**、聚焦横向裁切 **0**；三档视口 `scrollWidth == innerWidth`。
+- 重扫发现两处回归并当轮修复：① `.astryn-title` 缺 `overflow-wrap: anywhere`，长 token 使 375 档溢出 `384 > 375`；② `.devhost-input/.devhost-textarea` 焦点环走 UA 默认、与产品"显式声明"公约不一致。详见 `design-a11y.md` §8（修复前后读数、两轮定位方法与证据 sha256 均留证）。
+- 证据文件：`.project-local/runs/a11y-rescan-n4.stdout.txt`（修复前）、`a11y-rescan-n4-afterfix.stdout.txt`（修复后）、`node-libs/design-qa-out/a11y-scan.json`（sha256 `7107fe2ea19547f9a1c5b7d636e952e7e2b3db7a287ea99e8cfcef77fb2f4541`，105795 字节）。
+- 设计契约侧同步：`DESIGN.md` 的 Responsive/Motion/Known Gaps/验证四节已按本次读数更新。

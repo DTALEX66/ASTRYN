@@ -7,17 +7,19 @@
 - 声明纪律（验收条款 2：「交接只声称实测阶段」）：本指南只写实测基线；凡未实测项一律进台账，不以概念人物或未来服务冒充实测。
 - 本轮改动：`PROJECT_CONTRACT.yaml`（补 GF10/GF11 记录与 execution_state）+ 文档三件（本指南、台账、STATUS 摘要）+ 收据重封存；**源码零改动**——除合同文件外，`contracts/src/dev-host/tests` 与 GF10 封存树逐字节一致（updater 以 `git diff HEAD` 断言）。
 
+> **N1–N4 更新（2026-10-14）**：本指南写于 GF11 封存轮（2026-10-13），其后经历 MINIMAX v2 资产落库与默认渲染器切换（N1，决策 D018/D019）、全量审计与修复（N2/N3，源码面 45 文件 +1766/−276）。文首 sha256 / 文件数 / 测试数及标「本轮 / GF11 当轮」的段落为历史封印；**现行封存以 `docs/verification/gates.json` 收据为准**（八阶段 lint/typecheck/test/build/drift/archive/record/anchors 全绿）。下文已就地更新：角色来源与 v2 交付状态（§1）、渲染器默认与回退（§4/§5）、门禁命令与 CI 步骤（§6）、声明分级（§9）。
+
 ## 1 正式名称与角色来源（验收条款 1 前半）
 
 | 字段 | 值 | 来源（可核验） |
 |---|---|---|
 | 项目正式名 | ASTRYN｜星栖 | `package.json` name/description；`PROJECT_CONTRACT.yaml` project.name/chinese_name |
 | 默认角色 | 小栖 | `PROJECT_CONTRACT.yaml` project.default_character；`assets/character/STATE-ASSET-INDEX.json` character.displayName |
-| 角色来源 | 原创（original），内联 SVG 手写生成 | `assets/original/README.md`；`STATE-ASSET-INDEX.json` provenance.origin=original |
+| 角色来源 | v1 原创（original，内联 SVG 手写生成）；v2 交付图为 AI 生成（ai-generated，MINIMAX DESIGN，平台条款） | `assets/original/README.md`；`STATE-ASSET-INDEX.json` provenance.origin（N1 更新后为 ai-generated；v1 来源仍为 original，保留为回退下限） |
 | 第三方素材 | 无 | `assets/third-party/` 为空（仅 .gitkeep）；CI 有「第三方目录必须为空」扫描 |
 | 真人素材红线 | 禁止（不得把真人照片/截图裁作产品人物资产） | `STATE-ASSET-INDEX.json` provenance.note；`assets/character/README.md` 规则 2 |
 | 产品内自述 | 「小栖 · 星栖」「我是小栖，星栖里的 AI 角色，不是真人。」+ 合成徽标 `scripted-synthetic / SYNTHETIC` | 采集 11（§7）浏览器实测 |
-| 外观升级位 | v2 = PENDING_EXTERNAL（MINIMAX DESIGN；简报 `docs/companion/GF03-VISUAL-ASSET-BRIEF.md`） | `STATE-ASSET-INDEX.json` versions v2；未回传前画面 100% 为 v1 内联 SVG，不得宣称已升级 |
+| 外观升级位 | v2 = DELIVERED（2026-10-14 落库：22 直用 + 3 派生 PNG；默认渲染器 `xiaoqi-raster-v2`，v1 SVG 为回退下限） | `STATE-ASSET-INDEX.json` versions v2（schema v2）；决策 D018/D019；缺口与安全区披露见该文件 gaps |
 
 ## 2 用户如何关闭或调整陪伴（验收条款 1 后半）
 
@@ -69,7 +71,7 @@
 | memory 记忆 | contracts/memory.ts | 宿主 | MemoryManager 经端口；SyntheticMemoryFixture（进程内） | 合成可用；持久化归 BE06 |
 | action 动作 | contracts/action.ts | 宿主 | 仅契约 + 任务状态机消费面 | 未接通（BE12） |
 | context 上下文 | contracts/context.ts | 宿主 | SyntheticContextFixture + 选区授权提供器 | 合成可用；AAOS 知识通道未接通 |
-| avatarRenderer 角色渲染 | contracts/avatar.ts | ASTRYN | xiaoqiSvgRenderer（原创内联 SVG，rendererId=xiaoqi-svg-v1） | 可用（v1） |
+| avatarRenderer 角色渲染 | contracts/avatar.ts | ASTRYN | `xiaoqi-raster-v2`（九态位图静帧，默认）+ xiaoqiSvgRenderer（原创内联 SVG，注册表 index 0 回退下限） | 可用（位图默认；SVG 回退；加载失败另有 image-error 图像级回退） |
 | presentationMode 呈现形态 | contracts/presentation.ts | ASTRYN | mode-registry + host-entry 三槽位（home/reading/sidebar） | 可用 |
 | characterProfile 人物档案 | contracts/character.ts | ASTRYN | profile-store（v3，含 v1/v2 迁移） | 可用（开发内存） |
 
@@ -85,17 +87,18 @@
 | src/avatar/state-visuals.ts | 状态→视觉令牌映射（九态） |
 | src/avatar/state-action-matrix.ts | 状态→动作矩阵（含保留动作位） |
 | src/avatar/render-profiles.ts | 呈现档（hero/avatar/sidebar） |
-| src/avatar/xiaoqi-svg-renderer.ts | 渲染器登记（rendererId=xiaoqi-svg-v1） |
+| src/avatar/xiaoqi-svg-renderer.ts | 渲染器登记（rendererId=xiaoqi-svg-v1，回退下限） |
+| src/avatar/xiaoqi-raster-renderer.ts | 位图渲染器（rendererId=xiaoqi-raster-v2，九态静帧；加载失败标 `data-renderer-fallback=image-error`）（N1 新增） |
 | contracts/character.ts | 档案契约、三套人设（learning / close_companion / girlfriend_style_opt_in） |
 | src/presentation/* | 可复用呈现（壳/入口/设置/原子视图）与 astryn.css 令牌 |
 
-资源清单（登记处 = `assets/character/STATE-ASSET-INDEX.json`，schema astryn.character-assets/v1）：
+资源清单（登记处 = `assets/character/STATE-ASSET-INDEX.json`，现行为 schema `astryn.character-assets/v2`——N1 更新，GF11 当轮为 v1）：
 
 - v1 = 原创内联 SVG 基线，ACTIVE，永远保留（渲染失败或权利争议的回退下限）。
-- v2 = 升级位图位，PENDING_EXTERNAL（MINIMAX DESIGN）；回传后落 `assets/character/upgraded/v1/` 并逐张登记文件名/用途/生成参数或种子/权利条款，激活前后均不删除旧版本。
+- v2 = 升级位图，DELIVERED（2026-10-14 落库）：22 张直用 + 3 张本地派生（`derived-alpha`）落 `assets/character/upgraded/v1/`，逐张登记 bytes/sha256/权利条款；激活 = 默认渲染器 `xiaoqi-raster-v2`（D018）；原 `PENDING_EXTERNAL` 标注已解除；激活前后均不删除旧版本。
 - 目录规则：`assets/original/`（原创声明）、`assets/third-party/`（为空；引入第三方须先落许可证全文）。
-- 红线：不得把真人照片/截图裁作产品人物资产；未登记文件不得被运行时引用；音素口型未实现不得宣称。
-- 清单门禁：tests/boundary/character-assets.test.ts（清单↔契约九态/渲染档/rendererId/来源红线逐项钉住）。
+- 红线：不得把真人照片/截图裁作产品人物资产；未登记文件不得被运行时引用；音素口型未实现不得宣称（v2 为静帧驱动，口型帧 `SKIPPED`）。
+- 清单门禁：tests/boundary/character-assets.test.ts（清单↔契约九态/渲染档/rendererId/来源红线逐项钉住；N1 后扩至 11 项，含落库字节双向核对与派生链）。
 
 ## 6 使用说明（开发宿主与门禁）
 
@@ -106,13 +109,13 @@
 | `npm run dev` | Vite 开发宿主（默认 127.0.0.1:5183，可用 ASTRYN_DEV_HOST_PORT 覆盖） |
 | `npm run dev:proxy` | 开发模型代理（loopback，默认 8791；密钥只存在于代理进程，绝不进浏览器） |
 | `npm run typecheck` / `npm run lint` / `npm run test` / `npm run build` | 门禁四阶段（build 产物在 .project-local/artifacts，属开发工具输出） |
-| `npm run verify` | 四阶段顺序跑 |
+| `npm run verify` | 六步顺序跑（四阶段 + AAOS 漂移检查 + 归档字节保真；N4 现状） |
 | `npm run record-gates` | 按日志重生成收据 docs/verification/gates.json |
-| `bash .project-local/runs/gate-chain.sh` | 完整门禁链：四阶段 + record + verify-doc-anchors，写 `gate-*.log` 与 `anchors.json` |
+| `bash .project-local/runs/gate-chain.sh` | 完整门禁链（八阶段）：四阶段 + drift + archive + record + verify-doc-anchors，写 `gate-*.log` 与 `anchors.json` |
 
 浏览器验证：两个合成旗标分别放行「合成传输」（VITE_ASTRYN_ALLOW_SYNTHETIC=1）与「合成宿主模拟器」（VITE_ASTRYN_SYNTHETIC_HOST=1，审批/推进演示）；合成数据在界面必须显示 SYNTHETIC 标记，不得当作真实集成。示例：`ASTRYN_DEV_HOST_PORT=5289 VITE_ASTRYN_ALLOW_SYNTHETIC=1 VITE_ASTRYN_SYNTHETIC_HOST=1 npm run dev`。
 
-CI：`.github/workflows/ci.yml`（m0-gates）只在 main push / PR 触发，node 20.19 与 22.12 双矩阵，跑 lint/typecheck/test/build + 凭据样式扫描 + 第三方资产目录扫描；功能分支推送不触发 CI，分支上的权威闸门是本地门禁链（本轮日志与收据见文首）。
+CI：`.github/workflows/ci.yml`（m0-gates）只在 main push / PR 触发，node 20.19 与 22.12 双矩阵，跑 lint/typecheck/test/build + 凭据样式扫描 + 第三方资产目录扫描 + **归档字节保真（Archive byte fidelity，Q9/R4）**；功能分支推送不触发 CI，分支上的权威闸门是本地门禁链（现行日志与收据见文首更新块与 `docs/verification/gates.json`）。
 
 ## 7 宣传采集（本轮实测，五张）
 
@@ -134,7 +137,7 @@ CI：`.github/workflows/ci.yml`（m0-gates）只在 main push / PR 触发，node
 |---|---|
 | 本轮（文档轮） | `git revert` 本轮提交即可（改动 = 合同 + 文档 + 收据重封存；源码零改动） |
 | 工程轮（GF01–GF09） | 每任务在 `docs/companion/PROGRESS.json` 记录 rollback_handle（文件级、行为替换与迁移说明） |
-| 形象 | v1 内联 SVG 永远 ACTIVE；v2 只有在登记哈希与权利条款后才可激活；升级不删除旧版本 |
+| 形象 | v1 内联 SVG 永远 ACTIVE（回退下限）；v2 已按登记哈希与权利条款激活（N1，默认渲染器 `xiaoqi-raster-v2`）；回退 = 默认渲染器切回 v1（D018），升级不删除旧版本 |
 | 档案 | v1/v2 档案文件仍可解析（MIGRATED_V1_TO_V3 / MIGRATED_V2_TO_V3），回退不丢数据 |
 | 收据 | 重跑门禁链即重新封存；`gate-chain.sh` 的收据来自日志字节而非手写 |
 
@@ -147,7 +150,7 @@ CI：`.github/workflows/ci.yml`（m0-gates）只在 main push / PR 触发，node
 | 真实模型 | UNVERIFIED（A05） | 仅合成传输与 loopback 代理两条路径有测试证据；本轮回复全部来自零时延合成夹具 |
 | 语音运行时 | BLOCKED_BY_HOST_CONTRACT（BE01） | 提案逐字冻结，前端字段先行；无 audio 元素、无占位语音（有门禁钉住） |
 | 音素口型 | RESERVED（保留状态） | 口型模式=文本帧口型；音素选帧属未来口型驱动器 |
-| 写实人物（v2 位图） | PENDING_EXTERNAL | MINIMAX DESIGN 未回传；不得宣称已升级 |
+| 写实人物（v2 位图） | DELIVERED（2026-10-14 落库） | `STATE-ASSET-INDEX.json` schema v2 逐张登记；3 张本地派生件、`pose_listening` 去背如实中止、安全区 `MEASURED`（披露见 gaps）；仍不得宣称音素口型或未登记件 |
 | 桌宠 / 3D / 跨窗音频 | deferred_scope | 任务包明列不在一期 |
 | 安装与发布 | NOT_EXECUTED | 未发布、未安装 |
 

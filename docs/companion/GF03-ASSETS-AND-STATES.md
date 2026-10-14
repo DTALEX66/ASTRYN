@@ -4,6 +4,8 @@
 
 任务卡要求"先复用当前原创 SVG 和九状态，改进符合宇宙主题的清晰度与尺寸表现；输出首页、半身或头像、阅读侧边三种呈现资源和 profile；外观升级保留原始源与版本；区分文本事件驱动表情与真实音频口型"。写实 / Live2D / VRM 升级资产由 MINIMAX DESIGN 生产（简报见 `docs/companion/GF03-VISUAL-ASSET-BRIEF.md`，含 §9 装载与调用约定）；本任务完成 ASTRYN 工程侧全部可独立部分。
 
+> **N1 更新（2026-10-14）**：MINIMAX DESIGN v2 升级资产已回传并落库（`PENDING_EXTERNAL` 解除），默认渲染器切换为 `xiaoqi-raster-v2`（决策 D018/D019）。本卡下方写于 2026-10-13 的状态快照中，涉及 v2 交付状态、清单 schema、`origin` 与 `upgraded/v1/` 目录内容的陈述，以文末「v2 落库更新（N1）」节为准。
+
 ## 交付内容
 
 | 交付物 | 位置 | 说明 |
@@ -13,8 +15,8 @@
 | 状态-动作映射 | `src/avatar/state-action-matrix.ts`（新增） | 九状态 → 六种身体预设之一 + `expressionDriver:'text-event-frame'`（文本事件帧驱动，非音素口型）+ `audioDriver:null` + 昂贵资源占位 `{activeAudio:1, expensiveRenderer:1}`；`interrupted/awaiting_approval/executing/failed → idle`（预设由状态环承载），`completed → nod`；`point` 明确列入 `RESERVED_BODY_PRESETS`（"解释选中内容"手势待 GF05/GF07 接线，避免静默死枚举） |
 | 渲染失败回退 | `src/presentation/companion-view.tsx`、`src/presentation/astryn.css` | `AvatarView` 的 renderMarkup 抛错与 mount 抛错均捕获 → 渲染 `data-testid="astryn-avatar-fallback"` 的纯文本状态卡（`role="img"`，aria-label 注明"渲染失败，已回退文本"）；错误详情不入 DOM（测试断言 `boom-secret-detail` 不在文档中）；mount 成功路径卸载时 dispose 恰一次 |
 | 壳层接线 | `src/presentation/companion-shell.tsx` | 按 `mode` 选档：`embedded→hero`、`panel→sidebar`（嵌入页与侧栏共用同一会话管理器，档位随呈现切换） |
-| 角色资产清单 | `assets/character/STATE-ASSET-INDEX.json`（新增）+ `README.md` | schema `astryn.character-assets/v1`：九状态、`provenance.origin='original'`、`realPersonReference=false`（真人红线显式记录）、runtime（rendererId/三档 profile/表情驱动声明）、版本策略：`v1 original-svg-baseline ACTIVE` 与 `v2 upgraded-raster-2d PENDING_EXTERNAL`（producer MINIMAX DESIGN，targetDir `assets/character/upgraded/v1/`，deliveryRule 要求交付权属条款）；`assets/character/upgraded/v1/.gitkeep` 预留 |
-| 测试 | `tests/avatar/render-profiles.test.ts`、`tests/avatar/state-action-matrix.test.ts`、`tests/presentation/avatar-fallback.test.tsx`、`tests/boundary/character-assets.test.ts`（均新增） | 7 + 6 + 5 + 6 = 24 项（详见下方对照表） |
+| 角色资产清单 | `assets/character/STATE-ASSET-INDEX.json`（新增）+ `README.md` | GF03 当轮 schema `astryn.character-assets/v1`：九状态、`provenance.origin='original'`、`realPersonReference=false`（真人红线显式记录）、runtime（rendererId/三档 profile/表情驱动声明）、版本策略：`v1 original-svg-baseline ACTIVE` 与 `v2 upgraded-raster-2d PENDING_EXTERNAL`（producer MINIMAX DESIGN，targetDir `assets/character/upgraded/v1/`，deliveryRule 要求交付权属条款）；`.gitkeep` 预留。**N1 更新（2026-10-14）：已升 schema v2**——`origin='ai-generated'`、v2 `DELIVERED`（22 直用 + 3 派生 PNG 逐张 bytes/sha256 登记，`.gitkeep` 已随之移除），详见文末更新节 |
+| 测试 | `tests/avatar/render-profiles.test.ts`、`tests/avatar/state-action-matrix.test.ts`、`tests/presentation/avatar-fallback.test.tsx`、`tests/boundary/character-assets.test.ts`（均新增） | GF03 当轮 7 + 6 + 5 + 6 = 24 项（详见下方对照表）；**N1 更新**：`character-assets.test.ts` 随落库扩至 11 项（落库字节/派生链/缺口登记/目录反枚举），四文件现为 7 + 6 + 5 + 11 = 29 项 |
 
 ## 验收对照
 
@@ -24,7 +26,7 @@
 | 隐藏暂停无用渲染 | 既有壳层测试：点击 `astryn-hide` 后 `astryn-avatar-host` 从 DOM 消失、`astryn-show` 恢复；GF02 的 `session-manager.test.ts`：零视图 `renderingPaused=true` 快照推送暂停、在途流照常入账（本任务未改动该链路，回退路径也不引入常驻渲染——失败态是纯文本节点） |
 | 渲染失败可回退 | `avatar-fallback.test.tsx`：renderMarkup 抛错 → 回退文本卡出现且含当前状态名；mount 抛错 → `waitFor` 出现回退卡；错误详情不出现在 DOM；正常渲染器不误触回退；view profile 透传至 DOM（`viewBox="10 16 100 104"`、`width="96"`）；确认挂载成功路径卸载 dispose 恰一次 |
 | 不把文本帧推进宣称成中文音素口型 | `state-action-matrix.test.ts`：九态 `expressionDriver==='text-event-frame'`、`audioDriver===null`，且 STATE_ACTIONS JSON 中无 `/viseme|音素/` 字样；`character-assets.test.ts`：清单 runtime.expressionDriver 与代码同源值为"text-event-frame（…非音素口型，不得宣称音素口型）"；`describeXiaoqiFrame` 输出同步携带 `expressionDriver` |
-| 不把参考真人作为已获权利人物资产 | `character-assets.test.ts`：`provenance.origin==='original'`、`realPersonReference===false`、note 含"真人"红线句；v2 升级版本 `PENDING_EXTERNAL` 且 `deliveryRule` 含"权利"（交付前必须给出权属条款，未回传不解锁） |
+| 不把参考真人作为已获权利人物资产 | `character-assets.test.ts`：GF03 当轮断言 `provenance.origin==='original'`、`realPersonReference===false`、note 含"真人"红线句；v2 升级版本 `PENDING_EXTERNAL` 且 `deliveryRule` 含"权利"（交付前必须给出权属条款，未回传不解锁）。**N1 更新**：断言随落库升级——`origin==='ai-generated'`（外部 AI 生产、平台条款，非真人参考）、`realPersonReference===false` 不变、v2 `DELIVERED` 且 `deliveryRule` 仍含"权利"（现行断言见该文件「来源为 AI 生成并如实登记缺口，真人素材红线被明文声明」一例） |
 
 ## 证据（本机实测）
 
@@ -49,19 +51,27 @@
 ### 边界核对
 
 - `tests/boundary/character-assets.test.ts` 校验清单与代码同源（states 集合 = 会话态 + 任务态去 `none`；renderProfiles 键 = `AVATAR_VIEW_PROFILES` 键；rendererId = `xiaoqiSvgRenderer.rendererId`；targetDir 在磁盘存在）
-- 既有 `no-third-party-assets` 断言保持：SVG 不引用外链素材（`<image|href=|xlink:href=` 均无），`assets/character/upgraded/v1/` 只有 `.gitkeep`
+- 既有 `no-third-party-assets` 断言保持：SVG 不引用外链素材（`<image|href=|xlink:href=` 均无）。**N1 更新**：`assets/character/upgraded/v1/` 已落 22 张直用 PNG + `derived-alpha/` 3 张派生件，全部逐张登记并由 C11 目录枚举测试从反方向钉住（磁盘上出现未登记 PNG 即红）
 
 ## 如实记录的设计决定
 
 1. **回退卡只显示状态名，不显示底层错误**：错误文本可能携带宿主/模型细节，进入 DOM 等于把内部信息暴露给页面；测试以"抛错消息不在文档中"作为显式断言。
 2. **`point` 预设保留但声明为未接线**：九状态里没有"指向"态，若静默舍弃该预设则枚举死亡无告警；改为 `RESERVED_BODY_PRESETS` 带原因说明，并由测试锁死"保留集与已达集无交集且 point 在其中"。
-3. **契约扩展只加可选第三参数**：`renderMarkup(frame, size?, view?)` 是加法变更，第三方/宿主自定义渲染器无需改动；`hero/sidebar` 共用全画布，"清晰度"增量来自 viewBox 精确比例与 `geometricPrecision`，不新造素材（等 MINIMAX v2 回传后在清单上换 ACTIVE 版本）。
+3. **契约扩展只加可选第三参数**：`renderMarkup(frame, size?, view?)` 是加法变更，第三方/宿主自定义渲染器无需改动；`hero/sidebar` 共用全画布，"清晰度"增量来自 viewBox 精确比例与 `geometricPrecision`，不新造素材（N1 更新：MINIMAX v2 已于 2026-10-14 落库并成为默认渲染器，D018 由此履行；v1 SVG 按本条承诺保留为回退下限）。
 
 ## 阻塞与残余
 
-- **MINIMAX v2 升级资产 PENDING_EXTERNAL**：写实/2D 升级图集未回传，清单如实标注 `PENDING_EXTERNAL` 与 `targetDir`；回传前 `v1 original-svg-baseline` 保持 ACTIVE，不假装已有新资产。
+- **MINIMAX v2 升级资产已交付并落库（N1，2026-10-14）**，原 `PENDING_EXTERNAL` 解除，详见文末更新节；残余项：MINIMAX 侧 429 重试仍需显式授权、`pose_listening` 本地去背推导如实中止（`ABORTED_BG_NONUNIFORM`）、生成种子未暴露（`seedExposure=NONE`，无法复现同批画面）。
 - **浏览器证据为结构化读数**（该表面无截图），与 GF02 同一口径；像素级走查待有截图能力的表面（GF10 联合验收时统一补）。
 - 三档 profile 的"宇宙主题清晰度"工程侧只保证几何（viewBox/比例/无外链/性能属性）；审美升级依赖 v2 资产，不在本任务宣称。
+
+## v2 落库更新（N1，2026-10-14）
+
+- 清单升 `astryn.character-assets/v2`：`provenance.origin='ai-generated'`（producer MINIMAX DESIGN，平台条款），`realPersonReference=false` 与真人红线句保留；`runtime.defaultRendererId='xiaoqi-raster-v2'`（九态位图静帧驱动），`xiaoqi-svg-v1` 降为注册表 index 0 回退下限（D018）。
+- 落库：`assets/character/upgraded/v1/` 22 张直用件 + `derived-alpha/` 3 张本地派生件（thinking/completed/failed，登记算法与来源链、来源哈希闭合），逐张 bytes/sha256 双向核对（清单→磁盘、磁盘→清单；未登记 PNG 即红）。
+- 缺口如实登记（D019）：四张 429 去背失败件中 3 张本地推导（`DERIVED_LOCALLY`）、`pose_listening` 中止（`NOT_LANDED_RUNTIME`）；圆形头像安全区 `MEASURED`（躯干下缘 2.48% 像素出界、头部完整，报告 `.project-local/runs/avatar-safe-area-report.json`）；口型帧 `SKIPPED`（无音素口型，不得宣称）。
+- 渲染链：位图加载失败有图像级回退（`data-renderer-fallback=image-error`）与未注册 id 的显式回退（v1），scenes 注册表同源由门禁测试钉住。
+- 本节事实的登记处：`assets/character/STATE-ASSET-INDEX.json`、`docs/authority/DECISIONS.md` D018/D019、`tests/boundary/character-assets.test.ts`（11 项）。
 
 ## 回滚
 

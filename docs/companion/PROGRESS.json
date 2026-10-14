@@ -3,7 +3,7 @@
   "plan_id": "ASTRYN-COMPANION-20261013",
   "repository": "DTALEX66/ASTRYN",
   "branch": "feat/astryn-learning-companion-v1",
-  "updated": "2026-10-13",
+  "updated": "2026-10-14",
   "state_vocabulary": "task states follow pack template; runtime/installation kept separate from tests",
   "task_updates": [
     {
@@ -76,7 +76,7 @@
         "docs/companion/GF03-VISUAL-ASSET-BRIEF.md",
         "assets/character/STATE-ASSET-INDEX.json"
       ],
-      "blocker": "visual asset upgrade is PENDING_EXTERNAL (MINIMAX DESIGN v2, rights clause required before activation); ASTRYN-side profiles/state-mapping/fallback completed on the existing renderer seam",
+      "blocker": "visual asset upgrade is PENDING_EXTERNAL (MINIMAX DESIGN v2, rights clause required before activation); ASTRYN-side profiles/state-mapping/fallback completed on the existing renderer seam; N1 UPDATE (2026-10-14): v2 DELIVERED and landed - 22 direct + 3 derived-alpha PNGs registered with bytes/sha256 in STATE-ASSET-INDEX schema v2; default renderer switched to xiaoqi-raster-v2 (D018/D019); rights recorded (ai-generated, platform terms, realPersonReference=false)",
       "rollback_handle": "git revert of the GF03 commit on feat/astryn-learning-companion-v1; contract change is additive (optional view param), GF00-GF02 unaffected",
       "source_sha": "source tree sha256 59d3d7a1b2f3c2e696fc8f5f30f82fbd5fd1a5b07a26f4f21bb2bef35cadc4b4 (78 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml; final re-seal after contract-doc update, first seal a38688a751f4f068 over same code at log gate-20261013-224036); sealed at branch head 7e9c2d62cb7c5f36d27ac4223726f7b1109b3735; receipt docs/verification/gates.json; anchors trackedFiles 130 problems []",
       "changed_paths": [
@@ -103,7 +103,7 @@
       ],
       "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log .project-local/runs/gate-20261013-224036.log); vitest 23 files / 171 passed; dev host browser smoke on 127.0.0.1:5183 (panel svg 168x196 viewBox 0 0 120 140; embedded svg 240x280; 0 fallback nodes; 0 overflow; console 0 errors on fresh load; PIDs 34956/38604 terminated, port free)",
       "artifact_hashes": "gates.json sourceTree.sha256=a38688a751f4f068...48cb5 over 78 files; build index-0m_KqSw4.js 222.42 kB gzip 73.28 kB + index-h1SbPDct.css 8.58 kB",
-      "limitations": "browser evidence is structural DOM readout (no screenshot surface); cosmic-theme clarity upgrade for v2 raster assets PENDING_EXTERNAL (MINIMAX); three profiles guaranteed geometrically (viewBox/ratio/no external refs) not aesthetically"
+      "limitations": "browser evidence is structural DOM readout (no screenshot surface); cosmic-theme clarity upgrade for v2 raster assets PENDING_EXTERNAL (MINIMAX); three profiles guaranteed geometrically (viewBox/ratio/no external refs) not aesthetically; N1 UPDATE (2026-10-14): v2 raster landed and is the default renderer; residuals registered (pose_listening dekey ABORTED_BG_NONUNIFORM, 3 derived-alpha files, avatar safe area MEASURED - 2.48% outside, head intact; seedExposure NONE)"
     },
     {
       "task_id": "GF04",
@@ -341,7 +341,7 @@
         "docs/companion/GF11-DELIVERY-GUIDE.md",
         "docs/companion/REMAINING-WORK.md"
       ],
-      "blocker": "real-host capture/integration half BLOCKED_BY_HOST_CONTRACT (BE12/FE18/BE05/BE06/BE01); MINIMAX v2 visual assets PENDING_EXTERNAL (not received; current imagery is 100% the original v1 inline SVG); real model UNVERIFIED (A05); installation NOT_EXECUTED; feature-branch pushes do not trigger CI (ci.yml runs on main push / PR only)",
+      "blocker": "real-host capture/integration half BLOCKED_BY_HOST_CONTRACT (BE12/FE18/BE05/BE06/BE01); MINIMAX v2 visual assets PENDING_EXTERNAL (not received; current imagery is 100% the original v1 inline SVG) - N1 UPDATE (2026-10-14): v2 received and landed; default imagery is now the xiaoqi-raster-v2 raster set with v1 SVG as fallback floor; real model UNVERIFIED (A05); installation NOT_EXECUTED; feature-branch pushes do not trigger CI (ci.yml runs on main push / PR only)",
       "rollback_handle": "git revert of the GF11 commit (docs + PROJECT_CONTRACT.yaml gf10/gf11 fields + execution_state; zero source drift vs the GF10 sealed tree apart from the contract file, asserted by git diff in this round); captures stay in .project-local/artifacts (not committed by repo rule); receipt regenerable via gate-chain.sh; v1 inline SVG stays the avatar fallback floor",
       "source_sha": "source tree sha256 367b15793cfb7a2b88c3d486674916b869e89b37699dc9a6d05373a57b0d037f (100 files: contracts/src/dev-host/tests + 7 root files incl PROJECT_CONTRACT.yaml); sealed at branch head 5b6bdef4d55abcb86e3f509b3018b6560db942e9; receipt docs/verification/gates.json; disk tree re-hash matched the receipt",
       "changed_paths": [
@@ -354,7 +354,7 @@
       ],
       "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261014-001359.log, single pass); vitest 36 files / 319 passed; browser run on 127.0.0.1:5289 with both synthetic flags, 5 captures via take_screenshot filePath, console 0 errors, vite terminated by netstat PID, port released; no CI run (feature branch, ci.yml is main/PR-only)",
       "artifact_hashes": "gates.json sourceTree.sha256=367b15793cfb7a2b88c3d486674916b869e89b37699dc9a6d05373a57b0d037f (100 files); index-P5YjlFx8.js 295268 bytes sha256 03e4f907786bb3c3811038ff7109106005a63d9c9521a61fd0f91652c4925574, index-PqCch4VI.css 11670 bytes sha256 3e8d7372f43837ecad034ac17102b90fa1a51fa5d13dddb4dfc680fe3ff6ec64, index-P5YjlFx8.js.map 845331 bytes sha256 c4f7ad965d8dd56f53eaf963f373804476d58d88f54c27f60be6c7051cfdba06; captures: m0-browser-11-gf11-welcome.png 61570 bytes sha256 b93ffcdbe6e2aac250c5f75183e312649f8d168c7f9485ae6f8824f67c5b75a7; m0-browser-12-gf11-reading.png 61354 bytes sha256 b9918c2c7848207f4800caef08e344ce1f0cb77a1542d38100854b82323bc583; m0-browser-13-gf11-recall.png 63336 bytes sha256 b06f8bb2d0785f997aded8608116102db5899f65fd47f8d707976b61f7a00d16; m0-browser-14-gf11-memory.png 54261 bytes sha256 48cf4c2096c3c590d1db067084cd20bba1775cb5a6df572de8d19b0874b3f89d; m0-browser-15-gf11-voice-reserved.png 40719 bytes sha256 f9af5343b09fe4b5ade3686db295f9059b5223ac0e677cf6fce6314072409e06 (all five sizes+hashes cross-checked against the delivery guide text at write time)",
-      "limitations": "the five captures are dev-host synthetic-stage only: the real-host capture set (welcome / reading companionship / recall feedback / memory management on the formal host) is BLOCKED_BY_HOST_CONTRACT and must be re-shot after integration; the welcome capture is a viewport clip (chat log partly below the fold); sub-second states not stably capturable with a zero-delay fixture; MINIMAX v2 pending so all imagery is the original v1 inline SVG; no installation artifact exists (source-level integration via @astryn/core / @astryn/contracts aliases only); the guide supersedes nothing — GF01-GF10 documents remain the per-task record"
+      "limitations": "the five captures are dev-host synthetic-stage only: the real-host capture set (welcome / reading companionship / recall feedback / memory management on the formal host) is BLOCKED_BY_HOST_CONTRACT and must be re-shot after integration; the welcome capture is a viewport clip (chat log partly below the fold); sub-second states not stably capturable with a zero-delay fixture; MINIMAX v2 pending so all imagery is the original v1 inline SVG (N1 UPDATE 2026-10-14: v2 landed and is the default renderer; these five captures remain valid as the pre-switch synthetic-stage record - imagery shown is the v1-SVG stage); no installation artifact exists (source-level integration via @astryn/core / @astryn/contracts aliases only); the guide supersedes nothing — GF01-GF10 documents remain the per-task record"
     }
   ]
 }

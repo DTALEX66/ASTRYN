@@ -15,7 +15,7 @@
 | `bridge` | `src/adapters/aaos-bridge.ts`（`AAOS_ENDPOINTS` 常量、`probeCapabilities`、`verify`） | high（星栖侧实现） |
 | `openai` / `sse` / `synth` / `registry` | `src/adapters/{openai-compatible,sse,synthetic-conversation,synthetic-host,model-registry,conversation-event}.ts` | high |
 | `memPolicy` / `memFixture` / `ctxFixture` | `src/memory/{policy,synthetic-fixture}.ts`、`src/context/synthetic-context.ts` | high |
-| `svgRenderer` / `shell` / `view` | `src/avatar/{xiaoqi-avatar,state-visuals,xiaoqi-svg-renderer}.ts`、`src/presentation/*` | high |
+| `renderers` / `shell` / `view` | `src/avatar/{renderer-registry,xiaoqi-avatar,state-visuals,xiaoqi-svg-renderer,xiaoqi-raster-renderer}.ts`、`src/presentation/*`（N4 更新：默认位图驱动 `xiaoqi-raster-v2`，v1 SVG 为注册表 index 0 回退下限） | high |
 | `devhost.app` | `dev-host/app.tsx`、`dev-host/dev-config.ts`、`dev-host/index.html` | high |
 | `proxy` | `dev-host/server/dev-model-proxy.mjs`（loopback 绑定、64KB 上限、503 MODEL_UNAVAILABLE） | high |
 | AAOS `core` 及各端点 | `docs/architecture/AAOS-HOST-CAPABILITY-MAP.md`（引用 `crates/archeaxis-api/src/runtime/mod.rs:176-200`、`lib.rs:101,178`、`packages/contracts/v1/*.schema.json`） | medium |
@@ -27,7 +27,7 @@
 | 边 | 语义 | 证据 | 置信度 |
 | --- | --- | --- | --- |
 | `controller → guard → reducer` | OBSERVED | `companion-controller.ts` `dispatch()`；`tests/companion/guard.test.ts` 8 项 | high |
-| `reducer → svgRenderer` | OBSERVED | `toVisibleState()` + `STATE_VISUALS`；`tests/presentation/companion-shell.test.tsx` | high |
+| `reducer → renderers` | OBSERVED | `toVisibleState()` + `STATE_VISUALS`；`tests/presentation/companion-shell.test.tsx`（渲染命中经 `renderer-registry`，N4 更新命名） | high |
 | `openai → proxy → upstream` | OBSERVED | `vite.config.ts` 的 `/dev-model` 代理与 rewrite；`tests/adapters/openai-compatible.test.ts` 9 项 | high（星栖侧）/ unknown（真实上游） |
 | `jobsEp → controller → reducer` | **AUTHORITATIVE** | `aaos-bridge.ts` `AaosActionPort.poll/emit` → `controller.ingestReceipt` → `verify` → `trust`；`tests/companion/authority.test.ts` | high（链路）/ medium（宿主端点） |
 | `synth → controller` | SYNTHETIC | `src/adapters/synthetic-host.ts`（`authority:'synthetic-fixture'`）；界面 `SYNTHETIC` 徽标 | high |

@@ -2,7 +2,9 @@
 
 - 配套文档：`docs/companion/GF11-DELIVERY-GUIDE.md`（交付指南）；本台账是其 §9 声明分级的逐项展开。
 - 状态词表：OPEN（内部可推行）/ BLOCKED_BY_HOST_CONTRACT / PENDING_EXTERNAL / UNVERIFIED / NOT_EXECUTED / RESERVED（入口保留，接通条件未到）。
-- 封存基线：源码树 sha256 `367b15793cfb7a2b88c3d486674916b869e89b37699dc9a6d05373a57b0d037f`（100 文件），收据 `docs/verification/gates.json`；门禁 36 文件 / 319 测试全绿。
+- 封存基线：源码树 sha256 `367b15793cfb7a2b88c3d486674916b869e89b37699dc9a6d05373a57b0d037f`（100 文件，GF11 当轮历史封印），收据 `docs/verification/gates.json`；门禁 36 文件 / 319 测试全绿（GF11 当轮）。
+
+> **N1–N4 更新（2026-10-14）**：B 表 MINIMAX v2 已交付落库（`PENDING_EXTERNAL` 解除）；现行封存以 `docs/verification/gates.json` 为准（八阶段全绿）。下文相关行已就地更新。
 
 ## A 宿主合同依赖（阻塞集成；宿主仓 = DTALEX66/ArcheAxis-Knowledge-OS，本仓库从不写宿主仓）
 
@@ -19,7 +21,7 @@
 
 | 事项 | 状态 | 规程 | 不得宣称 |
 |---|---|---|---|
-| MINIMAX v2 写实/位图资产 | PENDING_EXTERNAL | 回传时逐张附文件名/用途/生成参数或种子/知悉的权利条款；落 `assets/character/upgraded/v1/`；清单升级为 v2 并逐张登记哈希 | 「已升级写实人物」；当前画面 100% 为 v1 内联 SVG |
+| MINIMAX v2 写实/位图资产 | DELIVERED（2026-10-14 落库） | 已按规程执行：22 直用 + 3 派生（`derived-alpha`）落 `assets/character/upgraded/v1/`，清单 schema v2 逐张 bytes/sha256 登记；`pose_listening` 去背如实中止（`ABORTED_BG_NONUNIFORM`）、种子未暴露（`seedExposure=NONE`）、MINIMAX 侧 429 重试需显式授权 | 「音素口型」「未登记件被运行时引用」「Live2D / 3D 已交付」；当前默认画面为 v2 位图（2D 升级），v1 SVG 为回退下限 |
 
 ## C 保留状态入口（入口已在，条件未到；禁止宣称已接通）
 
@@ -27,7 +29,7 @@
 |---|---|---|---|
 | 待接声音 | RESERVED | 设置-声音节四能力芯片全「未接」+ BLOCKED_BY_HOST_CONTRACT 文案 + 试听/停止/按住说话禁用 + 无 audio 元素 | BE01 登记 + 真实回放源接入（外壳按 AbortSignal 结清） |
 | 精确口型 | RESERVED | 口型模式=文本帧口型（无音频）；resolveMouthMode 三态契约已备 | 音素时间戳来源（未来口型驱动器） |
-| 写实人物 | RESERVED | v2 PENDING_EXTERNAL（见 B） | MINIMAX 回传 + 登记 |
+| 写实 / Live2D / 3D 人物 | RESERVED | v2 = 2D 升级位图已 DELIVERED 并默认（见 B）；写实照片级 / Live2D / VRM 仍 `deferred_scope` | Live2D / 3D 立项 + 生产（二期） |
 | 桌宠入口 | RESERVED | deferred_scope（任务包明列）：原生桌宠、多显示器跨窗音频、渲染所有权均不在一期 | 二期立项 |
 
 ## D 未执行 / 未验证
@@ -53,6 +55,6 @@
 
 1. BE12/FE18 宿主合同登记 → 八端口逐个转正（先 conversation/memory，后 action/context）。
 2. BE01 语音登记 → 接真实 ASR/TTS，替换禁用态外壳（保留降级路径）。
-3. MINIMAX v2 回传 → 登记 + 激活（v1 保留为回退下限）。
+3. ~~MINIMAX v2 回传 → 登记 + 激活（v1 保留为回退下限）~~ **已完成**（N1，2026-10-14：落库 + 默认渲染器切换 D018/D019）；残余 = `pose_listening` 去背重试（MINIMAX 侧 429，需显式授权）与 `derived-alpha` 三张过渡件的后续精修。
 4. 真实模型凭据经宿主侧注入 → A05 联调，补连接形态与真实引用采集。
 5. 桌宠 / 3D / 音素口型按 deferred_scope 立二期卡。

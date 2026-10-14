@@ -2,6 +2,8 @@
 
 日期：2026-10-13（第二轮）。工具：Qoder `design-review` 技能套件（design-system-capture 流程 + axe-core）、`architecture-visualization` 技能套件。契约文件：`DESIGN.md`、`design.qa.yaml`。
 
+> §1–§7 为第二轮（SVG 渲染时代）记录，保留原样；§8 是第五轮（2026-10-14，raster 默认）重扫追加——第二轮之后的证据在 §8 之前不反映 GF05–GF09 面板扩充与渲染器切换（审计项 D12）。
+
 ## 1. 工具链与偏离声明
 
 | 项 | 实际情况 |
@@ -74,3 +76,22 @@
 
 - `tests/boundary/design-tokens.test.ts`（23 项）：从 CSS 解析令牌重算对比度、断言文字容器无渐变、占位符显式声明、焦点环 ≥2px、关键帧只含 transform/opacity、reduced-motion 覆盖三个动画类、组件规则零硬编码色、面板宽度非死像素。
 - `tests/boundary/architecture-risks.test.tsx`（10 项）：见 `docs/architecture/astryn-m0.risk-quality.md` R1-R6。
+
+## 8. 第五轮重扫（2026-10-14，raster 默认 xiaoqi-raster-v2）
+
+第二轮证据停留在 SVG 渲染器与早期面板集；GF05–GF09 扩充面板、D018 切换默认渲染器后未重扫（审计项 D12）。本节为对当前代码的真实重扫。
+
+**工具**：同一 `@axe-core/playwright@4.13.0` + `playwright-core@1.64.0`，`.project-local/runs/node-libs/a11y-scan.mjs`，chromium-1228。视口与状态同第二轮（1280×900 / 375×720 / 640×512 × idle / awaiting_approval，6 屏）。
+
+**读数（修复后）**：6 屏全部 axe 违规 0 / 节点 0；`incomplete=[]`；`inapplicable=40`；通过规则组 22。键盘：DOM 可聚焦 55（idle）/ 63（审批态），Tab 落点 40/40（去重 25/26）；焦点环 <2px 或缺失 **0**；触控目标 <24px **0**；聚焦时横向裁切 **0**；三档视口 `scrollWidth == innerWidth`。
+
+**重扫发现并当轮修复的两处回归（修复前后读数均留证）**：
+
+| # | 问题 | 定位 | 修复 |
+| --- | --- | --- | --- |
+| E1 | `phone-375` 两态横向溢出 `scrollWidth=384 > 375` | 探针两轮定位：`document.querySelectorAll('*')` 的 rect 全无越界（块盒不含溢出文本）→ 用 `Range.getBoundingClientRect()` 对每元素直接文本测量，锁定 `.astryn-title` 中长 token `FRONTEND_FIELDS_NOW_RUNTIME_OPTIONAL`（maxRight=384） | `src/presentation/astryn.css` 的 `.astryn-title` 补 `overflow-wrap: anywhere`（与其他承载文字容器同一公约） |
+| E2 | 学习/记忆面板 5 个控件焦点环走 UA 默认（`outline:auto 1px`），与产品"显式声明"公约（`astryn.css:214`）不一致 | 明细 JSON：`focusVisible=true` 但 `outlineStyle=auto`（`.devhost-input/.devhost-textarea` 无 focus 规则） | `dev-host/dev-host.css` 补 `.devhost-input:focus-visible / .devhost-textarea:focus-visible { outline: var(--astryn-focus-ring); outline-offset: 2px }` |
+
+**事实边界**：E2 的 UA 默认环在 Chromium 上仍是可见焦点指示（非 WCAG 2.4.7 失败），属公约一致性回归；修复前读数（焦点环 2–5/屏、溢出 384）在 `.project-local/runs/a11y-rescan-n4.stdout.txt`，修复后读数在 `...-afterfix.stdout.txt` 与 `design-qa-out/a11y-scan.json`（sha256 `7107fe2ea19547f9a1c5b7d636e952e7e2b3db7a287ea99e8cfcef77fb2f4541`，105795 字节）。
+
+**本轮未做的**：对比度重跑（第二轮 14/14 的公式与令牌在第五轮未变——仅新增无颜色语义的 `overflow-wrap` 与焦点环声明，令牌集零改动）；屏幕阅读器实机走查仍缺失（与第二轮相同，属 Known Gap）。

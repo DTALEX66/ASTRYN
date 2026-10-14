@@ -258,20 +258,20 @@ components:
 
 实测三档视口（1280×900、375×720、640×512≈200% 缩放）× 两态（idle、awaiting_approval）：
 
-- 横向溢出：0（修复前 375px 档为 `414 > 375`）。
-- 键盘 Tab：DOM 可聚焦 13（idle）/ 15（审批态），焦点环 <2px 或缺失 **0**，聚焦时横向裁切 **0**，触控目标 <24px **0**。
+- 横向溢出：第五轮（2026-10-14，raster 默认）复测三档全部 `scrollWidth == innerWidth`。历史：第二轮修复 `414 > 375`；此后面板扩充（GF05 学习 / GF06 记忆 / GF09 语音外壳）引入长 token 撑破标题的回归 `384 > 375`，第五轮定位为 `.astryn-title` 缺 `overflow-wrap: anywhere` 并修复。
+- 键盘 Tab：第五轮实测 DOM 可聚焦 55（idle）/ 63（审批态）、Tab 落点 40/40（去重 25/26），焦点环 <2px 或缺失 **0**，聚焦时横向裁切 **0**，触控目标 <24px **0**（第二轮为 13/15 可聚焦，差额来自面板扩充；`.devhost-input/textarea` 的焦点环在第五轮按同一公约补显式声明）。
 - 窄屏（≤420px）宿主侧栏全宽堆叠；角色面板 `min(360px, 100%)` 自适应。
 - `prefers-reduced-motion: reduce` 下停用 `.astryn-spin / .astryn-breathe / .astryn-dots`，且角色 SVG 的 `data-motion` 转为 `off`。系统偏好**只增强不削弱**：系统开启后应用内开关禁用并显示"系统已在减少动效"（第四轮实现；CDP `Emulation.setEmulatedMedia` 双上下文 15 项检查实测生效）。
 
 ## Motion
 
-只用 `transform` 与 `opacity`（合成层），无 `mix-blend-mode`、无逐帧 `filter`。三个环境动画（环旋转、呼吸、思考点漂移）周期 6s / 4.2s / 2.4s，均为低频装饰；口型变化**不是动画**，是逐条真实数据驱动的离散帧。
+只用 `transform` 与 `opacity`（合成层），无 `mix-blend-mode`、无逐帧 `filter`。三个环境动画（环旋转、呼吸、思考点漂移，周期 6s / 4.2s / 2.4s）属于回退渲染器 `xiaoqi-svg-v1` 的产物；默认渲染器 `xiaoqi-raster-v2` 是九态位图静帧，零环境动画（`maxAmbientAnimations: 0`，`data-motion="off"`，reduced-motion 天然满足）。SVG 渲染器的口型变化**不是动画**，是逐条真实数据驱动的离散帧。
 
 ## Known Gaps（needs-design-decision）
 
 1. **亮色主题未定义**：当前只有深色一套。`AstrynCharacterAppearance.theme` 已预留 `'dawn'`，但无对应令牌集——需要设计决策，不自行发明。
 2. **角色尺寸与面板比例**在 <340px 宽度下未实测（开发宿主最小验证到 375px）。
-3. **中文字宽与截断**：长 URL / 无空格英文串依赖 `overflow-wrap: anywhere`，未做专门视觉走查。
+3. **中文字宽与截断**：长 URL / 无空格英文串依赖 `overflow-wrap: anywhere`。第五轮（2026-10-14）做了首轮视觉走查：定位并修复 `.astryn-title` 缺 `anywhere` 导致 375 档横向溢出（实测归零）；走查仅覆盖当前面板集，新增长 token 文案时需回归。
 4. **语音形态（voice-only）无视觉语言**：P2 前不应补，避免凭空设计。
 5. 状态色 `speaking #ffb454` 与 `awaiting_approval #ffd166` 色相接近，靠字形（无 vs `?`）与卡片区分；若后续状态继续增多需重新拉开色相距离。
 
@@ -281,3 +281,4 @@ components:
 - `tests/presentation/companion-shell.test.tsx`：九态视觉签名两两唯一；系统级 reduced-motion 三测（matchMedia stub：系统开启即 `data-motion=off` 且开关禁用、实时 change 事件翻转、禁用态点击不可覆盖）。
 - 系统级 reduced-motion 浏览器级证据（第四轮）：CDP 探针在默认与 `reduce` 双上下文实测三层防线（产品层 `data-motion`、运行时零运行中动画、CSS 媒体查询强制挂类后 `animationName=none`），报告 `.project-local/runs/q7-reduced-motion.report.json`。
 - axe（WCAG2 A/AA + 2.1 A/AA）扫描纳入 `docs/verification/M0-VALIDATION.md`，并**必须报告 axe 未判定（incomplete/inapplicable）的节点数**——零违规不等于通过。
+- a11y 重扫（第五轮，2026-10-14，raster 默认）：三视口 × 两态 6 屏，axe 违规 0 / `incomplete=[]` / `inapplicable=40`、键盘焦点环缺失 0、横向溢出 0。原始证据 `.project-local/runs/node-libs/design-qa-out/a11y-scan.json`（sha256 `7107fe2e…`，105795 字节）与修复前/后两份 stdout（`.project-local/runs/a11y-rescan-n4{,-afterfix}.stdout.txt`）；此期间修复 `.astryn-title` 溢出与 `.devhost-input/textarea` 焦点环两处回归。

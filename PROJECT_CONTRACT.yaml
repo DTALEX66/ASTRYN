@@ -18,9 +18,9 @@ write_scope:
 external_operations: not_authorized_by_this_contract
 development_execution: executed_partial
 git_state: repository_main_pushed
-git_head: a21495a29298f0019ac2872f1ddf685071a30630
+git_head: 4163d7992ac7d963902cff8d4b1efd1fe05e2cb5
 git_remote: https://github.com/DTALEX66/ASTRYN
-remote_ci: 'main has 10 runs total = 6 green 4 red; latest green run 38394262275 @ a21495a on node 20.19 and 22.12; per-commit attribution in M0-ACCEPTANCE-TRACKER A18'
+remote_ci: 'main has 13 runs total = 9 green 4 red as of 4163d79 (latest green 38435568068 @ 4163d79 on node 20.19 and 22.12; 2026-10-14 gh run list); per-commit attribution in M0-ACCEPTANCE-TRACKER A18'
 host_integration: UNVERIFIED
 git_identity: VERIFIED_LOCAL_EQ_REMOTE
 architecture:
@@ -43,7 +43,9 @@ m0_acceptance:
   unverified: [A17]
   not_executed: [A19]
   gates: {lint: 0, typecheck: 0, test: 0, build: 0}
-  tests: {files: 28, passed: 266}
+  tests: {files: 37, passed: 353}
+  gates_receipt: docs/verification/gates.json
+  gates_receipt_state: 'allGreen（八阶段全 EXIT=0，含 drift/archive/record/anchors）；树哈希与文件数以该回执为准'
 companion_program:
   plan_id: ASTRYN-COMPANION-20261013
   branch: feat/astryn-learning-companion-v1
@@ -59,7 +61,8 @@ companion_program:
   gf02_doc: docs/companion/GF02-SESSION-MANAGER.md
   gf03_doc: docs/companion/GF03-ASSETS-AND-STATES.md
   gf03_asset_index: assets/character/STATE-ASSET-INDEX.json
-  gf03_visual_upgrade: 'PENDING_EXTERNAL (MINIMAX DESIGN v2; rights clause required before activation; v1 original SVG stays ACTIVE)'
+  gf03_visual_upgrade: 'DELIVERED (MINIMAX DESIGN v2, 2026-10-14)：22 张直用件 + 3 张本地派生去背件（derived-alpha）落库 upgraded/v1/；九态位图全可用；schema v2 逐文件 bytes/sha256/runtimeUsable 登记；来源 ai-generated（平台条款）；4 张去背失败件 3 张本地推导、pose_listening 如实中止（ABORT_BG_NONUNIFORM）；圆形头像安全区 MEASURED（2.48% 出界，头部完整）；v1 原创 SVG 保留为回退下限'
+  audit_ledger: docs/verification/PROJECT-AUDIT.md
   gf04_doc: docs/companion/GF04-HOST-ADAPTER.md
   gf04_port_manifest: src/adapters/host-handshake.ts
   gf04_semantics: 'fail-closed 八端口；宿主无签名面 ⇒ verify() 恒 NO_VERIFIER；launch token 头仅存在于 src/adapters/aaos-bridge.ts'

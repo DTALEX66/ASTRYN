@@ -8,7 +8,7 @@
 
 ## 1. 结论先说
 
-M0 的渲染路线是**原创 SVG + React，保留 renderer seam**（`AstrynAvatarRenderer`，见 `src/avatar/xiaoqi-svg-renderer.ts`）。九个优先仓库中没有任何一个可以整体作为底座：三个是 GPU 服务端视频人脸（形态与"无后端 + 可交互表情"冲突），一个是 GPL 后台且自带第二套记忆库，一个是 Vue/Electron 全栈，一个是闭源素材混合的 3D 管线。真正可吸收的是**接口形状与数据结构**，不是代码本体。
+M0 的渲染路线是**原创 SVG + React，保留 renderer seam**（`AstrynAvatarRenderer`）。N4 更新（2026-10-14）：现行渲染路线 = **九态位图默认（`xiaoqi-raster-v2`，AI 生成，外部生产并按 `STATE-ASSET-INDEX.json` 登记）+ 原创 SVG 回退下限**（注册表 `src/avatar/renderer-registry.ts`，v1 为 index 0）。九个优先仓库中没有任何一个可以整体作为底座：三个是 GPU 服务端视频人脸（形态与"无后端 + 可交互表情"冲突），一个是 GPL 后台且自带第二套记忆库，一个是 Vue/Electron 全栈，一个是闭源素材混合的 3D 管线。真正可吸收的是**接口形状与数据结构**，不是代码本体。
 
 | 项目 | 决定 | 一句话依据 |
 | --- | --- | --- |

@@ -61,7 +61,7 @@ workspace "ASTRYN M0" "星栖 M0：角色化陪伴子系统的可核验架构模
                     ctxFixture = component "SyntheticContextFixture" "授权选区夹具；provenance=synthetic-fixture" "src/context/synthetic-context.ts"
                 }
                 express = component "Astryn Expression & Presentation" "角色表达与可复用 UI" "TypeScript / React / SVG" {
-                    svgRenderer = component "xiaoqi-svg-renderer" "原创小栖 SVG 驱动；九态视觉映射唯一表；动效仅 transform/opacity" "src/avatar/*"
+                    renderers = component "avatar-renderers（渲染注册表）" "xiaoqi-raster-v2 九态位图静帧（默认，AI 生成）+ xiaoqi-svg-v1 原创 SVG（回退下限 index 0）；九态视觉映射唯一表；未注册 id 显式回退" "src/avatar/{renderer-registry,xiaoqi-raster-renderer,xiaoqi-svg-renderer}.ts"
                     shell = component "CompanionShell" "embedded/panel 挂载、事件绑定、卸载清理与审计展示" "src/presentation/companion-shell.tsx"
                     view = component "companion-view" "AvatarView / StatusStrip / ChatLog / Composer / ApprovalCard" "src/presentation/companion-view.tsx"
                 }
@@ -89,8 +89,8 @@ workspace "ASTRYN M0" "星栖 M0：角色化陪伴子系统的可核验架构模
         proxy -> upstream "转发对话请求并回传流" "HTTP/SSE" "OBSERVED"
         controller -> guard "每个事件先过身份与序号守卫" "in-process" "OBSERVED"
         guard -> reducer "仅放行的事件进入 reducer" "in-process " "OBSERVED"
-        reducer -> svgRenderer "visibleState + expressionFrame 驱动表情与口型" "in-process" "OBSERVED"
-        svgRenderer -> shell "产出角色画面" "in-process" "OBSERVED"
+        reducer -> renderers "visibleState + expressionFrame 选择角色帧（位图默认/SVG 回退）" "in-process" "OBSERVED"
+        renderers -> shell "产出角色画面（位图加载失败回退 SVG）" "in-process" "OBSERVED"
 
         # ---------- 边：权威事件（唯一可改变任务状态）----------
         controller -> bridge "获取 conversation/memory/context/actions 子端口与能力探测" "in-process" "AUTHORITATIVE"

@@ -9,7 +9,7 @@
 | 人格与角色配置 | ASTRYN | `contracts/character.ts`、`src/companion/prompt-composer.ts` | 已实现（分节结构化档案 + 版本化提示组装，非单块大提示词） |
 | 陪伴行为与互动规则 | ASTRYN | `src/companion/reducer.ts`、`src/presentation/*` | 已实现（输入/请求生命周期驱动） |
 | 角色情绪表达与状态编排 | ASTRYN | `src/avatar/state-visuals.ts` | 已实现（九态两两视觉可辨，映射表唯一） |
-| 形象、表情、口型协调 | ASTRYN | `src/avatar/xiaoqi-avatar.ts`、`xiaoqi-svg-renderer.ts` | 已实现（原创 SVG；口型帧只随真实 delta 递增） |
+| 形象、表情、口型协调 | ASTRYN | `src/avatar/renderer-registry.ts`、`xiaoqi-raster-renderer.ts`、`xiaoqi-svg-renderer.ts` | 已实现（注册表 AVATAR_RENDERERS：默认 `xiaoqi-raster-v2` = 九态位图静帧〔AI 生成，平台条款〕；`xiaoqi-svg-v1` 原创 SVG = 回退下限 index 0。表情驱动 svg=真实文本事件帧 / raster=静帧；音素口型未实现，不得宣称） |
 | 多形态呈现协调 | ASTRYN | `contracts/presentation.ts`、`src/presentation/mode-registry.ts` | 部分：`embedded`/`panel` 已实现，其余三种声明为 P2 阻塞 |
 | 角色化上下文呈现 | ASTRYN | `src/presentation/companion-shell.tsx` | 已实现（获准片段带来源与版本渲染，标注 SYNTHETIC） |
 | 通用模型适配与路由 | **AAOS** | `src/adapters/aaos-bridge.ts`（只定义契约） | 未接通：Core 无通用流式 chat completion |

@@ -19,5 +19,7 @@
 | D015 | 2026-10-13 | 执行上传：`git init -b main` + 推送 `DTALEX66/ASTRYN`（public），分支取 `main` 而非全局默认的 `master` | 用户指令"全部上传"；推送前实测远端 0 ref（空仓库），不存在覆盖；未 force push、未改全局配置、沿用已有提交身份 DTALEX66。**本条覆盖 D003 与合同 `acceptance.no_git_initialization_or_remote_write`，原文保留以显示决策链** | 有效，替代 D003 |
 | D016 | 2026-10-13 | `docs/tasks/archive/**` 以 `-text -eol` 按字节原样存储，不参与行尾规范化；其余文本统一 LF | CI 首跑（run 38324323712）暴露：`* text=auto eol=lf` 把归档 CRLF 归一化，远端 blob 20434 != 磁盘 20960 字节，归档不再匹配 ARCHIVE-RECEIPT 的 SHA-256。修复后 staged 与远端字节数 20960、SHA-256 与收据逐字符一致 | 有效 |
 | D017 | 2026-10-13 | 测试与夹具中不得出现字面凭据样式串，需要时运行时拼装 | CI 秘密扫描步骤拦下 `sk- 前缀加 12 位以上字母数字` 字面量。扫描器行为正确，改的是我们自己 | 有效 |
+| D018 | 2026-10-14 | 默认渲染器由原创 SVG（`xiaoqi-svg-v1`）切换为 MINIMAX DESIGN 交付的九态位图（`xiaoqi-raster-v2`），资产来源登记为 `ai-generated`（外部 AI 生产、平台条款）；v1 SVG 保留为注册表回退下限，位图加载失败另有图像级回退（`data-renderer-fallback=image-error`）。本条扩展而非废弃 D007：原创路线（回退下限 + 注册表机制）仍是渲染 seam 的基础 | 用户指令"先把 MINIMAX DESIGN 做的虚拟人物接入进来"；交付件逐张登记 bytes/sha256/权利条款于 `STATE-ASSET-INDEX.json`（schema v2）；未注册 id 的显式回退与披露测试（C10）钉住切换不破坏 seam | 有效；D007 的"渲染路线=原创 SVG"表述由本条更新 |
+| D019 | 2026-10-14 | 缺口资产处置纪律：去背失败件不做静默替代——能本地推导的（3 张 thinking/completed/failed）以登记算法与来源链的方式落库为显式过渡件；不能推导的（pose_listening，背景不均匀 maxDev=24>12）推导如实中止并保留报告路径，不冒充成功、不进入运行时可用集；圆形头像安全区由几何实测（MEASURED，2.48% 出界 + 头部完整披露）取代 UNVERIFIED，宿主实际裁切几何仍归宿主决定；种子/参数缺口如实登记（`seedExposure=NONE`）；MINIMAX 侧 429 重试需另行显式授权 | N1 轮实测：本地 `derive-alpha` 推导链与帧 QA、安全区几何核验均有独立报告（`.project-local/runs/derived-alpha/`、`.project-local/runs/avatar-safe-area-report.json`）；审计 C5/C11 将"登记↔磁盘"双向一致性钉进测试 | 有效 |
 
 新增替代决策需明确旧 ID、新决定、理由及授权来源，不静默改写历史。

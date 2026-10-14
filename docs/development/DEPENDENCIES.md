@@ -62,4 +62,4 @@ npm install       # 仅用于有意升级依赖范围时
 
 ## 5. 未引入但已评估的候选
 
-`@met4citizen/talkinghead`（MIT，但要求 GLB+Mixamo 骨骼且无中文口型）、`three`、`@pixi/*`、Live2D Web SDK、`@ricky0123/vad-web`、sherpa-onnx/Piper 系。取舍依据见 `docs/research/OPEN-SOURCE-MATRIX.md`。M0 的渲染路线是原创 SVG，因此这些都不在关键路径上；引入时机与授权归属由 P2 单独决策。
+`@met4citizen/talkinghead`（MIT，但要求 GLB+Mixamo 骨骼且无中文口型）、`three`、`@pixi/*`、Live2D Web SDK、`@ricky0123/vad-web`、sherpa-onnx/Piper 系。取舍依据见 `docs/research/OPEN-SOURCE-MATRIX.md`。渲染路线为"位图默认 + 原创 SVG 回退下限"（N1，2026-10-14 起默认 `xiaoqi-raster-v2`，位图由外部 AI 生产并按 `STATE-ASSET-INDEX.json` 登记），因此这些骨骼/口型/3D 库仍不在关键路径上；引入时机与授权归属由 P2 单独决策。

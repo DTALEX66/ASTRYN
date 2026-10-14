@@ -1,24 +1,45 @@
 {
-  "schema": "astryn.character-assets/v1",
-  "updated": "2026-10-13",
+  "schema": "astryn.character-assets/v2",
+  "updated": "2026-10-14",
   "character": {
     "id": "xiaoqi",
     "displayName": "小栖",
     "universe": "ASTRYN｜星栖（ArcheAxis 学习陪伴子系统）"
   },
   "provenance": {
-    "origin": "original",
-    "license": "原创（本项目撰写），未使用任何第三方角色模型、贴图或素材",
+    "origin": "ai-generated",
+    "producer": "MINIMAX DESIGN（外部生产，由用户转交；任务/权利记录见交付清单）",
+    "license": "MINIMAX DESIGN 平台条款（生成并交付使用）",
     "realPersonReference": false,
-    "note": "验收红线：不得把参考真人截图硬裁人像作为产品人物资产；任何真人参考素材不得进入本目录。"
+    "note": "验收红线：不得把参考真人截图硬裁人像作为产品人物资产；任何真人参考素材不得进入本目录。当前交付未使用真人参考素材；生成种子/参数未暴露（已知缺口，无法复现同批画面）。",
+    "knownGaps": [
+      "四张去背失败（429）：三张已本地派生（derived-alpha，DERIVED_LOCALLY）；pose_listening 本地推导如实中止（背景不均匀 maxDev=24>12，见 .project-local/runs/derived-alpha/derive-report-pose-listening.json）——MINIMAX 侧 429 重试仍需显式授权",
+      "圆形头像安全区已做本地几何核验（2026-10-14）：头部完整在圆内，躯干下缘 2.48% 像素出界（最大 1.145R，常规头像裁切）；宿主实际裁切几何仍由宿主决定",
+      "无种子/参数"
+    ]
   },
   "runtime": {
-    "rendererId": "xiaoqi-svg-v1",
-    "renderSource": "src/avatar/xiaoqi-avatar.ts",
-    "visualTokens": "src/avatar/state-visuals.ts",
-    "stateActions": "src/avatar/state-action-matrix.ts",
-    "renderProfiles": ["hero", "avatar", "sidebar"],
-    "expressionDriver": "text-event-frame（真实文本事件的离散帧；非音素口型，不得宣称音素口型）"
+    "defaultRendererId": "xiaoqi-raster-v2",
+    "renderers": [
+      {
+        "rendererId": "xiaoqi-svg-v1",
+        "role": "fallback-floor",
+        "source": "src/avatar/xiaoqi-svg-renderer.ts",
+        "note": "v1 原创基线：未注册 rendererId 与位图缺失时的回退下限（注册表 index 0）"
+      },
+      {
+        "rendererId": "xiaoqi-raster-v2",
+        "role": "default",
+        "source": "src/avatar/xiaoqi-raster-renderer.ts",
+        "note": "九态位图静帧驱动（AI 生成，平台条款）；口型为无（expressionDriver=state-still-image）"
+      }
+    ],
+    "renderProfiles": [
+      "hero",
+      "avatar",
+      "sidebar"
+    ],
+    "expressionDriver": "svg=text-event-frame（真实文本事件的离散帧）；raster=state-still-image（静帧，无音素口型，不得宣称音素口型）"
   },
   "states": [
     "idle",
@@ -42,12 +63,562 @@
     {
       "id": "v2",
       "kind": "upgraded-raster-2d",
-      "status": "PENDING_EXTERNAL",
-      "producer": "MINIMAX DESIGN（外部执行，由用户转交简报）",
+      "status": "DELIVERED",
+      "producer": "MINIMAX DESIGN（外部执行，由用户转交）",
       "brief": "docs/companion/GF03-VISUAL-ASSET-BRIEF.md",
+      "deliveryList": "assets/character/upgraded/v1/小栖 GF03 睡衣版交付清单与待办.md",
+      "deliveryListBytes": 3511,
+      "deliveryListSha256": "6e552ac6ac798880cc5d912169ec6508449fab6bb36f875cd53bd551758b8283",
+      "delivered": "2026-10-13",
+      "landed": "2026-10-14",
       "targetDir": "assets/character/upgraded/v1/",
-      "deliveryRule": "回传时逐张附 文件名/用途/生成参数或种子/知悉的权利条款；落库后本清单升级为 v2 并逐张登记哈希",
-      "knownGaps": "尚未回传；当前产品画面 100% 来自 v1 内联 SVG"
+      "deliveryRule": "回传时逐张附 文件名/用途/生成参数或种子/知悉的权利条款；落库后逐张登记哈希（本清单）",
+      "files": [
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_avatar_sleepwear_v1.png",
+          "bytes": 3302297,
+          "sha256": "83d816b60674e270e607a20b297d85be8312c0bc73c383e2db057463feb84e2d",
+          "w": 2048,
+          "h": 2048,
+          "alpha": "transparent",
+          "role": "composition",
+          "runtimeUsable": false,
+          "note": "圆形头像构图；居中圆形裁切几何核验（2026-10-14）：头部完整在圆内，躯干下缘 2.48% 像素出界（最大径向 1.145R）——头像语义下为常规底部裁切；证据 .project-local/runs/avatar-safe-area-report.json"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_home_sleepwear_v1.png",
+          "bytes": 3252341,
+          "sha256": "cab5fd33a5dc4b433ccacba49d40c96cac90e227513f1789d711e3e7b593274c",
+          "w": 4096,
+          "h": 2304,
+          "alpha": "transparent",
+          "role": "composition",
+          "runtimeUsable": false,
+          "note": "首页构图参考（未接入运行时）"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_key_visual_sleepwear_v1.png",
+          "bytes": 2766273,
+          "sha256": "c3ddfa88f915201c4d965dc957ca5f30a3dd70d7cc8b3d76a7c95fb51317f50c",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "role": "key-visual",
+          "runtimeUsable": false,
+          "note": "主视觉（未接入运行时）"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_pose_idle_sleepwear_v1.png",
+          "bytes": 2894378,
+          "sha256": "bda1cdd1f62571d673af37a11050ada9ee445a7b82e42081d6f1895703413168",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "role": "pose",
+          "runtimeUsable": false,
+          "note": "动作姿态参考（未接入运行时）"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_pose_listening_sleepwear_v1.png",
+          "bytes": 4213433,
+          "sha256": "ccbda3963f23c8ed8bea0494765f727a4708bd801ed346f5c362f00ae184824a",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "opaque",
+          "role": "pose",
+          "runtimeUsable": false,
+          "note": "去背失败保留原交付（未接入运行时）"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_pose_nod_sleepwear_v1.png",
+          "bytes": 2929183,
+          "sha256": "f4ff12a7773c9113dd3f2e5363cc08db781947d1989d8fdf62d4b3167145d25a",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "role": "pose",
+          "runtimeUsable": false,
+          "note": "动作姿态参考（未接入运行时）"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_pose_point_sleepwear_v1.png",
+          "bytes": 2772007,
+          "sha256": "cbb320d24a4fc57c5b0a32eaa083bb32cdbf8e45ce0ba1ae7b7473b8c62aa3d0",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "role": "pose",
+          "runtimeUsable": false,
+          "note": "动作姿态参考（未接入运行时）"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_pose_speaking_sweep_sleepwear_v1.png",
+          "bytes": 2762429,
+          "sha256": "4ee3524983fb4e5650b20315ab46d1b3d387d9b7bb3edc09799356a3652ef19f",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "role": "pose",
+          "runtimeUsable": false,
+          "note": "动作姿态参考（未接入运行时）"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_pose_thinking_sleepwear_v1.png",
+          "bytes": 2156128,
+          "sha256": "3a846e787697b51a6b2a0de0b7438a66496717ec9e149e25a93006e4c844f1ac",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "role": "pose",
+          "runtimeUsable": false,
+          "note": "动作姿态参考（未接入运行时）"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_primary_face_reference_v2.png",
+          "bytes": 5089960,
+          "sha256": "b35c46544a8d9a28ae7eebe424f6e9be0d3f98040db635f4fc2b4165e435a14e",
+          "w": 2048,
+          "h": 2048,
+          "alpha": "opaque",
+          "role": "face-reference",
+          "runtimeUsable": false,
+          "note": "脸部一致性参考（未接入运行时）"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_sidebar_sleepwear_v1.png",
+          "bytes": 1340800,
+          "sha256": "1242790ad6420fa51f145524962043734cfcc7f7ed7316822c33067268418817",
+          "w": 1024,
+          "h": 2048,
+          "alpha": "transparent",
+          "role": "composition",
+          "runtimeUsable": false,
+          "note": "侧边构图参考（未接入运行时）"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_state_awaiting_approval_sleepwear_v1.png",
+          "bytes": 2907393,
+          "sha256": "2dcf8044ce691e3b617f97b13adf544c0ee67faa63c23d02624a2e45b712476b",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "role": "state-image",
+          "state": "awaiting_approval",
+          "runtimeUsable": true,
+          "note": "去背成功，运行时直接消费"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_state_completed_sleepwear_v1.png",
+          "bytes": 4554573,
+          "sha256": "776233629f00d6ddffad7902cf3f0a2ca457a29f08e5853bf1ba37a51a9b485a",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "opaque",
+          "role": "state-image",
+          "state": "completed",
+          "runtimeUsable": false,
+          "note": "原交付有底：运行时由 derived-alpha 版本替代，本文件保留为派生来源"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_state_executing_sleepwear_v1.png",
+          "bytes": 3024374,
+          "sha256": "afa0354dc0301b5b5b84a9f3d0cc52211ae5b870112ce4e1e18dbdc1e5e91980",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "role": "state-image",
+          "state": "executing",
+          "runtimeUsable": true,
+          "note": "去背成功，运行时直接消费"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_state_failed_sleepwear_v1.png",
+          "bytes": 4568096,
+          "sha256": "0d049898f6ea4414554745858881d729f80a7524957a4e37a71da2037c751128",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "opaque",
+          "role": "state-image",
+          "state": "failed",
+          "runtimeUsable": false,
+          "note": "原交付有底：运行时由 derived-alpha 版本替代，本文件保留为派生来源"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_state_idle_sleepwear_v1.png",
+          "bytes": 2262930,
+          "sha256": "871219e822f60080dbf1675ab86819b59cc51301468df16f05874034a5e295ec",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "role": "state-image",
+          "state": "idle",
+          "runtimeUsable": true,
+          "note": "去背成功，运行时直接消费"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_state_interrupted_sleepwear_v1.png",
+          "bytes": 3414874,
+          "sha256": "b3f203dcaf4dd434496e1793f9e75b127bb668ea7e44b933f178dd7de4906882",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "role": "state-image",
+          "state": "interrupted",
+          "runtimeUsable": true,
+          "note": "去背成功，运行时直接消费"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_state_listening_sleepwear_v1.png",
+          "bytes": 3374223,
+          "sha256": "fe374f3b69210555e0c3e8f7bdadcc73b81ec2876a183746acd0c1564e97b9fe",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "role": "state-image",
+          "state": "listening",
+          "runtimeUsable": true,
+          "note": "去背成功，运行时直接消费"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_state_speaking_sleepwear_v1.png",
+          "bytes": 2822694,
+          "sha256": "cfcb6d4eb2f09c3fb3b8152e0366bd32d3a364ed7d4bcbd127a7913562065282",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "role": "state-image",
+          "state": "speaking",
+          "runtimeUsable": true,
+          "note": "去背成功，运行时直接消费"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_state_thinking_sleepwear_v1.png",
+          "bytes": 4625465,
+          "sha256": "ee5a6c17e32ed555e60bce4707dd0df833637fa51da2e03c4a9f6d41cdcd7904",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "opaque",
+          "role": "state-image",
+          "state": "thinking",
+          "runtimeUsable": false,
+          "note": "原交付有底：运行时由 derived-alpha 版本替代，本文件保留为派生来源"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_turnaround_2d_sleepwear_v3.png",
+          "bytes": 2685611,
+          "sha256": "1b54f98e60c8576ecfc33e1b1fe2c5fc0f5c82b9879314622cccd3f0b3fa06b7",
+          "w": 2752,
+          "h": 1536,
+          "alpha": "opaque",
+          "role": "turnaround",
+          "runtimeUsable": false,
+          "note": "三视图/转身参考（未接入运行时）"
+        },
+        {
+          "path": "assets/character/upgraded/v1/xiaoqi_turnaround_3d_sleepwear_v3.png",
+          "bytes": 4015532,
+          "sha256": "3954f0b7f5c510bdf745b2b962dd21d9a8fa258ca7a8f96ab034ab177b6b845a",
+          "w": 2752,
+          "h": 1536,
+          "alpha": "opaque",
+          "role": "turnaround",
+          "runtimeUsable": false,
+          "note": "三视图/转身参考（未接入运行时）"
+        }
+      ],
+      "derived": [
+        {
+          "path": "assets/character/upgraded/v1/derived-alpha/",
+          "name": "xiaoqi_state_completed_sleepwear_v1.png",
+          "bytes": 5882273,
+          "sha256": "1e1f76f9d2ec7bc67af992224c1e905ce80cbf57171a36beeb3f441f79b1a4fe",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "forState": "completed",
+          "sourcePath": "assets/character/upgraded/v1/xiaoqi_state_completed_sleepwear_v1.png",
+          "sourceSha256": "776233629f00d6ddffad7902cf3f0a2ca457a29f08e5853bf1ba37a51a9b485a",
+          "algorithm": "flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite",
+          "bg": [
+            177,
+            180,
+            200
+          ],
+          "runtimeUsable": true,
+          "note": "本地派生去背（过渡件）：flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite；原交付去背失败（429），重试需另授权"
+        },
+        {
+          "path": "assets/character/upgraded/v1/derived-alpha/",
+          "name": "xiaoqi_state_failed_sleepwear_v1.png",
+          "bytes": 5947667,
+          "sha256": "333ebaa18b7817586739d4011ce98a24ad77e88fac32d15adbfd9c3d92e720e7",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "forState": "failed",
+          "sourcePath": "assets/character/upgraded/v1/xiaoqi_state_failed_sleepwear_v1.png",
+          "sourceSha256": "0d049898f6ea4414554745858881d729f80a7524957a4e37a71da2037c751128",
+          "algorithm": "flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite",
+          "bg": [
+            177,
+            180,
+            198
+          ],
+          "runtimeUsable": true,
+          "note": "本地派生去背（过渡件）：flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite；原交付去背失败（429），重试需另授权"
+        },
+        {
+          "path": "assets/character/upgraded/v1/derived-alpha/",
+          "name": "xiaoqi_state_thinking_sleepwear_v1.png",
+          "bytes": 6241041,
+          "sha256": "0d64e454767ab1fda01f1af490fff15b31221a7686f91a4d9a195ab49dc22126",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "forState": "thinking",
+          "sourcePath": "assets/character/upgraded/v1/xiaoqi_state_thinking_sleepwear_v1.png",
+          "sourceSha256": "ee5a6c17e32ed555e60bce4707dd0df833637fa51da2e03c4a9f6d41cdcd7904",
+          "algorithm": "flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite",
+          "bg": [
+            172,
+            176,
+            193
+          ],
+          "runtimeUsable": true,
+          "note": "本地派生去背（过渡件）：flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite；原交付去背失败（429），重试需另授权"
+        }
+      ],
+      "gaps": {
+        "decodeFailures": [
+          {
+            "state": "thinking",
+            "taskId": "tsk_8e8eb75ed3e7",
+            "status": "DERIVED_LOCALLY"
+          },
+          {
+            "state": "completed",
+            "taskId": "tsk_97a4374d4ed6",
+            "status": "DERIVED_LOCALLY"
+          },
+          {
+            "state": "failed",
+            "taskId": "tsk_f85cfb34ae92",
+            "status": "DERIVED_LOCALLY"
+          },
+          {
+            "state": "listening",
+            "kind": "pose",
+            "taskId": "tsk_3aeb57ddebfc",
+            "status": "NOT_LANDED_RUNTIME",
+            "retry": "LOCAL_DERIVATION_ABORTED_BG_NONUNIFORM（maxDev=24>12；.project-local/runs/derived-alpha/derive-report-pose-listening.json）"
+          }
+        ],
+        "avatarSafeArea": "MEASURED（本地几何核验，2026-10-14）：居中圆形裁切（R=50%宽）下 2.48% 不透明像素出界（最大径向 1.145R，内容底边触界）；头部完整在圆内，头像语义下为常规底部裁切——宿主实际裁切几何仍由宿主决定，证据 .project-local/runs/avatar-safe-area-report.json",
+        "seedExposure": "NONE（无种子/参数，同批画面不可复现）",
+        "mouthFrames": "SKIPPED（E 组口型/眼睑帧未交付；静帧驱动无音素口型）"
+      }
     }
-  ]
+  ],
+  "superseded": {
+    "note": "早期轮次交付：未落库（字节保留在交付目录 虚拟人物/小栖/，本登记仅哈希以便追溯）；不得再进入正式资产目录。",
+    "count": 28,
+    "files": [
+      {
+        "file": "4ceb9bed-6460-4ae7-a745-cfa54f5d77a5.png",
+        "w": 1774,
+        "h": 887,
+        "bytes": 2072466,
+        "sha256": "11fc36754f983babcfa634f4b021d3aea35caf9fa47db162dbe5f7b5ad98d5e3"
+      },
+      {
+        "file": "65eec7fd-a1e4-4c13-87ea-9da60993bbd6.png",
+        "w": 1536,
+        "h": 1024,
+        "bytes": 1849467,
+        "sha256": "4e0421b6c86e106cfe20a59844bb0af9ba276ca2ba3d21d3effe4188a01f0a91"
+      },
+      {
+        "file": "74bc4695-eab0-4162-892d-8f9628fe69ec.png",
+        "w": 1774,
+        "h": 887,
+        "bytes": 2419835,
+        "sha256": "d81a2ea1e19a147825111c5af0b398cb234890bf93028a07905bda0c347550d5"
+      },
+      {
+        "file": "xiaoqi_key_visual_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4664484,
+        "sha256": "27bbf77decbf52b7f9268d13cb716f5f7fa51b7641d148f852953abfeb9888d5"
+      },
+      {
+        "file": "xiaoqi_pose_idle_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4571833,
+        "sha256": "2b7be2ccca3faf4e9d4acc1f8b1108e909266d028bf2491a2d426b404edb1604"
+      },
+      {
+        "file": "xiaoqi_pose_listening_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4673147,
+        "sha256": "3351126ec2bf72f5e35cc72c207444754441b56fc66556b6129203628ab7a491"
+      },
+      {
+        "file": "xiaoqi_pose_nod_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4781299,
+        "sha256": "f4910e55d956415e4051357a5760988ac4b56cbcea0c9588dea6410e7bffe7f6"
+      },
+      {
+        "file": "xiaoqi_pose_point_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 3730559,
+        "sha256": "5e6f578113215b462710cd099b6d2d4f2df0588a0eea474ac18c114305034869"
+      },
+      {
+        "file": "xiaoqi_pose_speaking_sweep_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4802889,
+        "sha256": "1de7ce02e521bdfff61ab071cc5cc48cdbfa688f95528957d665ab59d835fdf7"
+      },
+      {
+        "file": "xiaoqi_pose_thinking_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4833488,
+        "sha256": "a46d9a64970827fc1b4e5d0409276a581bcc35cce349bc3af10acce446eccced"
+      },
+      {
+        "file": "xiaoqi_primary_face_reference_v1.png",
+        "w": 2048,
+        "h": 2048,
+        "bytes": 2779423,
+        "sha256": "90ed37b7e5bdbcbc9c8aec2d44e8c216cd5d457e1b6b80936dac998d9feee48e"
+      },
+      {
+        "file": "xiaoqi_state_awaiting_approval_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4838909,
+        "sha256": "bf4c2b1672abfc467778ccc57c2be8889fee79e59d400fe1cc5e96f2059aa0d5"
+      },
+      {
+        "file": "xiaoqi_state_completed_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 5000636,
+        "sha256": "c501699312e20d8c1207179a7e214af772cad58a136acd1d8fc74eec61a5c12f"
+      },
+      {
+        "file": "xiaoqi_state_executing_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4655742,
+        "sha256": "dcf5192e31e6f82930b3e32fa321f5313c23aaeb3861e30b082876fdb480103a"
+      },
+      {
+        "file": "xiaoqi_state_failed_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4827998,
+        "sha256": "2de4ff849759a3ba70960bed0434b99b19670f6aa10c800acc3aea70ae7203a0"
+      },
+      {
+        "file": "xiaoqi_state_idle_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4900978,
+        "sha256": "f3a4dc6fc64593e51fa526b238afa81ae04049bfcfd6df4f9a96d9138400485d"
+      },
+      {
+        "file": "xiaoqi_state_interrupted_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4985887,
+        "sha256": "8f75f9443d2e0f05ed68bae498fabc2e2738de29cd55f1b47eb5bca2f16a581c"
+      },
+      {
+        "file": "xiaoqi_state_listening_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4989091,
+        "sha256": "4627b830b054e939e92ca68c270731ece150df58fe574409bc3e3f6766935a06"
+      },
+      {
+        "file": "xiaoqi_state_speaking_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4925160,
+        "sha256": "eed98bb2de35d78a0e0c67724b07ef41f59193d98e777d3b67da75f821b7d0c3"
+      },
+      {
+        "file": "xiaoqi_state_thinking_bust_v1.png",
+        "w": 1696,
+        "h": 2528,
+        "bytes": 4809963,
+        "sha256": "32de78469982566651ebce1a520ab3e9d553362155e5120c6be7d895f96ccf6a"
+      },
+      {
+        "file": "xiaoqi_turnaround_2d_homewear_v2.png",
+        "w": 2752,
+        "h": 1536,
+        "bytes": 2816976,
+        "sha256": "58597d359b4e730100e5bad7330ff2492693fd46ab1ac69efca2c49a2fc20d85"
+      },
+      {
+        "file": "xiaoqi_turnaround_2d_v1.png",
+        "w": 2752,
+        "h": 1536,
+        "bytes": 3747725,
+        "sha256": "c2b4d7f68ae07efdfd8c69f3ac335bd817c5fdb283d06cab1952444821167ea0"
+      },
+      {
+        "file": "xiaoqi_turnaround_3d_homewear_v2.png",
+        "w": 2752,
+        "h": 1536,
+        "bytes": 3479086,
+        "sha256": "b487394752ff127d30a5f4f01ed6a15e7737d87a84a743b22a4ddb41ef7ea184"
+      },
+      {
+        "file": "xiaoqi_turnaround_3d_v1.png",
+        "w": 2752,
+        "h": 1536,
+        "bytes": 2473141,
+        "sha256": "22c5d518edbb7ebb51f270d1a8645271fd85cf61a95496e52dc8b9f5911c272e"
+      },
+      {
+        "file": "小栖_人脸候选_A_v1.png",
+        "w": 2048,
+        "h": 2048,
+        "bytes": 2460212,
+        "sha256": "83538167d2f20c3ed31b9c9c30ae73d6480ce1a6dc6837c90b497d3ec26e0eed"
+      },
+      {
+        "file": "小栖_人脸候选_B_v1.png",
+        "w": 2048,
+        "h": 2048,
+        "bytes": 2387975,
+        "sha256": "48722b0700e4ba9ba3d978ac1c8ff3447047b845f468a17e14a3833c36445de6"
+      },
+      {
+        "file": "小栖_人脸候选_C_v1.png",
+        "w": 2048,
+        "h": 2048,
+        "bytes": 3827012,
+        "sha256": "7952f488d32cb4ea65843fc1898e1708c295c309911a92a95c8cc14e650db0b8"
+      },
+      {
+        "file": "小栖_人脸候选_D_v1.png",
+        "w": 2048,
+        "h": 2048,
+        "bytes": 6887065,
+        "sha256": "c38b4b3ea017a3782572035ded697254f785c5d967fc38759c5b78fc60921c24"
+      }
+    ]
+  }
 }

@@ -9,8 +9,8 @@ const SUPPORTED: readonly AstrynVisibleState[] = [
 ];
 
 /**
- * M0 唯一渲染驱动：原创 SVG。保留 renderer seam，未来 Live2D / VRM / 3D
- * 只需替换本实现，状态机与角色 UI 不变。
+ * v1 原创 SVG 渲染驱动：注册表中的回退下限（未注册 id 与位图缺失时退到这里）。
+ * 保留 renderer seam，未来 Live2D / VRM / 3D 只需新增实现并在注册表登记，状态机与角色 UI 不变。
  *
  * 不变量：写入 DOM 的 SVG 只由内部常量与数值拼装，任何外部文本
  * （模型正文、宿主摘要、文件名）都不得进入该字符串，因此不存在注入面。
@@ -42,30 +42,4 @@ export const xiaoqiSvgRenderer: AstrynAvatarRenderer = {
 
 export function renderXiaoqiMarkup(frame: AstrynAvatarFrame, size?: number, view?: AstrynAvatarViewProfile): string {
   return XiaoqiAvatar({ frame, size, view });
-}
-
-/** 已实现的渲染驱动。P2 的 Live2D / VRM / 3D 驱动在这里注册，而不是在 UI 里加分支。 */
-export const AVATAR_RENDERERS: readonly AstrynAvatarRenderer[] = [xiaoqiSvgRenderer];
-
-export interface AstrynRendererResolution {
-  readonly renderer: AstrynAvatarRenderer;
-  /** false = 请求的 rendererId 未注册，已回退默认；reason 说明原因（未知不当可用）。 */
-  readonly exact: boolean;
-  readonly reason: string | null;
-}
-
-export function resolveAvatarRenderer(rendererId: string): AstrynRendererResolution {
-  const found = AVATAR_RENDERERS.find((renderer) => renderer.rendererId === rendererId);
-  if (found) return { renderer: found, exact: true, reason: null };
-  const fallback = AVATAR_RENDERERS[0];
-  if (!fallback) throw new Error('没有已注册的渲染驱动');
-  return {
-    renderer: fallback,
-    exact: false,
-    reason: `rendererId「${rendererId}」未注册，已回退到 ${fallback.rendererId}（原始请求不静默）`
-  };
-}
-
-export function selectAvatarRenderer(rendererId: string): AstrynAvatarRenderer {
-  return resolveAvatarRenderer(rendererId).renderer;
 }

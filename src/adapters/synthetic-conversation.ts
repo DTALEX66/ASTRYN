@@ -86,7 +86,12 @@ export class SyntheticConversationPort implements AstrynConversationPort {
           return;
         }
         if (typeof step.text === 'string') yield make('stream.delta', { text: step.text });
-        if (typeof step.repeatText === 'string') yield make('stream.delta', { text: step.repeatText });
+        if (typeof step.repeatText === 'string') {
+          // 真重复投递：同一事件对象（同 seq）连发两次，由守卫的重复/乱序判序拒收第二次。
+          const repeated = make('stream.delta', { text: step.repeatText });
+          yield repeated;
+          yield repeated;
+        }
         if (typeof step.finish === 'string') {
           yield make('stream.completed', { finishReason: step.finish });
           return;

@@ -172,7 +172,7 @@ export class OpenAiCompatibleConversationPort implements AstrynConversationPort 
         const { done, value } = await reader.read();
         if (done) break;
         for (const message of sse.push(decoder.decode(value, { stream: true }))) {
-          const out = this.toEvents(message.data, request, () => seq++);
+          const out = this.toEvents(message.data);
           if (out.type === 'delta') yield make('stream.delta', { text: out.text });
           else if (out.type === 'finish') {
             sawFinish = true;
@@ -183,7 +183,7 @@ export class OpenAiCompatibleConversationPort implements AstrynConversationPort 
         }
       }
       for (const message of sse.flush()) {
-        const out = this.toEvents(message.data, request, () => seq++);
+        const out = this.toEvents(message.data);
         if (out.type === 'delta') yield make('stream.delta', { text: out.text });
         else if (out.type === 'finish') {
           sawFinish = true;
@@ -217,12 +217,8 @@ export class OpenAiCompatibleConversationPort implements AstrynConversationPort 
   }
 
   private toEvents(
-    data: string,
-    request: AstrynConversationRequest,
-    nextSeq: () => number
+    data: string
   ): { type: 'none' } | { type: 'delta'; text: string } | { type: 'finish'; finishReason: string } | { type: 'error'; message: string } {
-    void request;
-    void nextSeq;
     if (data.length === 0) return { type: 'none' };
     if (data === SSE_DONE_SENTINEL) return { type: 'finish', finishReason: 'done' };
     let parsed: ChatCompletionChunk;

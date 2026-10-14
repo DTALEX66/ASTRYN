@@ -99,6 +99,7 @@ export class SyntheticHostSimulator implements AstrynActionPort, AstrynReceiptVe
       receiptId: `synr-${this.counter}`,
       taskId,
       actionRequestId: request?.requestId ?? taskId,
+      sessionId: request?.sessionId ?? null,
       outcome,
       issuedBy: this.hostId,
       issuedAt: new Date().toISOString(),

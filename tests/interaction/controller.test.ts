@@ -66,17 +66,42 @@ describe('控制器编排（A06/A07）', () => {
       clock: slowClock,
       steps: [{ text: '前半', delayMs: 5 }, { text: '后半', delayMs: 40 }, { finish: 'stop' }]
     });
-    const controller = build(port);
+    const tap = createHostTap();
+    const controller = build(port, 's1', tap.host);
     const pending = controller.submit('慢慢说');
     await slowClock(12);
     controller.cancel('user');
     const frozen = controller.currentState.streamedText;
     const frame = controller.currentState.expressionFrame;
-    await pending;
+    const { requestId } = await pending;
+    // 结清后经宿主通道迟到的同请求事件：守卫必须报出确切原因（C3：不再用 ?? 'NONE' 恒真）。
+    tap.emit({
+      protocol: 'astryn-1',
+      eventId: 'late-delta',
+      sessionId: 's1',
+      requestId,
+      taskId: null,
+      seq: 50,
+      originSeq: null,
+      source: 'conversation',
+      trust: 'observed',
+      emittedAt: new Date().toISOString(),
+      payload: { kind: 'stream.delta', text: '迟到半句' }
+    });
     expect(controller.currentState.streamedText).toBe(frozen);
     expect(controller.currentState.expressionFrame).toBe(frame);
     expect(controller.currentState.conversation).toBe('interrupted');
-    expect(controller.audit.lastRejectedReason ?? 'NONE').not.toBe(null);
+    expect(controller.audit.rejected['SETTLED_REQUEST']).toBe(1);
+    expect(controller.audit.lastRejectedReason).toBe('SETTLED_REQUEST');
+  });
+
+  it('重复投递同一序号的事件：第二次被宿主原始序号守卫拒收（A8）', async () => {
+    const port = new SyntheticConversationPort({ steps: [{ repeatText: '同一句' }, { finish: 'stop' }] });
+    const controller = build(port);
+    await controller.submit('驱动重复投递');
+    expect(controller.currentState.streamedText).toBe('同一句');
+    expect(controller.currentState.expressionFrame).toBe(1);
+    expect(controller.audit.rejected['OUT_OF_ORDER_ORIGIN_SEQ']).toBe(1);
   });
 
   it('快速连续提交：上一轮的迟到回复被丢弃，只显示新一轮内容', async () => {

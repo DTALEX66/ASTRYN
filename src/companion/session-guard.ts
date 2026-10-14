@@ -37,9 +37,12 @@ function seqKey(sessionId: string, requestId: string | null): string {
  * 都不会写入当前状态。这是"取消与快速切换不串台"的唯一实现点。
  */
 export class AstrynEventGuard {
+  /** settled 的 FIFO 上限：被淘汰的极老请求若再收到事件，由 UNKNOWN_REQUEST 兜底拒收（审计 A9）。 */
+  private static readonly SETTLED_LIMIT = 256;
   private activeSessionId: string;
   private readonly pending = new Set<string>();
   private readonly settled = new Set<string>();
+  private readonly settledOrder: string[] = [];
   private readonly lastSeq = new Map<string, number>();
   private readonly lastOriginSeq = new Map<string, number>();
   private readonly rejectedCounts = new Map<AstrynRejectionReason, number>();
@@ -62,13 +65,21 @@ export class AstrynEventGuard {
   }
 
   settleRequest(requestId: string): void {
-    if (this.pending.delete(requestId)) this.settled.add(requestId);
+    if (!this.pending.delete(requestId)) return;
+    if (!this.settled.has(requestId)) this.settledOrder.push(requestId);
+    this.settled.add(requestId);
+    // 已结清请求的乱序判序状态随之释放：迟到事件改由 settled 检查拦截（先于 seq 检查）。
+    this.lastSeq.delete(seqKey(this.activeSessionId, requestId));
+    this.lastOriginSeq.delete(seqKey(this.activeSessionId, requestId));
+    while (this.settledOrder.length > AstrynEventGuard.SETTLED_LIMIT) {
+      const oldest = this.settledOrder.shift();
+      if (oldest !== undefined) this.settled.delete(oldest);
+    }
   }
 
   /** 切换会话时，所有在途请求立即结清，其后续事件一律作废。 */
   switchSession(nextSessionId: string): void {
-    for (const requestId of this.pending) this.settled.add(requestId);
-    this.pending.clear();
+    for (const requestId of [...this.pending]) this.settleRequest(requestId);
     for (const key of [...this.lastSeq.keys()]) {
       if (key.startsWith(`${this.activeSessionId}|`)) this.lastSeq.delete(key);
     }

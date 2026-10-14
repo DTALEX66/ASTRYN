@@ -84,6 +84,13 @@ describe('人物档案 v3（GF01/GF09）', () => {
     expect(migrateCharacterProfile({ schemaVersion: 3, voiceStyle: { volume: -2 } }).profile.voiceStyle.volume).toBe(0);
   });
 
+  it('迁移保留已存 rendererId（显式选择不得被默认值静默覆盖）', () => {
+    expect(migrateCharacterProfile({ schemaVersion: 3, appearance: { rendererId: 'xiaoqi-svg-v1' } }).profile.appearance.rendererId).toBe('xiaoqi-svg-v1');
+    expect(migrateCharacterProfile({ schemaVersion: 1, appearance: { rendererId: 'xiaoqi-svg-v1' } }).profile.appearance.rendererId).toBe('xiaoqi-svg-v1');
+    expect(migrateCharacterProfile({ schemaVersion: 3, appearance: { rendererId: '' } }).profile.appearance.rendererId).toBe(XIAOQI_PROFILE.appearance.rendererId);
+    expect(migrateCharacterProfile({ schemaVersion: 3 }).profile.appearance.rendererId).toBe(XIAOQI_PROFILE.appearance.rendererId);
+  });
+
   it('空档案与损坏档案回退默认并给出可区分的原因', () => {
     expect(migrateCharacterProfile(null).note).toBe('EMPTY_DEFAULT');
     expect(migrateCharacterProfile(undefined).note).toBe('EMPTY_DEFAULT');

@@ -1,7 +1,18 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { XIAOQI_PROFILE, ASTRYN_PROTOCOL_VERSION } from '@astryn/contracts';
+import type { AstrynCharacterProfile } from '@astryn/contracts';
 import { CompanionShell, SyntheticConversationPort, SyntheticHostSimulator } from '@astryn/core';
+
+/**
+ * 本文件断言任务状态权威链与状态表现：
+ * 前两例显式选择 svg 驱动挂载（断言状态环颜色/字形等 SVG 专属表现）；
+ * 第三例用默认档案（位图驱动）挂载，证明模型正文不能移动任务状态（C13 更正头注）。
+ */
+const SVG_PROFILE: AstrynCharacterProfile = {
+  ...XIAOQI_PROFILE,
+  appearance: { ...XIAOQI_PROFILE.appearance, rendererId: 'xiaoqi-svg-v1' }
+};
 
 function harness() {
   const simulator = new SyntheticHostSimulator();
@@ -10,7 +21,7 @@ function harness() {
     <CompanionShell
       mode="panel"
       sessionId="s1"
-      profile={XIAOQI_PROFILE}
+      profile={SVG_PROFILE}
       conversation={conversation}
       actions={simulator}
       verifier={simulator}

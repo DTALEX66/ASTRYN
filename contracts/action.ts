@@ -27,6 +27,11 @@ export interface AstrynActionReceipt {
   readonly receiptId: string;
   readonly taskId: string;
   readonly actionRequestId: string;
+  /**
+   * 回执的会话归属（审计 A4）：适配器按提交时的请求会话盖章；
+   * null 表示宿主未提供归属——消费方按当前会话处理，不得猜测或回填其他会话。
+   */
+  readonly sessionId: string | null;
   readonly outcome: AstrynReceiptOutcome;
   readonly issuedBy: string;
   readonly issuedAt: string;

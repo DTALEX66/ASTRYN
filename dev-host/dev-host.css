@@ -87,6 +87,13 @@
   font-family: inherit;
 }
 
+/* 键盘焦点：与 astryn.css 同一公约（显式声明，不依赖 UA 默认环）。 */
+.devhost-input:focus-visible,
+.devhost-textarea:focus-visible {
+  outline: var(--astryn-focus-ring, 2px solid #5ad1c8);
+  outline-offset: 2px;
+}
+
 .devhost-textarea {
   display: block;
   width: 100%;

@@ -1,4 +1,6 @@
-/* 星栖呈现层样式。设计令牌集中在 :root，组件规则只引用令牌（见 DESIGN.md）。
+/* 星栖呈现层样式。设计令牌集中在 .astryn-root（宿主嵌入时的作用域覆盖点，非 :root），
+   组件规则只引用令牌（见 DESIGN.md；DESIGN.md 的 :root 写法按此为准）。
+   已知缺口：仍存在少量字面数值（如部分 padding / min-height），未全部令牌化。
    动效只使用 transform / opacity（合成层友好），并在 prefers-reduced-motion 下停用。
    文字所在表面一律为纯色：径向渐变只留给不含 HTML 文字的装饰层，
    这样自动化对比度检查（axe color-contrast）才能判定而不是标 incomplete。 */
@@ -95,7 +97,7 @@
 .astryn-root--panel .astryn-stage-meta { width: 100%; }
 
 .astryn-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.astryn-title { font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+.astryn-title { font-size: 15px; font-weight: 600; letter-spacing: 0.02em; overflow-wrap: anywhere; }
 .astryn-disclosure { font-size: 11px; color: var(--astryn-muted); overflow-wrap: anywhere; }
 
 .astryn-evidence-tag {
@@ -111,8 +113,24 @@
 
 .astryn-stage { display: flex; align-items: center; gap: var(--astryn-space-4); }
 .astryn-avatar { line-height: 0; flex: 0 0 auto; }
-/* 角色大小经 --astryn-avatar-size → --astryn-avatar-size-{slot/view}（GF08）。 */
+/* 角色大小经 --astryn-avatar-size → --astryn-avatar-size-{slot/view}（GF08）。
+   两种驱动共用同一条令牌链：SVG 与位图（img）都必须引用它，不许写字面宽度。 */
 .astryn-avatar svg { display: block; width: var(--astryn-avatar-size); height: auto; }
+/* aspect-ratio 是位图未加载完成前的占位比例（九态件 1696×2528），避免加载抖动；
+   max-width 防宿主窄列裁切。圆形头像槽（view=avatar）另见下方裁切规则。 */
+.astryn-avatar img {
+  display: block; width: var(--astryn-avatar-size); height: auto;
+  max-width: 100%; aspect-ratio: 1696 / 2528;
+}
+/* 对话区圆形头像槽：位图按方形槽裁切。object-position 50% 8% 来自帧 QA 实测
+   （.project-local/runs/visual-qa/frame-qa-report.json：p8 头顶行=20/512，环顶余量 3.5%，
+   p12=2.5%、p18=0 且头顶被裁——8% 是安全区内的上限选择）。仿真半径 254 比 CSS 50% 半径 256 更严，
+   即本位置在真实圆形裁切下头顶余量只会更大。 */
+.astryn-root[data-avatar-view="avatar"] .astryn-avatar img {
+  height: var(--astryn-avatar-size);
+  object-fit: cover;
+  object-position: 50% 8%;
+}
 .astryn-avatar--fallback { display: flex; align-items: center; }
 .astryn-stage-meta { flex: 1 1 auto; min-width: 0; }
 
@@ -169,7 +187,9 @@
 .astryn-chip--tag { display: inline-flex; align-items: center; gap: var(--astryn-space-2); border-color: var(--astryn-task-line); color: var(--astryn-task-text); }
 .astryn-chip-remove {
   background: none; border: none; color: inherit; cursor: pointer;
-  font-size: 13px; line-height: 1; padding: 0 var(--astryn-space-1); min-height: 16px;
+  font-size: 13px; line-height: 1; padding: 0 var(--astryn-space-1);
+  /* WCAG 2.5.8 目标尺寸：24×24 最小可点区域（此前 16px 高的 × 不达标）。 */
+  min-height: 24px; min-width: 24px;
 }
 .astryn-chip-remove:focus-visible { outline: var(--astryn-focus-ring); outline-offset: 1px; }
 .astryn-retry {

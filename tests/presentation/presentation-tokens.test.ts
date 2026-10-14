@@ -48,9 +48,11 @@ describe('呈现尺寸令牌门禁（GF08）', () => {
     expect(focusIndex, '专注规则必须排在槽位映射之后').toBeGreaterThan(lastSlot);
   });
 
-  it('组件尺寸引用令牌：角色宽、对话高度、隐藏足迹均无字面值', () => {
+  it('组件尺寸引用令牌：角色宽（SVG 与位图两条驱动）、对话高度、隐藏足迹均无字面值', () => {
     const avatarRule = css.match(/\.astryn-avatar svg\s*\{[^}]*\}/)?.[0] ?? '';
     expect(avatarRule).toContain('width: var(--astryn-avatar-size)');
+    const avatarImageRule = css.match(/\.astryn-avatar img\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(avatarImageRule).toContain('width: var(--astryn-avatar-size)');
     const logRule = css.match(/\.astryn-log\s*\{[^}]*\}/)?.[0] ?? '';
     expect(logRule).toContain('max-height: var(--astryn-log-max-height)');
     const hiddenRule = css.match(/\.astryn-root\[data-hidden="true"\]\s*\{[^}]*\}/)?.[0] ?? '';

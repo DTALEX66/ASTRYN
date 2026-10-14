@@ -20,6 +20,10 @@ export interface XiaoqiAvatarProps {
  * 任何外部文本（模型正文、宿主摘要、文件名）都不得进入这里。
  */
 export function XiaoqiAvatar({ frame, size, view }: XiaoqiAvatarProps): string {
+  // 未登记的可见状态直接抛错：不把 undefined 令牌拼进 SVG（回退由上层 AvatarView 负责）。
+  if (!(frame.visibleState in STATE_VISUALS)) {
+    throw new Error(`未登记的可见状态：${String(frame.visibleState)}`);
+  }
   const tokens = STATE_VISUALS[frame.visibleState];
   const eyes = eyesFor(tokens);
   const motion = tokens.motionAllowed && !frame.reducedMotion;

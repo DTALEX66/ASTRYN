@@ -99,7 +99,6 @@ function useSystemReducedMotion(): boolean {
 
 export function CompanionShell(props: CompanionShellProps): JSX.Element {
   const [hidden, setHidden] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
   const systemReducedMotion = useSystemReducedMotion();
   const [contextFragment, setContextFragment] = useState<AstrynContextFragment | null>(props.initialContext ?? null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -198,10 +197,6 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
   const handleSpeechStop = useCallback(() => {
     speechPlayback.stop('user');
   }, [speechPlayback]);
-
-  useEffect(() => {
-    setReducedMotion(profile.appearance.reducedMotion);
-  }, [profile]);
 
   const synthetic = props.conversation?.evidenceLevel === 'SYNTHETIC';
 
@@ -358,7 +353,7 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
       </div>
 
       <div className="astryn-stage">
-        <AvatarView state={state} profile={profile} reducedMotion={reducedMotion || systemReducedMotion} view={view} />
+        <AvatarView state={state} profile={profile} reducedMotion={profile.appearance.reducedMotion || systemReducedMotion} view={view} />
         <div className="astryn-stage-meta">
           <StatusStrip
             state={state}
@@ -381,9 +376,9 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
               data-testid="astryn-toggle-motion"
               disabled={systemReducedMotion}
               title={systemReducedMotion ? '系统已开启“减少动效”，应用内不可覆盖' : undefined}
-              onClick={() => setReducedMotion((v) => !v)}
+              onClick={() => manager.setProfile(withOverrides(profile, { appearance: { reducedMotion: !profile.appearance.reducedMotion } }))}
             >
-              {systemReducedMotion ? '系统已在减少动效' : reducedMotion ? '启用动效' : '减少动效'}
+              {systemReducedMotion ? '系统已在减少动效' : profile.appearance.reducedMotion ? '启用动效' : '减少动效'}
             </button>
             <button type="button" className="astryn-btn" data-testid="astryn-hide" onClick={() => setHidden(true)}>隐藏角色</button>
             <button
@@ -436,6 +431,7 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
       {settingsOpen ? (
         <CompanionSettings
           profile={profile}
+          systemReducedMotion={systemReducedMotion}
           storageLabel={store ? store.label : '未配置档案存储端口（仅本会话内存）'}
           storagePersistent={store ? store.persistent : false}
           saving={saving}
@@ -460,7 +456,6 @@ export function CompanionShell(props: CompanionShellProps): JSX.Element {
             attachments={snapshot.pendingAttachments}
             onRemoveAttachment={(index) => manager.removePendingContext(index)}
             streaming={streaming}
-            disabled={false}
             onSubmit={handleSubmit}
             onCancel={() => manager.cancel('user')}
             onFocus={() => manager.notifyFocus('composer')}

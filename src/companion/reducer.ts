@@ -123,6 +123,19 @@ export function reduceCompanionState(prev: AstrynCompanionState, event: AstrynAn
       };
     }
 
+    case 'model.available': {
+      // 探测成功只更新模型可用面：不升级 evidenceLevel（证据级别由真实回复决定，见 R4），
+      // 也不清除已发生的失败记录（失败有独立语义，除非有新轮次覆盖）。
+      return {
+        state: bump(prev, {
+          ...prev,
+          model: { ...prev.model, available: true, reason: null }
+        }),
+        applied: true,
+        note: null
+      };
+    }
+
     case 'model.unavailable': {
       return {
         state: bump(prev, {

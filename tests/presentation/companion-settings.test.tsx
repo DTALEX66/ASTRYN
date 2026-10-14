@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { XIAOQI_PROFILE } from '@astryn/contracts';
+import type { AstrynCharacterProfile } from '@astryn/contracts';
 import {
   CompanionShell,
   SyntheticConversationPort,
@@ -125,6 +126,90 @@ describe('小栖设置视图（GF01）', () => {
     await vi.waitFor(() => {
       expect(screen.getByTestId('astryn-toggle-motion').textContent).toBe('启用动效');
     });
+  });
+
+  it('渲染驱动可选且出处如实：默认位图（AI 生成）与 SVG 基线可切换', () => {
+    renderShell(createEphemeralProfileStore());
+    openSettings();
+    expect((screen.getByTestId('astryn-renderer-xiaoqi-raster-v2') as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByTestId('astryn-renderer-xiaoqi-svg-v1') as HTMLInputElement).checked).toBe(false);
+    const current = screen.getByTestId('astryn-settings-renderer').textContent ?? '';
+    expect(current).toContain('xiaoqi-raster-v2');
+    // 出场处说明必须可辨：AI 生成不得被说成原创，原创也不得被吞。
+    expect(screen.getByTestId('astryn-renderer-xiaoqi-raster-v2').closest('label')?.textContent).toContain('AI 生成');
+    expect(screen.getByTestId('astryn-renderer-xiaoqi-svg-v1').closest('label')?.textContent).toContain('原创');
+
+    fireEvent.click(screen.getByTestId('astryn-renderer-xiaoqi-svg-v1'));
+    expect(screen.getByTestId('astryn-avatar-host').getAttribute('data-renderer')).toBe('xiaoqi-svg-v1');
+    expect(screen.getByTestId('astryn-settings-renderer').textContent).toContain('xiaoqi-svg-v1');
+  });
+
+  it('渲染器选择的保存→重载往返：切到 SVG 保存后，同一存储重挂载仍是 SVG（C9）', async () => {
+    const store = createEphemeralProfileStore();
+    const first = renderShell(store);
+    openSettings();
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('astryn-settings-notice').textContent).toContain('尚无已保存档案');
+    });
+
+    fireEvent.click(screen.getByTestId('astryn-renderer-xiaoqi-svg-v1'));
+    fireEvent.click(screen.getByTestId('astryn-settings-save'));
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('astryn-settings-notice').textContent).toContain('已保存');
+    });
+    const stored = await store.load();
+    expect(stored.profile.appearance.rendererId, '保存必须把渲染器选择写进档案').toBe('xiaoqi-svg-v1');
+    first.unmount();
+
+    renderShell(store);
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('astryn-avatar-host').getAttribute('data-renderer')).toBe('xiaoqi-svg-v1');
+    });
+    openSettings();
+    expect((screen.getByTestId('astryn-renderer-xiaoqi-svg-v1') as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByTestId('astryn-renderer-xiaoqi-raster-v2') as HTMLInputElement).checked).toBe(false);
+  });
+
+  it('未注册 rendererId 经 store→重载→shell 链路：画面回退 SVG 下限，单选组勾选回退项并披露（C10）', async () => {
+    const unknown: AstrynCharacterProfile = {
+      ...XIAOQI_PROFILE,
+      appearance: { ...XIAOQI_PROFILE.appearance, rendererId: 'live2d-not-installed' }
+    };
+    // 未注册 id 进存储（迁移必须原样保留）——模拟旧版本/宿主写回的未知驱动，而不是直接传 props。
+    const store = createEphemeralProfileStore(unknown);
+    render(
+      <CompanionShell mode="panel" sessionId="s1" profile={XIAOQI_PROFILE} conversation={null} profileStore={store} />
+    );
+    await vi.waitFor(() => {
+      const host = screen.getByTestId('astryn-avatar-host');
+      expect(host.getAttribute('data-renderer')).toBe('xiaoqi-svg-v1');
+      expect(host.getAttribute('data-renderer-exact')).toBe('false');
+    });
+    openSettings();
+    // 勾选态绑定实际生效驱动（B4 修复语义）：未注册 id 时勾选回退项，而不是一个都不选。
+    expect((screen.getByTestId('astryn-renderer-xiaoqi-svg-v1') as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByTestId('astryn-renderer-xiaoqi-raster-v2') as HTMLInputElement).checked).toBe(false);
+    expect(screen.getByTestId('astryn-settings-renderer-fallback').textContent).toContain('未注册');
+  });
+
+  it('档案里的未注册 rendererId：画面回退到 SVG 下限且显式标注（未知不当可用）', () => {
+    const unknownProfile = {
+      ...XIAOQI_PROFILE,
+      appearance: { ...XIAOQI_PROFILE.appearance, rendererId: 'live2d-not-installed' }
+    };
+    render(
+      <CompanionShell
+        mode="panel"
+        sessionId="s1"
+        profile={unknownProfile}
+        conversation={null}
+      />
+    );
+    const host = screen.getByTestId('astryn-avatar-host');
+    expect(host.getAttribute('data-renderer')).toBe('xiaoqi-svg-v1');
+    expect(host.getAttribute('data-renderer-exact')).toBe('false');
+    openSettings();
+    expect((screen.getByTestId('astryn-settings-renderer-fallback').textContent ?? '')).toContain('未注册');
   });
 
   it('开关设置不打断会话：历史保留，未保存的修改在本会话生效', async () => {

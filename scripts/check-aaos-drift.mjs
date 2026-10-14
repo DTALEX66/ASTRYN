@@ -18,7 +18,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = process.cwd();
-const AAOS_ROOT = process.env.ASTRYN_AAOS_ROOT ?? 'D:/All projects/ArcheAxis-Knowledge-OS';
+// 空串覆盖不能当成"已配置根"：?? 只挡 undefined，`ASTRYN_AAOS_ROOT=` 会静默把探测目标变成空路径。
+const AAOS_ROOT = process.env.ASTRYN_AAOS_ROOT?.trim() || 'D:/All projects/ArcheAxis-Knowledge-OS';
 const MAP = join(ROOT, 'docs', 'architecture', 'AAOS-HOST-CAPABILITY-MAP.md');
 
 function report(status, detail) {

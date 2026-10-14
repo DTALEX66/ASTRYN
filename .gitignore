@@ -3,6 +3,9 @@ dist/
 coverage/
 target/
 .project-local/
+# 虚拟人物/：MINIMAX DESIGN 原始投放区（本地产物，含工具内部状态与早期轮次字节；
+# 正式可交付件已按 STATE-ASSET-INDEX.json 登记到 assets/character/，此处不再入库）
+虚拟人物/
 .env
 .env.*
 !.env.example

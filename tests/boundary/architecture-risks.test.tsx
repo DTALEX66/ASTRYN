@@ -8,6 +8,7 @@ import {
   AVATAR_RENDERERS,
   SyntheticConversationPort,
   redactErrorText,
+  resolveAvatarRenderer,
   selectAvatarRenderer
 } from '@astryn/core';
 import { CompanionShell } from '@astryn/core';
@@ -33,9 +34,15 @@ describe('R1 渲染 seam 必须真的被使用', () => {
   });
 
   it('注册表可解析已注册驱动，未知 id 回退而不是抛错或静默空白', () => {
-    expect(AVATAR_RENDERERS.length).toBeGreaterThan(0);
-    expect(selectAvatarRenderer('xiaoqi-svg-v1').rendererId).toBe('xiaoqi-svg-v1');
-    expect(selectAvatarRenderer('live2d-not-installed').rendererId).toBe('xiaoqi-svg-v1');
+    const exact = resolveAvatarRenderer('xiaoqi-svg-v1');
+    expect(exact.exact).toBe(true);
+    expect(exact.renderer.rendererId).toBe('xiaoqi-svg-v1');
+    // 回退路径（UI 实际走的 resolve）必须回退且带 exact:false 作证，不得抛错或静默换人。
+    const unknown = resolveAvatarRenderer('live2d-not-installed');
+    expect(unknown.exact).toBe(false);
+    expect(unknown.renderer.rendererId).toBe('xiaoqi-svg-v1');
+    // select 是严格取用：未注册 id 不静默降级（审计 A3）。
+    expect(() => selectAvatarRenderer('live2d-not-installed')).toThrow(/未注册/);
   });
 
   it('每个已注册驱动都必须提供 renderMarkup 或 mount 之一', () => {
@@ -102,7 +109,35 @@ describe('R4 证据级别不得靠配置推断', () => {
     expect(resolved.info.available).toBe(true);
   });
 
-  it('真正收到非合成端口的回复内容后才升级为 REAL', () => {
+  it('真正收到非合成端口的回复内容后才升级为 REAL（正腿：走完注册探测→提交→流式回复）', async () => {
+    const inner = new SyntheticConversationPort({ steps: [{ text: '真实回复' }, { finish: 'stop' }] });
+    const port = {
+      protocol: inner.protocol,
+      providerId: 'dev-proxy',
+      transport: 'openai-compatible',
+      evidenceLevel: 'NO_EVIDENCE' as const,
+      modelId: 'm',
+      availability: () => inner.availability(),
+      stream: (request: Parameters<typeof inner.stream>[0], signal: AbortSignal) => inner.stream(request, signal)
+    };
+    const controller = new AstrynCompanionController({
+      sessionId: 's1',
+      profile: XIAOQI_PROFILE,
+      conversation: port as never,
+      actions: null,
+      verifier: null
+    });
+    // 探测阶段只如实呈现 NO_EVIDENCE——不得靠"配置存在"提前升格。
+    await controller.refreshModelAvailability();
+    expect(controller.currentState.model.evidenceLevel).toBe('NO_EVIDENCE');
+    expect(controller.currentState.model.available).toBe(true);
+    await controller.submit('问一句');
+    // 只有真实到达的非合成 delta 才把证据级别推升到 REAL（审计 C4 正腿）。
+    expect(controller.currentState.streamedText).toBe('真实回复');
+    expect(controller.currentState.model.evidenceLevel).toBe('REAL');
+  });
+
+  it('没有活动请求的观测 delta 被拒，证据级别不变（拒绝腿）', () => {
     const base = initialState('s1', {
       kind: 'openai-compatible-dev',
       providerId: 'p',

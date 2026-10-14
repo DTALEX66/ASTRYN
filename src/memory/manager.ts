@@ -1,12 +1,14 @@
 import type {
   AstrynMemoryCandidate,
   AstrynMemoryConsumer,
+  AstrynMemoryDenialReason,
   AstrynMemoryMutationReceipt,
   AstrynMemoryOrigin,
   AstrynMemoryPort,
   AstrynMemoryScope,
   AstrynMemoryScopeGrant
 } from '@astryn/contracts';
+import { decideRead } from './policy';
 
 const ACTIVE_LIFECYCLES = ['candidate', 'confirmed'] as const;
 const SUSPENDED_SCOPE_REASON = 'SCOPE_SUSPENDED_BY_LOCAL_POLICY';
@@ -93,6 +95,13 @@ export interface MemoryOperationResult {
   readonly readBack: MemoryReadBack | null;
 }
 
+/** view/export 读路径按 decideRead 排除的记录（审计 A10）：被拒不等于不存在，必须披露。 */
+export interface MemoryReadExclusion {
+  readonly scope: AstrynMemoryScope;
+  readonly reason: AstrynMemoryDenialReason;
+  readonly count: number;
+}
+
 export interface MemoryView {
   readonly sessionId: string;
   readonly consumer: AstrynMemoryConsumer;
@@ -101,6 +110,7 @@ export interface MemoryView {
   readonly grants: readonly AstrynMemoryScopeGrant[];
   readonly suspendedScopes: readonly AstrynMemoryScope[];
   readonly records: readonly AstrynMemoryCandidate[];
+  readonly readExclusions: readonly MemoryReadExclusion[];
   readonly spaces: readonly AstrynMemorySpace[];
   readonly generatedAt: string;
 }
@@ -116,6 +126,7 @@ export interface MemoryExport {
   readonly grants: readonly AstrynMemoryScopeGrant[];
   readonly suspendedScopes: readonly AstrynMemoryScope[];
   readonly records: readonly AstrynMemoryCandidate[];
+  readonly readExclusions: readonly MemoryReadExclusion[];
   readonly spaces: readonly AstrynMemorySpace[];
   readonly limitations: readonly string[];
 }
@@ -158,7 +169,9 @@ export class MemoryManager {
   }
 
   async view(): Promise<MemoryView> {
+    const at = this.now();
     const [grants, records] = await Promise.all([this.port.grantsFor(this.consumer), this.port.listForReview(this.sessionId)]);
+    const readable = this.applyReadPolicy(grants, records, at);
     return {
       sessionId: this.sessionId,
       consumer: this.consumer,
@@ -166,9 +179,10 @@ export class MemoryManager {
       evidenceLevel: this.port.evidenceLevel,
       grants,
       suspendedScopes: this.suspendedScopes,
-      records,
+      records: readable.records,
+      readExclusions: readable.exclusions,
       spaces: ASTRYN_MEMORY_SPACES,
-      generatedAt: this.now()
+      generatedAt: at
     };
   }
 
@@ -305,28 +319,64 @@ export class MemoryManager {
   }
 
   async exportEvidence(): Promise<MemoryExportResult> {
+    const at = this.now();
     const [grants, records] = await Promise.all([this.port.grantsFor(this.consumer), this.port.listForReview(this.sessionId)]);
+    const readable = this.applyReadPolicy(grants, records, at);
+    const exclusionLimit = readable.exclusions.reduce((sum, item) => sum + item.count, 0);
+    const exclusionLimitations =
+      readable.exclusions.length === 0
+        ? []
+        : [
+            `已按治理策略排除 ${exclusionLimit} 条记录：${readable.exclusions
+              .map((item) => `${item.scope}（${item.reason}）×${item.count}`)
+              .join('；')}。`
+          ];
     const exported: MemoryExport = {
       schemaVersion: 1,
       kind: 'astryn-memory-export',
-      generatedAt: this.now(),
+      generatedAt: at,
       sessionId: this.sessionId,
       consumer: this.consumer,
       hostId: this.port.hostId,
       evidenceLevel: this.port.evidenceLevel,
       grants,
       suspendedScopes: this.suspendedScopes,
-      records,
+      records: readable.records,
+      readExclusions: readable.exclusions,
       spaces: ASTRYN_MEMORY_SPACES,
       limitations: [
         this.port.evidenceLevel === 'SYNTHETIC'
           ? '本导出基于合成夹具（SYNTHETIC），不代表真实宿主记忆库内容。'
           : '本导出为星栖侧读取快照；权威存储与写入权归宿主。',
         '备份保留（backup-retention）不在此导出：宿主侧策略，BLOCKED_BY_HOST_CONTRACT。',
-        '已删除（deleted）记录不出现于账本与导出：删除即移除，撤销（revoked）记录保留审计痕迹。'
+        '已删除（deleted）记录不出现于账本与导出：删除即移除，撤销（revoked）记录保留审计痕迹。',
+        ...exclusionLimitations
       ]
     };
     return { ok: true, exported, json: JSON.stringify(exported, null, 2) };
+  }
+
+  /**
+   * view/export 读路径同样过 decideRead（审计 A10）：被拒记录不出现，排除项显式披露。
+   * 纠正/忘记/停用不走此过滤——那是用户作为数据所有者的治理通道，按记录 ID 操作。
+   */
+  private applyReadPolicy(
+    grants: readonly AstrynMemoryScopeGrant[],
+    records: readonly AstrynMemoryCandidate[],
+    at: string
+  ): { records: readonly AstrynMemoryCandidate[]; exclusions: readonly MemoryReadExclusion[] } {
+    const byScope = new Map<AstrynMemoryScope, MemoryReadExclusion>();
+    const kept: AstrynMemoryCandidate[] = [];
+    for (const record of records) {
+      const decision = decideRead(this.consumer, record.scope, grants, at);
+      if (decision.allowed) {
+        kept.push(record);
+        continue;
+      }
+      const existing = byScope.get(record.scope);
+      byScope.set(record.scope, { scope: record.scope, reason: decision.reason, count: (existing?.count ?? 0) + 1 });
+    }
+    return { records: kept, exclusions: [...byScope.values()] };
   }
 
   private receipt(candidateId: string, to: 'confirmed' | 'revoked' | 'deleted'): AstrynMemoryMutationReceipt {

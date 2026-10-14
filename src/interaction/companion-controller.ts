@@ -12,6 +12,7 @@ import type {
   AstrynChatMessage,
   AstrynCompanionState,
   AstrynContextFragment,
+  AstrynConversationAvailability,
   AstrynConversationPort,
   AstrynConversationRequest,
   AstrynEventKind,
@@ -25,7 +26,6 @@ import type {
 import { reduceCompanionState } from '../companion/reducer';
 import { buildConversationMessages } from '../companion/prompt-composer';
 import { AstrynEventGuard } from '../companion/session-guard';
-import type { AstrynRejectionReason } from '../companion/session-guard';
 
 export interface CompanionControllerDeps {
   readonly sessionId: string;
@@ -40,9 +40,15 @@ export interface CompanionControllerDeps {
 export interface ControllerAudit {
   readonly applied: number;
   readonly rejected: Readonly<Record<string, number>>;
-  readonly lastRejectedReason: AstrynRejectionReason | null;
+  /** 最近一次被丢弃的原因：守卫拒绝（大写原因码）或 reducer 拒绝（note 文本）。 */
+  readonly lastRejectedReason: string | null;
   /** 回执校验结果：定位"为什么这条任务事件不算权威"。 */
   readonly lastVerification: { readonly ok: boolean; readonly reason: string; readonly hasVerifier: boolean } | null;
+}
+
+/** 端口传输形态 → 事件里的配置来源标注（none 仅表示无端口，不用于成功探测）。 */
+function configuredSourceOf(port: AstrynConversationPort): 'none' | 'aaos-host' | 'dev-proxy' | 'synthetic' {
+  return port.transport === 'openai-compatible' ? 'dev-proxy' : port.transport === 'aaos-host' ? 'aaos-host' : port.transport === 'scripted-synthetic' ? 'synthetic' : 'none';
 }
 
 /** 上一轮未完成（失败或被停止）的重试候选：文本与材料标签原样保留。 */
@@ -91,13 +97,18 @@ export class AstrynCompanionController {
   private readonly abortByRequest = new Map<string, AbortController>();
   private readonly unsubscribes: Array<() => void> = [];
   private appliedCount = 0;
-  private lastRejectedReason: AstrynRejectionReason | null = null;
+  private lastRejectedReason: string | null = null;
   private lastVerification: ControllerAudit['lastVerification'] = null;
   private disposed = false;
   private idCounter = 0;
   private history: AstrynChatMessage[] = [];
   private pendingFragments: AstrynContextFragment[] = [];
   private activeSubmissions = 0;
+  /**
+   * 按原因计数的一切丢弃（审计 A5/A4）：守卫放行但 reducer 未采纳（note 文本）
+   * 与控制器前置丢弃（kebab 原因，如 receipt-session-mismatch）。不静默丢。
+   */
+  private readonly droppedByReason = new Map<string, number>();
   private lastInterrupted: {
     readonly requestId: string;
     readonly text: string;
@@ -160,15 +171,20 @@ export class AstrynCompanionController {
     }
     if (this.disposed) return;
     if (availability.available) {
-      this.state = { ...this.state, model: { ...this.state.model, available: true, reason: null } };
-      this.publish();
+      // 探测成功同样落成事件（审计 A6）：不绕过守卫/reducer 直接改 state，revision 单调、可审计。
+      this.#dispatch(this.emit({
+        kind: 'model.available',
+        payload: { configuredSource: configuredSourceOf(port) },
+        source: 'system',
+        trust: 'observed'
+      }));
       return;
     }
     this.#dispatch(this.emit({
       kind: 'model.unavailable',
       payload: {
         reason: availability.reason ?? '模型接口不可用',
-        configuredSource: port.transport === 'openai-compatible' ? 'dev-proxy' : port.transport === 'aaos-host' ? 'aaos-host' : 'none'
+        configuredSource: configuredSourceOf(port)
       },
       source: 'system',
       trust: 'observed'
@@ -192,7 +208,7 @@ export class AstrynCompanionController {
   get audit(): ControllerAudit {
     return {
       applied: this.appliedCount,
-      rejected: this.guard.rejectionCounts(),
+      rejected: { ...this.guard.rejectionCounts(), ...Object.fromEntries(this.droppedByReason) },
       lastRejectedReason: this.lastRejectedReason,
       lastVerification: this.lastVerification
     };
@@ -252,7 +268,14 @@ export class AstrynCompanionController {
       return;
     }
     const result = reduceCompanionState(this.state, event);
-    if (!result.applied) return;
+    if (!result.applied) {
+      // reducer 拒绝同样是丢弃：按 note 计数并留下最近原因，不静默丢（审计 A5）。
+      if (result.note) {
+        this.droppedByReason.set(result.note, (this.droppedByReason.get(result.note) ?? 0) + 1);
+        this.lastRejectedReason = result.note;
+      }
+      return;
+    }
     this.appliedCount += 1;
     this.state = result.state;
     this.publish();
@@ -287,9 +310,37 @@ export class AstrynCompanionController {
     if (!this.deps.conversation) {
       this.#dispatch(this.emit({ kind: 'model.unavailable', payload: { reason: '未配置获准模型接口，星栖不使用脚本回复冒充 AI。', configuredSource: 'none' }, source: 'system', trust: 'observed', requestId }));
       this.guard.settleRequest(requestId);
+      this.seqByKey.delete(`req:${requestId}`);
       this.lastInterrupted = { requestId, text: trimmed, cause: 'failed', failureCode: 'MODEL_UNAVAILABLE', fragments: sentFragments };
       this.publish();
       return { requestId };
+    }
+
+    // 端口存在但最新探测声明不可用：先重探一次（模型可能已恢复），仍不可用则不发真实请求。
+    // 这消除"availability 说不可用、submit 却照发"的两信号矛盾（审计 A7）；输入进重试候选不丢。
+    if (this.state.model.available === false) {
+      let probe: AstrynConversationAvailability | null = null;
+      try {
+        probe = await this.deps.conversation.availability();
+      } catch {
+        probe = null;
+      }
+      if (!probe?.available) {
+        this.#dispatch(this.emit({
+          kind: 'model.unavailable',
+          payload: { reason: probe?.reason ?? this.state.model.reason ?? '模型接口声明不可用', configuredSource: configuredSourceOf(this.deps.conversation) },
+          source: 'system',
+          trust: 'observed',
+          requestId
+        }));
+        this.guard.settleRequest(requestId);
+        this.seqByKey.delete(`req:${requestId}`);
+        this.lastInterrupted = { requestId, text: trimmed, cause: 'failed', failureCode: 'MODEL_UNAVAILABLE', fragments: sentFragments };
+        this.publish();
+        return { requestId };
+      }
+      // 已恢复：与 attach 探测同一路径落成事件，再继续正常发送。
+      this.#dispatch(this.emit({ kind: 'model.available', payload: { configuredSource: configuredSourceOf(this.deps.conversation) }, source: 'system', trust: 'observed' }));
     }
 
     const abort = new AbortController();
@@ -329,6 +380,8 @@ export class AstrynCompanionController {
       this.activeSubmissions -= 1;
       this.abortByRequest.delete(requestId);
       this.guard.settleRequest(requestId);
+      // 结清后释放该请求的序号计数：控制器集合不随对话轮数无界增长（审计 A9）。
+      this.seqByKey.delete(`req:${requestId}`);
       const fragments = this.fragmentsByRequest.get(requestId) ?? [];
       this.fragmentsByRequest.delete(requestId);
       if (!this.disposed && this.guard.session === sessionAtSubmit) {
@@ -455,12 +508,20 @@ export class AstrynCompanionController {
       this.#dispatch(this.emit({ kind: 'turn.cancelled', payload: { reason }, source: 'user', trust: 'observed', requestId }));
       abort.abort();
       this.guard.settleRequest(requestId);
+      this.seqByKey.delete(`req:${requestId}`);
     }
   }
 
   /** 宿主回执 → 权威事件。校验不通过则降级为 observed，守卫随即拒绝其改变任务状态。 */
   async ingestReceipt(receipt: AstrynActionReceipt): Promise<void> {
     if (this.disposed) return;
+    // 回执携带归属且不属于本会话：丢弃，绝不移动本会话任务状态（审计 A4）。
+    // null 归属（宿主未提供）按当前会话处理；不猜测、不回填其他会话。
+    if (receipt.sessionId !== null && receipt.sessionId !== this.deps.sessionId) {
+      this.droppedByReason.set('receipt-session-mismatch', (this.droppedByReason.get('receipt-session-mismatch') ?? 0) + 1);
+      this.lastRejectedReason = 'receipt-session-mismatch';
+      return;
+    }
     const verification = this.deps.verifier
       ? await this.deps.verifier.verify(receipt)
       : { ok: false as const, reason: 'NO_VERIFIER' as const, issuer: receipt.issuedBy };
@@ -508,6 +569,13 @@ export class AstrynCompanionController {
         emittedAt: receipt.issuedAt
       }) as unknown as AstrynAnyEvent
     );
+
+    // 终态回执后不再有该动作请求的合法后续：结清并释放序号状态，
+    // 守卫与控制器集合不随任务数无界增长（审计 A9）。
+    if (receipt.outcome === 'completed' || receipt.outcome === 'failed' || receipt.outcome === 'approval-denied') {
+      this.guard.settleRequest(receipt.actionRequestId);
+      this.seqByKey.delete(`req:${receipt.actionRequestId}`);
+    }
   }
 
   /**
@@ -524,6 +592,9 @@ export class AstrynCompanionController {
     for (const [, abort] of this.abortByRequest) abort.abort();
     this.abortByRequest.clear();
     this.guard.switchSession(nextSessionId);
+    // 同步 deps.sessionId：emit 与回执归属守卫都以它为当前会话，
+    // 不同步会让切换后的全部事件被守卫判成 INACTIVE_SESSION（控制器冻结）。
+    this.deps = { ...this.deps, sessionId: nextSessionId };
     this.seqByKey.clear();
     this.history = [];
     this.pendingFragments = [];

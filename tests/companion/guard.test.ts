@@ -96,4 +96,18 @@ describe('事件守卫（A07 串台防线）', () => {
     guard.accept(ev({ requestId: 'ghost', seq: 1 }));
     expect(guard.rejectionCounts()['UNKNOWN_REQUEST']).toBe(2);
   });
+
+  it('settled 有界：FIFO 淘汰最旧，最近结清仍被拒，不随请求数无界增长（A9）', () => {
+    const guard = new AstrynEventGuard('s1');
+    guard.openRequest('oldest');
+    guard.settleRequest('oldest');
+    for (let index = 0; index < 300; index += 1) {
+      guard.openRequest(`r-${index}`);
+      guard.settleRequest(`r-${index}`);
+    }
+    // 最旧的已随 FIFO 淘汰：不再被认作"已结清"，但也不在途——仍被拒（UNKNOWN_REQUEST）。
+    expect(guard.accept(ev({ requestId: 'oldest', seq: 0 })).reason).toBe('UNKNOWN_REQUEST');
+    // 最近结清的仍在 settled 中：迟到事件仍报 SETTLED_REQUEST。
+    expect(guard.accept(ev({ requestId: 'r-299', seq: 0 })).reason).toBe('SETTLED_REQUEST');
+  });
 });

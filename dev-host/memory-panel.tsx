@@ -175,14 +175,14 @@ export function MemoryPanel({ manager, learningStore, profileStore, onNotice }: 
       </div>
 
       <div className="devhost-row">
-        <select className="devhost-input" data-testid="devhost-mem-scope" value={draftScope} onChange={(event) => setDraftScope(event.target.value as AstrynMemoryScope)}>
+        <select className="devhost-input" data-testid="devhost-mem-scope" aria-label="记忆作用域" value={draftScope} onChange={(event) => setDraftScope(event.target.value as AstrynMemoryScope)}>
           {ASTRYN_MEMORY_SCOPES.map((scope) => (
             <option key={scope} value={scope}>
               {SCOPE_LABELS[scope]}（{scope}）
             </option>
           ))}
         </select>
-        <select className="devhost-input" data-testid="devhost-mem-origin" value={draftOrigin} onChange={(event) => setDraftOrigin(event.target.value as AstrynMemoryOrigin)}>
+        <select className="devhost-input" data-testid="devhost-mem-origin" aria-label="记忆来源" value={draftOrigin} onChange={(event) => setDraftOrigin(event.target.value as AstrynMemoryOrigin)}>
           {(Object.keys(ORIGIN_LABELS) as AstrynMemoryOrigin[]).map((origin) => (
             <option key={origin} value={origin}>
               {ORIGIN_LABELS[origin]}
@@ -192,6 +192,7 @@ export function MemoryPanel({ manager, learningStore, profileStore, onNotice }: 
         <input
           className="devhost-input"
           data-testid="devhost-mem-summary"
+          aria-label="记忆摘要"
           placeholder="要记住的一句话（如：约定周五一起复盘）"
           value={draftSummary}
           onChange={(event) => setDraftSummary(event.target.value)}
@@ -222,6 +223,7 @@ export function MemoryPanel({ manager, learningStore, profileStore, onNotice }: 
                 <input
                   className="devhost-input"
                   data-testid={`devhost-mem-correct-input-${record.id}`}
+                  aria-label={`纠正内容 ${record.id}`}
                   value={correctionDraft}
                   onChange={(event) => setCorrectionDraft(event.target.value)}
                 />
@@ -291,6 +293,12 @@ export function MemoryPanel({ manager, learningStore, profileStore, onNotice }: 
         ))}
         {view.records.length === 0 ? <li className="devhost-disclosure">（本会话尚无记忆记录）</li> : null}
       </ul>
+
+      {view.readExclusions.length > 0 ? (
+        <div className="astryn-disclosure" data-testid="devhost-mem-exclusions">
+          已按治理策略排除：{view.readExclusions.map((item) => `${SCOPE_LABELS[item.scope]}（${item.reason}）×${item.count}`).join('；')}
+        </div>
+      ) : null}
 
       <div className="devhost-row">
         <button

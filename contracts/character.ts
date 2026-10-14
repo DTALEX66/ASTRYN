@@ -41,7 +41,8 @@ export interface AstrynCharacterVoiceStyle {
 }
 
 export interface AstrynCharacterAppearance {
-  readonly rendererId: 'xiaoqi-svg-v1';
+  /** 已注册渲染驱动的 id；未注册 id 由渲染 seam 显式回退（不回退不静默）。 */
+  readonly rendererId: string;
   readonly theme: 'nightfall' | 'dawn';
   readonly scale: number;
   readonly reducedMotion: boolean;
@@ -171,7 +172,7 @@ export const XIAOQI_PROFILE: AstrynCharacterProfile = {
   initiative: { proactiveNudging: false, nudgingCadence: 'off' },
   learning: { explanationDepth: 'standard', examplesFirst: false, quizMe: false },
   voiceStyle: { styleId: 'xiaoqi-soft-zh', speakingRate: 1.0, pitchOffset: 0, enabled: false, microphone: false, subtitles: true, volume: 1, connectionRef: null },
-  appearance: { rendererId: 'xiaoqi-svg-v1', theme: 'nightfall', scale: 1, reducedMotion: false }
+  appearance: { rendererId: 'xiaoqi-raster-v2', theme: 'nightfall', scale: 1, reducedMotion: false }
 };
 
 /** 覆盖按节生效：改一项表达风格不必重传整块配置。 */
@@ -265,7 +266,11 @@ export function migrateCharacterProfile(raw: unknown): ProfileMigrationResult {
       connectionRef: typeof voiceSource.connectionRef === 'string' ? voiceSource.connectionRef : null
     },
     appearance: {
-      rendererId: 'xiaoqi-svg-v1',
+      // 已存 rendererId 必须原样保留：硬编码默认会把用户/宿主选择静默改掉。
+      rendererId:
+        typeof appearanceSource.rendererId === 'string' && appearanceSource.rendererId.length > 0
+          ? appearanceSource.rendererId
+          : base.appearance.rendererId,
       theme: pick(appearanceSource.theme, ['nightfall', 'dawn'] as const, base.appearance.theme),
       scale: typeof appearanceSource.scale === 'number' && appearanceSource.scale > 0 ? appearanceSource.scale : base.appearance.scale,
       reducedMotion: typeof appearanceSource.reducedMotion === 'boolean' ? appearanceSource.reducedMotion : base.appearance.reducedMotion

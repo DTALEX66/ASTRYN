@@ -9,6 +9,7 @@ import {
   modeSpec,
   resolveAvatarRenderer,
   selectAvatarRenderer,
+  xiaoqiRasterRenderer,
   xiaoqiSvgRenderer
 } from '@astryn/core';
 
@@ -32,20 +33,28 @@ describe('八端口一致性：清单、可用性推导与自有 seam 的真实�
     expect(unknown.exact).toBe(false);
     expect(unknown.reason).toContain('未注册');
     expect(unknown.renderer.rendererId).toBe(AVATAR_RENDERERS[0]?.rendererId);
-    // 旧接口语义保持：select 只取 renderer，回退行为与 resolve 一致。
-    expect(selectAvatarRenderer('live2d-v0-not-registered').rendererId).toBe(unknown.renderer.rendererId);
+    // select 是严格取用：未注册 id 不得静默降级，回退必须由调用方显式选择（审计 A3）。
+    expect(selectAvatarRenderer('xiaoqi-svg-v1').rendererId).toBe('xiaoqi-svg-v1');
+    expect(() => selectAvatarRenderer('live2d-v0-not-registered')).toThrow(/未注册/);
+    expect(() => selectAvatarRenderer('live2d-v0-not-registered')).toThrow(/回退下限/);
   });
 
-  it('渲染驱动声明与实现相称：原创出处、合成预算、支持态非空', () => {
+  it('渲染驱动声明与实现相称：出处如实登记（不得 unknown）、合成预算、支持态非空', () => {
     expect(AVATAR_RENDERERS.length).toBeGreaterThan(0);
     for (const renderer of AVATAR_RENDERERS) {
       expect(renderer.rendererId.length).toBeGreaterThan(0);
       expect(renderer.supportedStates.length).toBeGreaterThan(0);
       expect(renderer.budget.compositedOnly).toBe(true);
       expect(renderer.budget.respectReducedMotion).toBe(true);
-      expect(renderer.provenance.origin).toBe('original');
+      // 出处必须逐驱动如实声明：未知不得作为可用驱动，声明了出处就必须有许可与说明文本。
+      expect(renderer.provenance.origin, `${renderer.rendererId} 出处不得为 unknown`).not.toBe('unknown');
+      expect(renderer.provenance.license.length).toBeGreaterThan(0);
+      expect(renderer.provenance.note.length).toBeGreaterThan(0);
     }
+    // 具体出处的回归：svg 是原创基线；位图是 AI 生成——不得被写成原创。
     expect(xiaoqiSvgRenderer.rendererId).toBe('xiaoqi-svg-v1');
+    expect(xiaoqiSvgRenderer.provenance.origin).toBe('original');
+    expect(xiaoqiRasterRenderer.provenance.origin).toBe('ai-generated');
   });
 
   it('呈现 seam：未实现形态必须带 blockedBy；描述文本与契约事实一致', () => {

@@ -1,5 +1,7 @@
+import { useId } from 'react';
 import { ASTRYN_COMPANION_PERSONAS, ASTRYN_MOUTH_MODE_LABELS, withOverrides } from '@astryn/contracts';
-import type { AstrynCharacterProfile, AstrynSpeechAvailability, AstrynSpeechFeature } from '@astryn/contracts';
+import type { AstrynAssetProvenance, AstrynCharacterProfile, AstrynSpeechAvailability, AstrynSpeechFeature } from '@astryn/contracts';
+import { AVATAR_RENDERERS, resolveAvatarRenderer } from '../avatar/renderer-registry';
 import type { SpeechPlaybackSnapshot } from '../speech/playback';
 
 const SPEECH_FEATURES: readonly AstrynSpeechFeature[] = ['microphone', 'asr', 'tts', 'playback'];
@@ -14,9 +16,18 @@ const SPEECH_STATUS_LABELS: Readonly<Record<SpeechPlaybackSnapshot['status'], st
   speaking: '朗读中',
   finished: '本段结束'
 };
+/** 素材出处的用户可见说法：不得把 AI 生成说成原创，也不得把未知说成可用。 */
+const RENDERER_ORIGIN_LABELS: Readonly<Record<AstrynAssetProvenance['origin'], string>> = {
+  original: '原创素材（不捆绑第三方）',
+  'ai-generated': 'AI 生成素材（外部生产，平台条款授权）',
+  'licensed-third-party': '第三方授权素材',
+  unknown: '出处未知（不得作为默认）'
+};
 
 export interface CompanionSettingsProps {
   readonly profile: AstrynCharacterProfile;
+  /** 系统级 prefers-reduced-motion：开启时"减少动效"开关只读（系统覆盖在应用内不可取消）。 */
+  readonly systemReducedMotion: boolean;
   /** 档案保存去向（来自 profile store），界面必须如实标注。 */
   readonly storageLabel: string;
   readonly storagePersistent: boolean;
@@ -41,6 +52,7 @@ export interface CompanionSettingsProps {
 export function CompanionSettings(props: CompanionSettingsProps): JSX.Element {
   const {
     profile,
+    systemReducedMotion,
     storageLabel,
     storagePersistent,
     saving,
@@ -56,6 +68,9 @@ export function CompanionSettings(props: CompanionSettingsProps): JSX.Element {
   } = props;
   const set = (overrides: Parameters<typeof withOverrides>[1]): void => onChange(withOverrides(profile, overrides));
   const selectedPersona = ASTRYN_COMPANION_PERSONAS.find((spec) => spec.id === profile.persona);
+  const rendererResolution = resolveAvatarRenderer(profile.appearance.rendererId);
+  // 多实例隔离：radio 组名按实例唯一，dev-host 里多个面板的设置不会串成同一组（审计 B5）。
+  const rendererGroupName = useId();
   const speechUnavailableReason =
     SPEECH_FEATURES.map((feature) => speechAvailability[feature]).find((entry) => !entry.available)?.reason ?? null;
 
@@ -231,15 +246,44 @@ export function CompanionSettings(props: CompanionSettingsProps): JSX.Element {
 
       <fieldset className="astryn-settings-group" data-testid="astryn-settings-appearance">
         <legend>外观</legend>
-        <p className="astryn-disclosure">渲染器：{profile.appearance.rendererId}（装置原创 SVG 角色，不捆绑第三方素材）</p>
+        <div className="astryn-settings-row-group" role="group" aria-label="渲染驱动">
+          {AVATAR_RENDERERS.map((renderer) => (
+            <label key={renderer.rendererId} className="astryn-settings-option">
+              <input
+                type="radio"
+                name={rendererGroupName}
+                data-testid={`astryn-renderer-${renderer.rendererId}`}
+                // 选中态绑定"实际生效的驱动"：档案存未注册 id 时勾选回退项（与画面一致），
+                // 下方小字披露回退原因——控件状态不得与渲染事实相反（审计 B4）。
+                checked={rendererResolution.renderer.rendererId === renderer.rendererId}
+                onChange={() => set({ appearance: { rendererId: renderer.rendererId } })}
+              />
+              <span>
+                <strong>{renderer.displayName}</strong>
+                <br />
+                <span className="astryn-disclosure">
+                  {RENDERER_ORIGIN_LABELS[renderer.provenance.origin]} · {renderer.provenance.note}
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+        <p className="astryn-disclosure" data-testid="astryn-settings-renderer">
+          当前渲染器：{rendererResolution.renderer.displayName}（{rendererResolution.renderer.rendererId}）
+        </p>
+        {!rendererResolution.exact ? (
+          <p className="astryn-disclosure" data-testid="astryn-settings-renderer-fallback">{rendererResolution.reason}</p>
+        ) : null}
         <label className="astryn-settings-inline">
           <input
             type="checkbox"
             data-testid="astryn-settings-reduced-motion"
-            checked={profile.appearance.reducedMotion}
+            checked={profile.appearance.reducedMotion || systemReducedMotion}
+            disabled={systemReducedMotion}
+            title={systemReducedMotion ? '系统已开启“减少动效”，应用内不可覆盖' : undefined}
             onChange={(event) => set({ appearance: { reducedMotion: event.target.checked } })}
           />
-          减少动效
+          减少动效{systemReducedMotion ? '（系统已开启，不可覆盖）' : ''}
         </label>
       </fieldset>
 

@@ -30,7 +30,8 @@ export interface AstrynAvatarInstance {
 
 /** 素材来源必须在契约层面可声明，便于审查许可证与原创性。 */
 export interface AstrynAssetProvenance {
-  readonly origin: 'original' | 'licensed-third-party' | 'unknown';
+  /** ai-generated = 外部 AI 生产（平台条款授权），不是原创手绘，也不得声称原创。 */
+  readonly origin: 'original' | 'ai-generated' | 'licensed-third-party' | 'unknown';
   readonly license: string;
   readonly note: string;
 }

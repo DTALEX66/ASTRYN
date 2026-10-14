@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createEvent, initialState, toVisibleState } from '@astryn/contracts';
-import type { AstrynAnyEvent, AstrynCompanionState } from '@astryn/contracts';
+import { ASTRYN_TASK_STATES_REQUIRING_RECEIPT, createEvent, initialState, toVisibleState } from '@astryn/contracts';
+import type { AstrynAnyEvent, AstrynCompanionState, AstrynTaskStateName } from '@astryn/contracts';
 import { reduceCompanionState } from '@astryn/core';
 
 const model = {
@@ -101,6 +101,46 @@ describe('对话状态机', () => {
     expect(forged.applied).toBe(false);
     expect(forged.note).toBe('task-event-requires-authoritative-receipt');
     expect(forged.state.task.status).toBe('none');
+  });
+
+  it('需回执任务状态不变量：契约表的每个状态都只能经权威事件写入且 receiptId 非空（A15）', () => {
+    const authoritative = (kind: string, payload: Record<string, unknown>, seq: number) =>
+      createEvent({
+        source: 'host-task',
+        trust: 'authoritative',
+        kind: kind as never,
+        payload: payload as never,
+        sessionId: 's1',
+        requestId: 'a1',
+        taskId: 't1',
+        seq
+      }) as unknown as AstrynAnyEvent;
+
+    // 每个需回执状态各配一条能写入它的权威事件；表驱动防止契约表与 reducer 硬编码漂移。
+    const cases = new Map<AstrynTaskStateName, AstrynAnyEvent>([
+      ['awaiting_approval', authoritative('task.approval.requested', { actionSummary: '删除临时文件', riskTier: 'high' }, 0)],
+      ['executing', authoritative('task.progress', { step: '执行中', percent: 30 }, 1)],
+      ['completed', authoritative('task.completed', { summary: '已删除' }, 2)],
+      ['failed', authoritative('task.failed', { code: 'TASK_EXECUTION_FAILED', message: '执行失败' }, 3)]
+    ]);
+    expect([...cases.keys()].sort()).toEqual([...ASTRYN_TASK_STATES_REQUIRING_RECEIPT].sort());
+
+    for (const expected of ASTRYN_TASK_STATES_REQUIRING_RECEIPT) {
+      const event = cases.get(expected);
+      if (!event) throw new Error(`missing authoritative case for ${expected}`);
+      const { state } = start();
+      const result = reduceCompanionState(state, event);
+      expect(result.applied).toBe(true);
+      expect(result.state.task.status).toBe(expected);
+      expect(result.state.task.receiptId).not.toBeNull();
+      expect(toVisibleState(result.state)).toBe(expected);
+    }
+
+    // 对照腿：同表语义经观测通道必然被拒，状态不动、无回执。
+    const forged = reduceCompanionState(start().state, conv('s1', 'r1', 'task.progress', { step: '伪造', percent: 99 }, 0));
+    expect(forged.applied).toBe(false);
+    expect(ASTRYN_TASK_STATES_REQUIRING_RECEIPT.includes(forged.state.task.status)).toBe(false);
+    expect(forged.state.task.receiptId).toBeNull();
   });
 
   it('提交新一轮会保留仍在进行的权威任务', () => {

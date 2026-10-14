@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createEvent, parseAstrynEventEnvelope } from '@astryn/contracts';
-import type { AstrynAnyEvent } from '@astryn/contracts';
+import type { AstrynActionReceipt, AstrynAnyEvent } from '@astryn/contracts';
 import { AstrynCompanionController, SyntheticConversationPort, SyntheticHostSimulator, XIAOQI_PROFILE, initialState } from '@astryn/core';
 import { createHostTap } from '../support/host-tap';
 
@@ -178,6 +178,7 @@ describe('任务状态权威链（A08）', () => {
       receiptId: 'r-1',
       taskId: 't-1',
       actionRequestId: 'a-1',
+      sessionId: null,
       outcome: 'completed' as const,
       issuedBy: 'someone',
       issuedAt: new Date().toISOString(),
@@ -239,6 +240,7 @@ describe('任务状态权威链（A08）', () => {
       receiptId: 'fixed-1',
       taskId: submitted.taskId,
       actionRequestId: 'a-10',
+      sessionId: 's1',
       outcome: 'completed' as const,
       issuedBy: simulator.hostId,
       issuedAt: new Date().toISOString(),
@@ -254,6 +256,65 @@ describe('任务状态权威链（A08）', () => {
     await controller.ingestReceipt(receipt);
     expect(controller.currentState.task.step).toBe(stepBefore);
     expect(await simulator.verify(receipt)).toEqual({ ok: false, reason: 'REPLAYED', issuer: simulator.hostId });
+  });
+
+  it('切换会话后：旧会话回执被前置丢弃，null 归属回执沿校验链正常推进（A4）', async () => {
+    const simulator = new SyntheticHostSimulator();
+    const controller = controllerWith(simulator);
+    const submitted = await simulator.submit({
+      protocol: 'astryn-1',
+      requestId: 'a-11',
+      sessionId: 's1',
+      actionKind: 'workspace.delete',
+      summary: '删除 build 目录',
+      riskTier: 'high',
+      argumentsDigest: 'sha256:demo'
+    });
+    if (!submitted.ok) throw new Error('expected task id');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(controller.currentState.task.status).toBe('awaiting_approval');
+
+    controller.switchSession('s2');
+    expect(controller.currentState.task.status).toBe('none');
+
+    // 旧会话（s1）的后续回执：即便签名材料合法，也不得移动 s2 的任务状态。
+    const stale: AstrynActionReceipt = {
+      receiptId: 'old-1',
+      taskId: submitted.taskId,
+      actionRequestId: 'a-11',
+      sessionId: 's1',
+      outcome: 'approval-granted',
+      issuedBy: simulator.hostId,
+      issuedAt: '2026-10-13T00:00:00.000Z',
+      summary: '旧会话回执',
+      failureCode: null,
+      riskTier: null,
+      authority: 'synthetic-fixture',
+      signature: 'sig-old-1'
+    };
+    await controller.ingestReceipt(stale);
+    expect(controller.currentState.task.status).toBe('none');
+    expect(controller.audit.rejected['receipt-session-mismatch']).toBe(1);
+    expect(controller.audit.lastRejectedReason).toBe('receipt-session-mismatch');
+
+    // null 归属（宿主未提供）按当前会话处理：走完校验 → 权威推进 s2 的任务。
+    const unstamped: AstrynActionReceipt = {
+      receiptId: 'cur-ok-1',
+      taskId: 't-s2',
+      actionRequestId: 'a-12',
+      sessionId: null,
+      outcome: 'approval-requested',
+      issuedBy: simulator.hostId,
+      issuedAt: '2026-10-13T00:00:02.000Z',
+      summary: 's2 的任务请求授权',
+      failureCode: null,
+      riskTier: 'low',
+      authority: 'synthetic-fixture',
+      signature: 'sig-cur-ok-1'
+    };
+    await controller.ingestReceipt(unstamped);
+    expect(controller.currentState.task.status).toBe('awaiting_approval');
+    expect(controller.audit.lastVerification?.ok).toBe(true);
   });
 
   it('initialState 的任务状态起点是 none，不是 0 或 completed', () => {

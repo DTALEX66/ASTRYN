@@ -9,11 +9,14 @@
  * - 限制请求体大小与超时，不记录请求正文与响应正文。
  * - 上游未配置时返回 503 MODEL_UNAVAILABLE，由界面明确显示，不做任何脚本兜底。
  *
- * 用法：npm run dev:proxy（可在 .env 中提供下列变量，或直接在 shell 里 export）
+ * 用法：npm run dev:proxy
+ *   环境变量在 shell 中 export（npm script 不自动加载 .env 文件；需要直接读 .env 可显式运行
+ *   node --env-file-if-exists=.env dev-host/server/dev-model-proxy.mjs，需 Node ≥22.9）：
  *   ASTRYN_DEV_MODEL_BASE_URL  例如 https://api.<provider>/v1
  *   ASTRYN_DEV_MODEL_API_KEY   上游凭据（不会被回传给浏览器）
  *   ASTRYN_DEV_MODEL           模型标识
  *   ASTRYN_DEV_PROXY_PORT      默认 8791
+ *   ASTRYN_DEV_MODEL_TIMEOUT_MS 上游超时，默认 30000
  */
 
 import { createServer } from 'node:http';
@@ -113,7 +116,10 @@ const server = createServer(async (req, res) => {
     const upstreamUrl = `${BASE_URL}/chat/completions`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
-    req.on('close', () => controller.abort());
+    // 客户端断开即中止上游。信号必须用 res 的 'close'：Node ≥16 里 req 的 'close'
+    // 在请求体读完时就触发（此刻早已读过 readBody），而 res 'close' 在响应完成或
+    // 连接提前终止时触发——正常完成时上游流已消费完，abort 无副作用（审计 B3）。
+    res.on('close', () => controller.abort());
 
     try {
       const upstream = await fetch(upstreamUrl, {

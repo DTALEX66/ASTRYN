@@ -253,4 +253,32 @@ describe('GF06 记忆治理：查看/纠正/忘记/停用均经宿主端口并�
     expect(result.readBack?.verified).toBe(false);
     expect(result.ok).toBe(false);
   });
+
+  it('view/export 读路径同过 decideRead：禁读作用域被排除且显式披露（A10）', async () => {
+    const port = new SyntheticMemoryFixture({ now: () => NOW });
+    const companion = new MemoryManager({ port, sessionId: SESSION, now: () => NOW });
+    await companion.propose({ scope: 'companion_private', origin: 'user-stated', summary: '只给陪伴看的私密内容' });
+    await companion.propose({ scope: 'user_preference', origin: 'user-stated', summary: '公开偏好' });
+    await companion.propose({ scope: 'character_fiction', origin: 'model-generated', summary: '虚构剧情' });
+
+    // companion 视角：无禁读表，三条都可见且无排除。
+    const own = await companion.view();
+    expect(own.records.map((record) => record.id)).toEqual(['cand-1', 'cand-2', 'cand-3']);
+    expect(own.readExclusions).toEqual([]);
+
+    // task 视角：companion_private 与 character_fiction 均被拒，排除项带原因与计数。
+    const taskReader = new MemoryManager({ port, sessionId: SESSION, consumer: 'task', now: () => NOW });
+    const taskView = await taskReader.view();
+    expect(taskView.records.map((record) => record.id)).toEqual(['cand-2']);
+    expect(taskView.readExclusions).toEqual([
+      { scope: 'companion_private', reason: 'PRIVATE_CONTENT_NOT_SHAREABLE', count: 1 },
+      { scope: 'character_fiction', reason: 'CONSUMER_FORBIDDEN_FOR_SCOPE', count: 1 }
+    ]);
+
+    const exported = await taskReader.exportEvidence();
+    expect(exported.exported?.records.map((record) => record.id)).toEqual(['cand-2']);
+    expect(exported.exported?.limitations.some((line) => line.includes('companion_private') && line.includes('PRIVATE_CONTENT_NOT_SHAREABLE'))).toBe(true);
+    expect(exported.json).not.toContain('只给陪伴看的私密内容');
+    expect(exported.json).not.toContain('虚构剧情');
+  });
 });

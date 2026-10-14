@@ -34,6 +34,7 @@ const receipt = (overrides: Partial<AstrynActionReceipt>): AstrynActionReceipt =
   receiptId: 'r1',
   taskId: 't1',
   actionRequestId: 'req-1',
+  sessionId: 's1',
   outcome: 'completed',
   issuedBy: 'aaos-core',
   issuedAt: '2026-10-13T00:00:00.000Z',
@@ -225,11 +226,27 @@ describe('AaosHostBridge：端口实现只消费真实宿主回执/响应', () =
     expect((events[1]?.payload as { text: string }).text).toBe('合成的答案');
   });
 
-  it('会话端口 availability 如实报告宿主无通用流式面', async () => {
+  it('会话端口 availability 来自真实能力探测：不可达报 NETWORK，不猜测宿主', async () => {
     const bridge = new AaosHostBridge({ baseUrl: 'http://127.0.0.1:1', transport: makeTransport({}).transport });
     const availability = await bridge.conversation()?.availability();
     expect(availability?.available).toBe(false);
+    expect(availability?.failureCode).toBe('NETWORK');
+  });
+
+  it('会话端口 availability：可达但注册表未确认会话能力 → HOST_CONTRACT_MISSING（未知不当可用）', async () => {
+    const { transport } = makeTransport({ [AAOS_ENDPOINTS.version]: versionOk });
+    const bridge = new AaosHostBridge({ baseUrl: 'http://127.0.0.1:1', transport });
+    const availability = await bridge.conversation()?.availability();
+    expect(availability?.available).toBe(false);
     expect(availability?.failureCode).toBe('HOST_CONTRACT_MISSING');
+    expect(availability?.reason ?? '').toContain('注册表未确认');
+  });
+
+  it('会话端口 availability：协议确认 + 注册表确认会话能力 → available:true（一次性问答通路真实存在，不谎报缺）', async () => {
+    const { transport } = makeTransport({ [AAOS_ENDPOINTS.version]: versionOk, [AAOS_ENDPOINTS.capabilities]: registryOk });
+    const bridge = new AaosHostBridge({ baseUrl: 'http://127.0.0.1:1', transport });
+    const availability = await bridge.conversation()?.availability();
+    expect(availability).toEqual({ available: true, reason: null, failureCode: null });
   });
 
   it('会话端口上游 500：stream.failed 且带 retryable，不产出 completed', async () => {

@@ -107,12 +107,15 @@ export type {
   SpeechStopResult
 } from './speech/playback';
 export { STATE_VISUALS, MOUTH_CYCLE, eyesFor, mouthPathFor } from './avatar/state-visuals';
-export { XiaoqiAvatar, describeXiaoqiFrame } from './avatar/xiaoqi-avatar';
+export { XiaoqiAvatar, describeXiaoqiFrame, assertStateHasDistinctVisual } from './avatar/xiaoqi-avatar';
 export { AVATAR_VIEW_PROFILES, avatarViewProfile, avatarViewForMode } from './avatar/render-profiles';
 export type { AstrynAvatarViewId } from './avatar/render-profiles';
 export { ASTRYN_BODY_PRESETS, RESERVED_BODY_PRESETS, STATE_ACTIONS, bodyPresetFor, unreachedBodyPresets } from './avatar/state-action-matrix';
 export type { AstrynBodyPreset, AstrynStateActionSpec } from './avatar/state-action-matrix';
-export { xiaoqiSvgRenderer, renderXiaoqiMarkup, AVATAR_RENDERERS, selectAvatarRenderer, resolveAvatarRenderer } from './avatar/xiaoqi-svg-renderer';
+export { xiaoqiSvgRenderer, renderXiaoqiMarkup } from './avatar/xiaoqi-svg-renderer';
+export { xiaoqiRasterRenderer, renderXiaoqiRasterMarkup } from './avatar/xiaoqi-raster-renderer';
+export { AVATAR_RENDERERS, selectAvatarRenderer, resolveAvatarRenderer } from './avatar/renderer-registry';
+export type { AstrynRendererResolution } from './avatar/renderer-registry';
 export { redactErrorText } from './adapters/openai-compatible';
 export { CompanionShell } from './presentation/companion-shell';
 export { AstrynCompanionEntry } from './presentation/host-entry';

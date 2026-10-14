@@ -8,7 +8,7 @@ import type {
   AstrynContextFragment
 } from '@astryn/contracts';
 import { toVisibleState } from '@astryn/contracts';
-import { resolveAvatarRenderer } from '../avatar/xiaoqi-svg-renderer';
+import { fallbackAvatarRenderer, resolveAvatarRenderer } from '../avatar/renderer-registry';
 
 export interface CompanionViewProps {
   readonly state: AstrynCompanionState;
@@ -51,7 +51,6 @@ export function AvatarView({ state, profile, reducedMotion, view, renderer }: Av
   const resolution = renderer
     ? { renderer, exact: true, reason: null as string | null }
     : resolveAvatarRenderer(profile.appearance.rendererId);
-  const selected = resolution.renderer;
   const frame: AstrynAvatarFrame = {
     characterId: profile.characterId,
     sessionId: state.sessionId,
@@ -63,7 +62,13 @@ export function AvatarView({ state, profile, reducedMotion, view, renderer }: Av
     reducedMotion
   };
   const mountHost = useRef<HTMLDivElement | null>(null);
+  const markupHost = useRef<HTMLDivElement | null>(null);
   const [mountFailed, setMountFailed] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
+
+  // 位图加载失败（文件缺失/损坏）回退到 SVG 下限：与"未注册 id"走同一条回退路径，
+  // 且以 data-renderer-fallback=image-error 显式作证，不静默冒充交付成功。
+  const selected = imageFailed ? fallbackAvatarRenderer() : resolution.renderer;
 
   // 渲染失败可回退：标记渲染抛错或命令式挂载失败时，退到可读的文本状态行，
   // 绝不把错误细节或外部文本写进 DOM（注入不变量的另一半）。
@@ -77,7 +82,23 @@ export function AvatarView({ state, profile, reducedMotion, view, renderer }: Av
     }
   }
 
+  // <img> 的 error 事件是异步的：挂载后监听，响应后再切换 selected。
+  // 已 complete 且 naturalWidth=0 的图（失败发生在 effect 之前）当场判定。
+  useEffect(() => {
+    if (imageFailed || renderFailed || markup === undefined || !markupHost.current) return;
+    const img = markupHost.current.querySelector('img');
+    if (!img) return;
+    const onError = (): void => setImageFailed(true);
+    if (img.complete && img.naturalWidth === 0) {
+      onError();
+      return;
+    }
+    img.addEventListener('error', onError);
+    return () => img.removeEventListener('error', onError);
+  }, [markup, imageFailed, renderFailed]);
+
   // 命令式驱动（WebGL / Live2D）走 mount 分支；SVG 驱动走标记分支。UI 不认识具体实现。
+  // 依赖列到 frame 的每个字段：只在画面输入真实变化时重建实例，避免逐帧 dispose/remount。
   useEffect(() => {
     if (renderFailed || markup !== undefined || !selected.mount || !mountHost.current) return;
     try {
@@ -88,10 +109,11 @@ export function AvatarView({ state, profile, reducedMotion, view, renderer }: Av
     } catch {
       setMountFailed(true);
     }
-  });
+  }, [renderFailed, markup, selected, frame.visibleState, frame.expressionFrame, frame.reducedMotion, frame.streamedText, frame.taskStep, frame.failureMessage]);
 
   // 未注册 rendererId 的静默回退是"未知当作可用"，这里显式作证：data-renderer-exact=false。
   const exactAttr = resolution.exact ? undefined : 'false';
+  const fallbackAttr = imageFailed ? 'image-error' : undefined;
   if (renderFailed) {
     return (
       <div
@@ -113,7 +135,9 @@ export function AvatarView({ state, profile, reducedMotion, view, renderer }: Av
         className="astryn-avatar"
         data-renderer={selected.rendererId}
         data-renderer-exact={exactAttr}
+        data-renderer-fallback={fallbackAttr}
         data-testid="astryn-avatar-host"
+        ref={markupHost}
         dangerouslySetInnerHTML={{ __html: markup }}
       />
     );
@@ -195,7 +219,6 @@ export interface ComposerProps {
   readonly onFocus: () => void;
   readonly onBlur: () => void;
   readonly streaming: boolean;
-  readonly disabled: boolean;
 }
 
 export function Composer({
@@ -207,8 +230,7 @@ export function Composer({
   onCancel,
   onFocus,
   onBlur,
-  streaming,
-  disabled
+  streaming
 }: ComposerProps): JSX.Element {
   return (
     <form
@@ -240,8 +262,7 @@ export function Composer({
       <input
         data-testid="astryn-input"
         value={value}
-        disabled={disabled}
-        placeholder={disabled ? '角色已隐藏' : '和小栖说点什么…'}
+        placeholder="和小栖说点什么…"
         aria-label="发送给小栖的消息"
         onChange={(event) => onValueChange(event.target.value)}
         onFocus={onFocus}

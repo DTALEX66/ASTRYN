@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ASTRYN_HOST_SLOT_SPECS,
   ASTRYN_PROTOCOL_VERSION,
-  ASTRYN_PRESENTATION_MODE_SPECS,
   ASTRYN_SPEECH_CONTRACT_OWNER,
   ASTRYN_SPEECH_PROPOSAL,
   ASTRYN_SPEECH_UNCONNECTED_REASON,
@@ -12,10 +11,12 @@ import {
   SyntheticMemoryFixture,
   MemoryManager,
   XIAOQI_PROFILE,
+  availableModes,
   createCompanionSessionManager,
   createEphemeralProfileStore,
   createLearningCompanion,
   describePortAvailability,
+  modeSpec,
   resolveConversation,
   type AstrynContextFragment,
   type AstrynHostCapabilities,
@@ -94,7 +95,8 @@ export function DevHostApp(): JSX.Element {
     [config.aaosBaseUrl, hostProbe]
   );
 
-  const implementedModes = ASTRYN_PRESENTATION_MODE_SPECS.filter((spec) => spec.implementedInM0);
+  // 唯一事实来源：可用模式取自 mode-registry 的 availableModes()，dev-host 不内联复制过滤条件（审计 B15）。
+  const implementedModes = availableModes().map((mode) => modeSpec(mode));
 
   const selectionProvider = useMemo(() => (async (): Promise<AstrynContextFragment | null> => {
     const selected = (window.getSelection()?.toString() ?? '').trim();
@@ -192,12 +194,15 @@ export function DevHostApp(): JSX.Element {
             ) : null}
           </div>
           <div className="astryn-state-strip" data-testid="devhost-source">
-            <span className="astryn-chip">模型来源：{resolved.info.kind}</span>
-            <span className="astryn-chip">证据级别：{resolved.info.evidenceLevel}</span>
-            <span className="astryn-chip">{resolved.info.available ? '可用' : 'MODEL_UNAVAILABLE'}</span>
+            {/* 来源条读"当前实际生效"而不是"配置解析结果"：切到「无模型」后不得仍显示可用（审计 B7）。 */}
+            <span className="astryn-chip">模型来源：{conversationPort ? resolved.info.kind : 'none'}</span>
+            <span className="astryn-chip">证据级别：{conversationPort ? resolved.info.evidenceLevel : 'NO_EVIDENCE'}</span>
+            <span className="astryn-chip">{conversationPort && resolved.info.available ? '可用' : 'MODEL_UNAVAILABLE'}</span>
             {simulator ? <span className="astryn-chip astryn-chip--task">合成宿主模拟器：开（SYNTHETIC）</span> : null}
           </div>
-          <div className="astryn-disclosure" data-testid="devhost-reason">{resolved.info.reason ?? ''}</div>
+          <div className="astryn-disclosure" data-testid="devhost-reason">
+            {conversationPort ? resolved.info.reason ?? '' : '已切到「无模型」：对话端口已断开，提交会落到 MODEL_UNAVAILABLE。'}
+          </div>
           <ul className="devhost-list">
             {resolved.trace.map((line) => <li key={line}>{line}</li>)}
           </ul>

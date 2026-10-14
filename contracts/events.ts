@@ -10,7 +10,8 @@ export type AstrynConversationEventKind =
   | 'stream.delta'
   | 'stream.completed'
   | 'stream.failed'
-  | 'model.unavailable';
+  | 'model.unavailable'
+  | 'model.available';
 
 /** 任务事件。只有携带已校验宿主回执（trust=authoritative）时才被状态机接受。 */
 export type AstrynTaskEventKind =
@@ -24,7 +25,7 @@ export type AstrynEventKind = AstrynConversationEventKind | AstrynTaskEventKind;
 
 export const ASTRYN_CONVERSATION_EVENT_KINDS: readonly AstrynConversationEventKind[] = [
   'input.focus', 'input.blur', 'turn.submitted', 'turn.cancelled',
-  'stream.started', 'stream.delta', 'stream.completed', 'stream.failed', 'model.unavailable'
+  'stream.started', 'stream.delta', 'stream.completed', 'stream.failed', 'model.unavailable', 'model.available'
 ];
 
 export const ASTRYN_TASK_EVENT_KINDS: readonly AstrynTaskEventKind[] = [
@@ -52,6 +53,7 @@ export interface KindToPayload {
   'stream.completed': { readonly finishReason: string };
   'stream.failed': { readonly code: AstrynFailureCode; readonly message: string; readonly retryable: boolean };
   'model.unavailable': { readonly reason: string; readonly configuredSource: 'none' | 'aaos-host' | 'dev-proxy' | 'synthetic' };
+  'model.available': { readonly configuredSource: 'none' | 'aaos-host' | 'dev-proxy' | 'synthetic' };
   'task.approval.requested': { readonly actionSummary: string; readonly riskTier: 'low' | 'medium' | 'high' };
   'task.approval.decided': { readonly approved: boolean; readonly decidedBy: 'user' | 'policy' };
   'task.progress': { readonly step: string; readonly percent: number | null };

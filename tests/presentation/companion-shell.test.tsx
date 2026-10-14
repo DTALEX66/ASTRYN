@@ -1,15 +1,25 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { XIAOQI_PROFILE } from '@astryn/contracts';
-import { CompanionShell, STATE_VISUALS, SyntheticConversationPort, XiaoqiAvatar, renderXiaoqiMarkup } from '@astryn/core';
+import type { AstrynCharacterProfile } from '@astryn/contracts';
+import { CompanionShell, STATE_VISUALS, SyntheticConversationPort, XiaoqiAvatar, assertStateHasDistinctVisual, avatarViewProfile, renderXiaoqiMarkup } from '@astryn/core';
 import { toVisibleState } from '@astryn/contracts';
+
+/**
+ * 本文件的断言目标是 v1 SVG 驱动的帧行为（状态环/口型帧/data-motion），
+ * 因此显式选择 svg 驱动挂载；默认档案（v2 位图）的挂载在下方单独断言。
+ */
+const SVG_PROFILE: AstrynCharacterProfile = {
+  ...XIAOQI_PROFILE,
+  appearance: { ...XIAOQI_PROFILE.appearance, rendererId: 'xiaoqi-svg-v1' }
+};
 
 function shell(props: Partial<Parameters<typeof CompanionShell>[0]> = {}) {
   return render(
     <CompanionShell
       mode="panel"
       sessionId="s1"
-      profile={XIAOQI_PROFILE}
+      profile={SVG_PROFILE}
       conversation={new SyntheticConversationPort({ steps: [{ text: '我在呢' }, { finish: 'stop' }] })}
       {...props}
     />
@@ -30,10 +40,33 @@ describe('原创小栖可见状态（A03/A04）', () => {
     expect(screen.getByTestId('astryn-evidence-tag').textContent).toContain('SYNTHETIC');
   });
 
-  it('九种状态两两视觉可辨（环色 + 眼型 + 嘴型组合唯一）', () => {
-    const signatures = Object.entries(STATE_VISUALS).map(([state, tokens]) => `${tokens.ringColor}|${tokens.eyeMode}|${tokens.mouthMode}|${tokens.glyph}|${state}`);
-    const markup = Object.entries(STATE_VISUALS).map(([state]) =>
-      renderXiaoqiMarkup({
+  it('默认档案经管理器渲染 MINIMAX 交付位图（v2 默认驱动），槽位走同一条令牌链', () => {
+    render(<CompanionShell mode="panel" sessionId="s1" profile={XIAOQI_PROFILE} conversation={null} />);
+    const host = screen.getByTestId('astryn-avatar-host');
+    expect(host.getAttribute('data-renderer')).toBe('xiaoqi-raster-v2');
+    expect(host.getAttribute('data-renderer-exact')).toBeNull();
+    const img = screen.getByTestId('astryn-avatar');
+    expect(img.tagName).toBe('IMG');
+    expect(img.getAttribute('data-visible-state')).toBe('idle');
+    // 槽位令牌链（C12）：panel → sidebar 档的 data-avatar-view 必须出现在外壳上，
+    // 且位图宽度属性取自同档令牌——若壳层忽略 view，渲染器会兜底 240 而这里立刻变红。
+    expect(screen.getByTestId('astryn-shell').getAttribute('data-avatar-view')).toBe('sidebar');
+    expect(img.getAttribute('width')).toBe(String(avatarViewProfile('sidebar').width));
+    expect(img.getAttribute('width')).toBe('168');
+  });
+
+  it('九种状态两两视觉可辨（环色 + 眼型 + 嘴型组合唯一，剥离状态名后仍唯一）', () => {
+    const entries = Object.entries(STATE_VISUALS);
+    expect(entries.length).toBe(9);
+    // 令牌签名不含状态名：若两个状态的视觉组合相同，这里会立刻撞车。
+    const signatures = entries.map(([, tokens]) => `${tokens.ringColor}|${tokens.eyeMode}|${tokens.mouthMode}|${tokens.glyph}`);
+    expect(new Set(signatures).size).toBe(signatures.length);
+
+    // 绘制内容比较同样剥离状态名：markup 里内嵌 data-visible-state/aria-label，
+    // 不剥离则"九个 markup 互异"恒真，证明不了任何视觉差异（审计 C1）。
+    const stripped = entries.map(([state]) => {
+      assertStateHasDistinctVisual(state);
+      const markup = renderXiaoqiMarkup({
         characterId: 'xiaoqi',
         sessionId: 's1',
         visibleState: state as never,
@@ -42,11 +75,15 @@ describe('原创小栖可见状态（A03/A04）', () => {
         taskStep: null,
         failureMessage: null,
         reducedMotion: false
-      })
-    );
-    expect(new Set(signatures).size).toBe(signatures.length);
-    expect(new Set(markup).size).toBe(markup.length);
-    expect(signatures.length).toBe(9);
+      });
+      const withoutStateName = markup.replace(/data-visible-state="[^"]*"/, '').replace(/aria-label="[^"]*"/, '');
+      expect(withoutStateName).not.toBe(markup);
+      return withoutStateName;
+    });
+    expect(new Set(stripped).size).toBe(stripped.length);
+
+    // 未登记状态必须抛错，而不是静默拼出 undefined 令牌。
+    expect(() => assertStateHasDistinctVisual('not-a-registered-state')).toThrow();
   });
 
   it('输入框聚焦让角色进入 listening：真实交互事件驱动表情', () => {
@@ -76,7 +113,7 @@ describe('原创小栖可见状态（A03/A04）', () => {
       <CompanionShell
         mode="panel"
         sessionId="s1"
-        profile={XIAOQI_PROFILE}
+        profile={SVG_PROFILE}
         conversation={new SyntheticConversationPort({ steps: [{ text: 'x' }, { finish: 'stop' }] })}
       />
     );
@@ -110,7 +147,7 @@ describe('原创小栖可见状态（A03/A04）', () => {
       steps: [{ text: '慢', delayMs: 30 }, { text: '慢', delayMs: 30 }, { finish: 'stop' }]
     });
     const utils = render(
-      <CompanionShell mode="panel" sessionId="s1" profile={XIAOQI_PROFILE} conversation={port} />
+      <CompanionShell mode="panel" sessionId="s1" profile={SVG_PROFILE} conversation={port} />
     );
     fireEvent.change(screen.getByTestId('astryn-input'), { target: { value: '说慢点' } });
     fireEvent.submit(screen.getByTestId('astryn-input').closest('form') as HTMLElement);
@@ -208,6 +245,20 @@ describe('Q7 系统级 prefers-reduced-motion（只增强，不削弱）', () =>
     }
   });
 
+  it('系统开启时设置页“减少动效”同样只读并如实标注（应用内不可覆盖系统，B1）', () => {
+    const stub = installMatchMedia(true);
+    try {
+      shell();
+      fireEvent.click(screen.getByTestId('astryn-settings-toggle'));
+      const checkbox = screen.getByTestId('astryn-settings-reduced-motion') as HTMLInputElement;
+      expect(checkbox.disabled).toBe(true);
+      expect(checkbox.checked).toBe(true);
+      expect(checkbox.closest('label')?.textContent ?? '').toContain('不可覆盖');
+    } finally {
+      stub.restore();
+    }
+  });
+
   it('系统偏好运行中切换（change 事件）实时生效，可回开', () => {
     const stub = installMatchMedia(false);
     try {
@@ -231,5 +282,21 @@ describe('Q7 系统级 prefers-reduced-motion（只增强，不削弱）', () =>
     } finally {
       stub.restore();
     }
+  });
+});
+
+describe('工具栏减少动效写入档案（B2：档案变更不复位）', () => {
+  it('切换即更新档案值；后续任意档案变更不把它静默复位，设置页读到同一份值', () => {
+    shell();
+    const svg = (): Element | null => screen.getByTestId('astryn-avatar-host').querySelector('svg');
+    expect(svg()?.getAttribute('data-motion')).toBe('on');
+    fireEvent.click(screen.getByTestId('astryn-toggle-motion'));
+    expect(svg()?.getAttribute('data-motion')).toBe('off');
+    // 任一档案变更（回复长度切换走同一条 setProfile 通道）不得复位该选择。
+    fireEvent.click(screen.getByTestId('astryn-reply-length'));
+    expect(svg()?.getAttribute('data-motion')).toBe('off');
+    // 设置页读同一份档案值：单一事实来源，不存在会被覆盖的本地态。
+    fireEvent.click(screen.getByTestId('astryn-settings-toggle'));
+    expect((screen.getByTestId('astryn-settings-reduced-motion') as HTMLInputElement).checked).toBe(true);
   });
 });

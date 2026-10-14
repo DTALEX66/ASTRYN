@@ -171,7 +171,7 @@ export class AaosHostBridge implements AstrynHostPort, AstrynReceiptVerifier {
   }
 
   conversation(): AstrynConversationPort | null {
-    return this.configured ? new AaosMachineAnswerPort(this.transport, this.headers.bind(this)) : null;
+    return this.configured ? new AaosMachineAnswerPort(this.transport, this.headers.bind(this), () => this.probeCapabilities()) : null;
   }
 
   memory(): AstrynMemoryPort | null {
@@ -225,15 +225,40 @@ class AaosMachineAnswerPort implements AstrynConversationPort {
 
   constructor(
     private readonly http: AaosTransport,
-    private readonly headers: (extra?: Record<string, string>) => Record<string, string>
+    private readonly headers: (extra?: Record<string, string>) => Record<string, string>,
+    private readonly probeCapabilities?: () => Promise<AstrynHostCapabilities | AstrynHostUnavailable>
   ) {}
 
+  /**
+   * 可用性来自真实能力探测（版本 + 能力注册表），而不是恒 false 的常量（审计 A7）：
+   * 宿主无通用流式 chat completion，但 machine/answers 是一次性问答通路——
+   * stream() 会实调这个端点，availability() 就不能宣称它不存在。
+   * 注册表未确认会话能力时如实报缺（未知不当可用）。
+   */
   async availability(): Promise<AstrynConversationAvailability> {
-    return {
-      available: false,
-      reason: 'AAOS Core 现面无通用流式 chat completion；/api/v1/machine/answers 是一次性问答且需宿主 launch token。',
-      failureCode: 'HOST_CONTRACT_MISSING'
-    };
+    if (!this.probeCapabilities) {
+      return { available: false, reason: '缺少能力探测注入：未知不当可用。', failureCode: 'HOST_CONTRACT_MISSING' };
+    }
+    try {
+      const probe = await this.probeCapabilities();
+      if ('available' in probe) {
+        return {
+          available: false,
+          reason: probe.detail,
+          failureCode: probe.code === 'AUTHORITY_REFERENCE_MISSING' ? 'NETWORK' : 'HOST_CONTRACT_MISSING'
+        };
+      }
+      if (!probe.conversation) {
+        return {
+          available: false,
+          reason: '能力注册表未确认会话能力（未知不当可用）：宿主无通用流式 chat completion，machine/answers 为一次性问答。',
+          failureCode: 'HOST_CONTRACT_MISSING'
+        };
+      }
+      return { available: true, reason: null, failureCode: null };
+    } catch (error) {
+      return { available: false, reason: `AAOS 能力探测失败：${error instanceof Error ? error.message : String(error)}`, failureCode: 'NETWORK' };
+    }
   }
 
   /** 一次性问答映射为"单个 delta + completed"，不伪造逐字流式。 */
@@ -391,6 +416,30 @@ interface JobStatusRecord {
   readonly detail?: string;
 }
 
+/**
+ * AAOS job status → 回执结果的显式白名单（审计 A1）。
+ * 未列入的状态不产生任何回执：宿主返回未知值时宁可停在上一状态，
+ * 也不把未知默认成'执行中'——那会让 cancelled/denied 类终态永远轮询下去。
+ * cancelled/denied 等终态在 ASTRYN 词表里没有对应项，以 failed 收束（原始状态保留在 summary）。
+ */
+const RECEIPT_OUTCOME_BY_STATUS: Readonly<Record<string, AstrynActionReceipt['outcome']>> = {
+  completed: 'completed',
+  succeeded: 'completed',
+  failed: 'failed',
+  errored: 'failed',
+  cancelled: 'failed',
+  canceled: 'failed',
+  denied: 'failed',
+  rejected: 'failed',
+  expired: 'failed',
+  timed_out: 'failed',
+  running: 'started',
+  claimed: 'started',
+  executing: 'started',
+  queued: 'started',
+  pending: 'started'
+};
+
 class AaosActionPort implements AstrynActionPort {
   readonly protocol = ASTRYN_PROTOCOL_VERSION;
   readonly hostId = 'aaos-core';
@@ -487,16 +536,15 @@ class AaosActionPort implements AstrynActionPort {
       if (!response.ok) return;
       const record = (await response.json()) as JobStatusRecord;
       const status = record.status ?? record.state ?? 'unknown';
-      if (status === 'unknown') return;
-      const outcome: AstrynActionReceipt['outcome'] =
-        status === 'completed' || status === 'succeeded' ? 'completed'
-        : status === 'failed' || status === 'errored' ? 'failed'
-        : status === 'running' || status === 'claimed' || status === 'executing' ? 'started'
-        : 'started';
+      const outcome = RECEIPT_OUTCOME_BY_STATUS[status];
+      // 白名单之外（含字段缺失、宿主新增未知状态）：不产生回执、不改任何状态。
+      if (outcome === undefined) return;
       const receipt: AstrynActionReceipt = {
         receiptId: `${jobId}:${status}:${Date.now()}`,
         taskId: jobId,
         actionRequestId: request.requestId,
+        // 会话归属按提交时捕获的请求会话盖章（审计 A4）：轮询本身与会话无关，不能回填"当前"会话。
+        sessionId: request.sessionId,
         outcome,
         issuedBy: 'aaos-core',
         issuedAt: new Date().toISOString(),

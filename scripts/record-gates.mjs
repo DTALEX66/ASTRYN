@@ -7,7 +7,11 @@
  *
  * 用法（由 shell 负责真正执行门禁，本脚本不使用 child_process）：
  *   node scripts/record-gates.mjs --stage lint=0 --stage typecheck=0 --stage test=0 --stage build=0
+ *     --stage drift=0 --stage archive=0 （六个必选阶段，缺一即红）
+ *   --info aaosDrift=VERIFIED   可重复；承载日志里"非退出码"的结论，写入回执 info 字段。
  *
+ * 失败即红：必选阶段缺失或任一阶段非 0 时，回执照写（证据不丢）但进程以 1 退出——
+ * "写了回执"不等于"门禁通过"，调用方不得只看退出码为 0 就宣称全绿。
  * 输出：docs/verification/gates.json（提交物，供台账与后续 diff 引用）
  */
 
@@ -16,8 +20,18 @@ import { existsSync, readFileSync, readdirSync, statSync, writeFileSync, mkdirSy
 import { join, relative } from 'node:path';
 
 const ROOT = process.cwd();
-const SCOPES = ['contracts', 'src', 'dev-host', 'tests'];
-const ROOT_FILES = ['package.json', 'package-lock.json', 'tsconfig.json', 'vite.config.ts', 'eslint.config.js', 'design.qa.yaml', 'PROJECT_CONTRACT.yaml'];
+const SCOPES = ['contracts', 'src', 'dev-host', 'tests', 'scripts'];
+const ROOT_FILES = [
+  'package.json',
+  'package-lock.json',
+  'tsconfig.json',
+  'vite.config.ts',
+  'eslint.config.js',
+  'design.qa.yaml',
+  'PROJECT_CONTRACT.yaml',
+  // 资产清单进树哈希：PNG 字节由测试逐张核对，但清单本身（状态映射/来源/缺口）必须在回执内自证。
+  'assets/character/STATE-ASSET-INDEX.json'
+];
 
 /** 只接受绝对目录：递归时若再与 ROOT 拼接，Windows 下会得到 D:\...\D:\... 而静默返回空。 */
 function filesIn(absolute) {
@@ -53,16 +67,24 @@ const treeHash = createHash('sha256')
   .update(entries.map((entry) => `${entry.path}:${entry.sha256}`).join('\n'))
   .digest('hex');
 
+const REQUIRED_STAGES = ['lint', 'typecheck', 'test', 'build', 'drift', 'archive'];
 const stages = {};
+const info = {};
 const argv = process.argv.slice(2);
 for (let i = 0; i < argv.length; i += 1) {
-  if (argv[i] !== '--stage') continue;
-  const pair = argv[i + 1] ?? '';
-  const [name, code] = pair.split('=');
-  if (name) stages[name] = Number.isNaN(Number(code)) ? null : Number(code);
+  if (argv[i] === '--stage') {
+    const pair = argv[i + 1] ?? '';
+    const [name, code] = pair.split('=');
+    if (name) stages[name] = Number.isNaN(Number(code)) ? null : Number(code);
+  } else if (argv[i] === '--info') {
+    const pair = argv[i + 1] ?? '';
+    const [key, value] = pair.split('=');
+    if (key) info[key] = value ?? '';
+  }
 }
 
-const missing = Object.entries(stages).filter(([, code]) => code !== 0);
+const missingStages = REQUIRED_STAGES.filter((name) => !(name in stages));
+const failedStages = Object.entries(stages).filter(([, code]) => code !== 0).map(([name]) => name);
 
 /** 空阶段块会写出一份"看起来像回执、实际什么都没判"的文件，静默通过比失败更危险。 */
 if (Object.keys(stages).length === 0) {
@@ -98,7 +120,7 @@ function readGitAnchor() {
 }
 
 const receipt = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   generatedAt: new Date().toISOString(),
   toolchain: {
     node: process.version,
@@ -113,7 +135,10 @@ const receipt = {
     rootFiles: ROOT_FILES.filter((name) => existsSync(join(ROOT, name)))
   },
   stages,
-  allGreen: Object.keys(stages).length > 0 && missing.length === 0,
+  info,
+  missingStages,
+  failedStages,
+  allGreen: missingStages.length === 0 && failedStages.length === 0,
   files: entries
 };
 
@@ -124,3 +149,10 @@ writeFileSync(outPath, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
 process.stdout.write(
   `gates.json 已写入：${entries.length} 个源文件，树哈希 ${treeHash.slice(0, 16)}…，阶段 ${JSON.stringify(stages)}，全绿=${receipt.allGreen}\n`
 );
+
+if (!receipt.allGreen) {
+  process.stderr.write(
+    `record-gates: 门禁未全绿——缺失阶段 ${JSON.stringify(missingStages)}，失败阶段 ${JSON.stringify(failedStages)}；回执已写入但进程以 1 退出。\n`
+  );
+  process.exit(1);
+}

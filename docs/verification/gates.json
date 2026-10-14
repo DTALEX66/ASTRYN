@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "generatedAt": "2026-10-14T16:40:43.863Z",
+  "generatedAt": "2026-10-14T16:45:59.049Z",
   "toolchain": {
     "node": "v26.7.0",
     "platform": "win32",
@@ -9,12 +9,12 @@
   "git": {
     "repository": true,
     "branch": "main",
-    "head": "4163d7992ac7d963902cff8d4b1efd1fe05e2cb5",
+    "head": "9cfd2584a69b8398b260a4290f60b3cd1cbe5ae3",
     "worktreeNote": "需 git status 判定，见台账"
   },
   "sourceTree": {
     "files": 108,
-    "sha256": "07cd93516c9075037804d8e5ef3243280f0f1b329e136866c1496427dd9b4992",
+    "sha256": "e470188035ca5875e1c31f076e52ab49559ef686516a8c9a75a877f6e95dc584",
     "scopes": [
       "contracts",
       "src",
@@ -180,8 +180,8 @@
     },
     {
       "path": "PROJECT_CONTRACT.yaml",
-      "bytes": 9516,
-      "sha256": "dd32ff53daf33a920b882ea7c073316303dd20cfb67adf22a87cc14e3d1c1cf3"
+      "bytes": 9517,
+      "sha256": "7cfe010eea1791eb3dc396e7fcf34a3792caa2c32a69053a6315e3738a06697e"
     },
     {
       "path": "scripts/check-aaos-drift.mjs",

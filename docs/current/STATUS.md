@@ -2,7 +2,7 @@
 
 日期：2026-10-14（Asia/Shanghai）
 
-阶段：**M0 开发已执行**；第五轮（小栖虚拟人物接入 + 全量审计修复）已完成并重封门禁。开发宿主可运行、门禁全绿、契约与测试落地。真实模型 `NOT_TESTED`，AAOS 集成 `UNVERIFIED`。
+阶段：**M0 开发已执行**；第五轮（小栖虚拟人物接入 + 全量审计修复 + 文档回填）已完成、重封门禁并上传验证（main CI 双矩阵 success）。开发宿主可运行、门禁全绿、契约与测试落地。真实模型 `NOT_TESTED`，AAOS 集成 `UNVERIFIED`。
 
 ## 本轮做了什么
 
@@ -40,12 +40,14 @@ N2（全量审计，4 路只读子智能体）：A（contracts+src 核心）/B�
 
 N3（修复）：A/B/C 切片 44 项全部修复（每项落点见 `PROJECT-AUDIT.md` 的"N3 修复处置"，含两项 S1 门禁口径修复：`record-gates.mjs` 的 `REQUIRED_STAGES` fail-closed + `gate-chain.sh` 以 WORST 真退出；九态视觉签名剥离状态名后再比对）；D9（`.gitignore` 忽略 `虚拟人物/`）已修并经 `git ls-files --others --exclude-standard` 实测 0 未跟踪；D 余项归本轮 N4。重封门禁 `gate-20261015-002355.log` 八阶段全 `EXIT=0`：**37 文件 353 测试通过**、`AAOS_DRIFT=VERIFIED`、`ARCHIVE_FIDELITY=OK`、文档锚点 0 问题、`gates.json` 108 文件树哈希 `ecd360b71f1e68f6…`、全绿。
 
+N4（文档更新与上传验证）：D12 a11y 重扫（raster 默认渲染器，3 视口×2 状态）发现并修复两处回归——`.astryn-title` 长 token 溢出（375 档 scrollWidth 384>375；Range 文本探针+`display:none` 二分定位）与 dev-host 输入控件焦点环未显式声明（公约一致性回归，非 WCAG 2.4.7 失败）；修复后 6 屏违规 0 / incomplete 0 / 焦点环缺失 0、三档 scrollWidth==viewport。D15 交付清单字节+哈希锚进 `tests/boundary/character-assets.test.ts`（植入错误哈希恰 1 项红，备份还原后逐字节复绿）；D13（AUTHORITY 事实修正）、D1（日期化注记）与 AGENT-CONTINUATION-PROMPT / M0-ACCEPTANCE-TRACKER 时效注记完成；审计 D 表 D1–D15 全部闭合。终局重封（`gate-20261015-004543.log`）八阶段全 `EXIT=0`：**37 文件 353 测试**、`gates.json` 108 文件树哈希 `e470188035ca5875…`（git.head=`9cfd258`）、全绿。提交 `9e84b53`（74 文件：v2 资产+raster 渲染器+审计修复）与 `9cfd258`（20 文件：审计报告+文档回执+重封）推送 main；CI run **38600518023** @ `9cfd258` 双矩阵 success（gates 20.19 + 22.12 全步绿含 Archive byte fidelity）。
+
 ## 现场事实（本轮实测，勿从历史推断）
 
-- **本地已是 Git 仓库并已上远端**：用户指令"全部上传"构成该操作授权（D015）。提交链：`b42eee2`（M0 全量）→ `5603f34` → `6aa9785`/`ce07148`/`eb1f4b5`（文档回填与回执刷新）→ `2a671f6` → `9cf9a44` → `a21495a`（交接提示词固化）→ **PR #1 合并** `c8cc3a7` → `35e4af7`（测试审计修复）→ `d5944bc` → `4163d79`（第四轮终局回填，当前 HEAD）。HEAD 与服务端 `refs/heads/main` 逐字符一致（2026-10-14 `git ls-remote` 实测）；本地 tracked 文件 165。**未 force push、未改写已发布历史**。第五轮（N1–N3）变更当前位于本地未提交面（45 个已跟踪文件改动 + N1 新增 PNG/清单/派生件），将随本轮 N4 提交推送。
-- 仓库是 **public**：165 个文件已公开可见。文档内已参数化用户目录（`$HOME` 形式），不再含 Windows 用户名；`E:\` 仅出现在"未访问 E 盘"的声明句里。
+- **本地已是 Git 仓库并已上远端**：用户指令"全部上传"构成该操作授权（D015）。提交链：`b42eee2`（M0 全量）→ `5603f34` → `6aa9785`/`ce07148`/`eb1f4b5`（文档回填与回执刷新）→ `2a671f6` → `9cf9a44` → `a21495a`（交接提示词固化）→ **PR #1 合并** `c8cc3a7` → `35e4af7`（测试审计修复）→ `d5944bc` → `4163d79`（第四轮终局回填）→ `9e84b53`（第五轮资产+代码）→ `9cfd258`（第五轮文档+重封，撰写时 HEAD；承载本段回填的提交会使其前移一位，新鲜度以 `git ls-remote` 为准）。HEAD 与服务端 `refs/heads/main` 逐字符一致（2026-10-14 `git ls-remote` 实测）；本地 tracked 文件 194。**未 force push、未改写已发布历史**。第五轮（N1–N4）变更已全部提交推送（`9e84b53` 74 文件 + `9cfd258` 20 文件），CI run 38600518023 @ `9cfd258` 双矩阵 success。
+- 仓库是 **public**：194 个文件已公开可见。文档内已参数化用户目录（`$HOME` 形式），不再含 Windows 用户名；`E:\` 仅出现在"未访问 E 盘"的声明句里。
 - 行尾策略：`.gitattributes` 统一 LF，`docs/tasks/archive/**` 显式 `-text -eol` 按字节原样存储，归档 SHA-256 与收据一致（CI 首跑拦出的缺陷，已修）。
-- 远端 CI：最新绿 run **38435568068** @ `4163d79`（第四轮终局回填提交，双矩阵 success）；此前 38435185594 @ `d5944bc`、PR #1 run **38433397794** @ `38d1fb2`、合并后 main push run **38433650701** @ `c8cc3a7a`，均双矩阵 success（含 Archive byte fidelity 步）。main 上累计 13 次运行 = 9 绿 4 红（另 1 次 PR 运行绿；2026-10-14 `gh run list` 实测），逐次归因见台账 A18：4 次红全部为秘密扫描拦下我们自己写进测试与文档正文的字面凭据样式；另有一次本地 `test=0` 回执是误报（那次 shell 未把 node 放进 PATH，vitest 根本没跑）。**归档被行尾规范化破坏 SHA-256 那一条 CI 并没有拦到**，是推送后人工比对远端 blob 字节才发现的——已作为风险 Q9 登记，第四轮已交付字节保真断言并进 CI（见上文第四轮）。
+- 远端 CI：最新绿 run **38600518023** @ `9cfd258`（第五轮上传提交，双矩阵 success，gates 20.19 与 22.12 全步绿含 Archive byte fidelity）；此前 38435568068 @ `4163d79`（第四轮终局回填）、38435185594 @ `d5944bc`、PR #1 run **38433397794** @ `38d1fb2`、合并后 main push run **38433650701** @ `c8cc3a7a`，均双矩阵 success。main 上累计 14 次运行 = 10 绿 4 红（另 1 次 PR 运行绿；2026-10-14 `gh run list` 实测），逐次归因见台账 A18：4 次红全部为秘密扫描拦下我们自己写进测试与文档正文的字面凭据样式；另有一次本地 `test=0` 回执是误报（那次 shell 未把 node 放进 PATH，vitest 根本没跑）。**归档被行尾规范化破坏 SHA-256 那一条 CI 并没有拦到**，是推送后人工比对远端 blob 字节才发现的——已作为风险 Q9 登记，第四轮已交付字节保真断言并进 CI（见上文第四轮）。
 - Git 全局配置含 `url.git@github.com:.insteadof=https://github.com/`，因此 origin 虽写作 HTTPS，实际走 SSH。未修改任何全局配置；提交身份沿用已有的 `DTALEX66`。
 - AAOS 本地根存在且为 Git 仓库（核验时 HEAD `0574c3ac`，工作树干净）。本轮对 AAOS **零写入**。
 - PATH 内无 node/npm；本轮绑定 `$HOME/AppData/Local/hermes/tools/node-26.7.0-win32-x64`（Node 26.7.0 / npm 11.19.0），npm 缓存限定在 `.project-local/runs/cache/npm`。

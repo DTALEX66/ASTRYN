@@ -13,7 +13,7 @@
     "realPersonReference": false,
     "note": "验收红线：不得把参考真人截图硬裁人像作为产品人物资产；任何真人参考素材不得进入本目录。当前交付未使用真人参考素材；生成种子/参数未暴露（已知缺口，无法复现同批画面）。",
     "knownGaps": [
-      "四张去背失败（429）：三张已本地派生（derived-alpha，DERIVED_LOCALLY）；pose_listening 本地推导如实中止（背景不均匀 maxDev=24>12，见 .project-local/runs/derived-alpha/derive-report-pose-listening.json）——MINIMAX 侧 429 重试仍需显式授权",
+      "四张去背失败（429）：四张均已本地派生（derived-alpha，DERIVED_LOCALLY）；pose_listening 走 v2 二次背景场拟合法（v1 平场洪泛如实中止 maxDev=24>12）——MINIMAX 侧原生去背 429 重试仍需显式授权",
       "圆形头像安全区已做本地几何核验（2026-10-14）：头部完整在圆内，躯干下缘 2.48% 像素出界（最大 1.145R，常规头像裁切）；宿主实际裁切几何仍由宿主决定",
       "无种子/参数"
     ]
@@ -386,6 +386,22 @@
           ],
           "runtimeUsable": true,
           "note": "本地派生去背（过渡件）：flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite；原交付去背失败（429），重试需另授权"
+        },
+        {
+          "path": "assets/character/upgraded/v1/derived-alpha/",
+          "name": "xiaoqi_pose_listening_sleepwear_v1.png",
+          "bytes": 4453376,
+          "sha256": "2acab17bf3c756ead04f634090932177d1ec2f97e27c0db615e2c8e01654d25c",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "forState": "listening",
+          "kind": "pose",
+          "sourcePath": "assets/character/upgraded/v1/xiaoqi_pose_listening_sleepwear_v1.png",
+          "sourceSha256": "ccbda3963f23c8ed8bea0494765f727a4708bd801ed346f5c362f00ae184824a",
+          "algorithm": "field-fit(quad-lstsq border8, robust 2-pass inlier resid<=16) + flood(fieldDiff<=10 && std5<=2.2) + ring4 ramp + uncomposite(field)",
+          "runtimeUsable": false,
+          "note": "本地派生去背 v2（C 组体态参考件）：v1 平场洪泛如实中止（maxDev=24>12）后改用二次背景场拟合（稳健两遍，边界内点残差 15.93，剔除 8.27% 底边衣着污染像素）；暗/亮底合成目视通过，软边 30851 px；脚本与回执 .project-local/runs/derive-alpha-pose-listening-v2.py / derived-alpha/derive-report-pose-listening-v2.json；原生去背仍待 MINIMAX 429 重试（需授权）"
         }
       ],
       "gaps": {
@@ -409,8 +425,8 @@
             "state": "listening",
             "kind": "pose",
             "taskId": "tsk_3aeb57ddebfc",
-            "status": "NOT_LANDED_RUNTIME",
-            "retry": "LOCAL_DERIVATION_ABORTED_BG_NONUNIFORM（maxDev=24>12；.project-local/runs/derived-alpha/derive-report-pose-listening.json）"
+            "status": "DERIVED_LOCALLY",
+            "retry": "DERIVED_LOCALLY 2026-10-15（v2 背景场拟合法，见 derived 节与 .project-local/runs/derived-alpha/derive-report-pose-listening-v2.json）；原生去背仍待 MINIMAX 429 重试（需显式授权）"
           }
         ],
         "avatarSafeArea": "MEASURED（本地几何核验，2026-10-14）：居中圆形裁切（R=50%宽）下 2.48% 不透明像素出界（最大径向 1.145R，内容底边触界）；头部完整在圆内，头像语义下为常规底部裁切——宿主实际裁切几何仍由宿主决定，证据 .project-local/runs/avatar-safe-area-report.json",

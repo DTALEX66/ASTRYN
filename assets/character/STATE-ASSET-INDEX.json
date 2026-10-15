@@ -1,6 +1,6 @@
 {
   "schema": "astryn.character-assets/v2",
-  "updated": "2026-10-14",
+  "updated": "2026-10-15",
   "character": {
     "id": "xiaoqi",
     "displayName": "小栖",
@@ -417,6 +417,36 @@
         "seedExposure": "NONE（无种子/参数，同批画面不可复现）",
         "mouthFrames": "SKIPPED（E 组口型/眼睑帧未交付；静帧驱动无音素口型）"
       }
+    }
+  ],
+  "concepts": [
+    {
+      "path": "assets/character/concepts/xiaoqi_concept_learning_cabin_v1.png",
+      "originalName": "小栖星环学习舱.png",
+      "bytes": 2305897,
+      "sha256": "7908573b3581f4fd88801e94382e113a16720c153abe53ea74d8c9911b91c689",
+      "w": 1672,
+      "h": 940,
+      "alpha": "opaque",
+      "role": "concept-visual",
+      "runtimeUsable": false,
+      "delivered": "2026-10-15",
+      "producer": "MINIMAX DESIGN（外部生产，用户转交）",
+      "note": "星环学习舱场景概念图（含 AAOS 界面烘焙文字与“视觉概念”角标）。写实机甲着装方向，与睡衣版家居线不同；仅作视觉方向参考，不进运行时。迁移自用户 Record 目录（桌面同名副本已清）"
+    },
+    {
+      "path": "assets/character/concepts/xiaoqi_concept_knowledge_cabin_v1.png",
+      "originalName": "小栖星环知识舱.png",
+      "bytes": 2454346,
+      "sha256": "da5fed5f0049a5a87f252bfd7e7fc251f34ef5b9274b4ffeae4d54929cd879b6",
+      "w": 1672,
+      "h": 941,
+      "alpha": "opaque",
+      "role": "concept-visual",
+      "runtimeUsable": false,
+      "delivered": "2026-10-15",
+      "producer": "MINIMAX DESIGN（外部生产，用户转交）",
+      "note": "星环知识舱场景概念图（含 AAOS 界面烘焙文字与“视觉概念”角标）。写实机甲着装方向，与睡衣版家居线不同；仅作视觉方向参考，不进运行时。迁移自用户 Record 目录（桌面同名副本已清）"
     }
   ],
   "superseded": {

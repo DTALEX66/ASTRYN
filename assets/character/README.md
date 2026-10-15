@@ -4,6 +4,7 @@
   v1 = 原创内联 SVG 基线（ACTIVE，永远保留）；v2 = MINIMAX 升级位图（PENDING_EXTERNAL，
   回传后落 `upgraded/v1/` 并逐张登记哈希与权利条款）。
 - `upgraded/v1/` — 升级资产落库目录（等待外部回传；空目录以 .gitkeep 占位）。
+- `concepts/` — 视觉方向概念图（场景/界面概念，含烘焙文字与角标；仅参考，永不进运行时）。
 - `../original/`、`../third-party/` — 既有来源声明目录，规则不变。
 
 规则：

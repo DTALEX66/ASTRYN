@@ -82,6 +82,12 @@
 - v1 SVG ↔ v2 raster 状态视觉一致性盘点（只读）：`STATE_VISUALS` 九态键集合 = 契约 `AstrynVisibleState` = raster `STATE_IMAGES` 键集合；九态运行时文件 sha256/bytes 与登记全对账 PASS；v1 各态 eye/mouth 语义与简报九态表情表逐条对应无冲突。已知差异如实记录：① v1 的 ringColor/glyph（! ? > ✓ ×）不进入位图（红线：环与字形由 UI 叠加）；② v1 speaking 为四帧 MOUTH_CYCLE 矢量口型循环，v2 为静帧，E 组候选帧是未来帧交换素材；③ failed 态 v1 eyeMode 为 closed-glitch，位图实为歉意垂眼（语义近似，非缺陷）。
 - 概念图两件（写实机甲方向）登记于 concepts 节，仅参考永不进运行时；是否立为第二服装线待用户定夺（交接清单 H4）。
 
+## derived-alpha 三件过渡件 v3 回灌（2026-10-16）
+
+- 复用 `pose_listening` v3 的颜色投影细化（平场变体）回灌 thinking/completed/failed 三件过渡件：软边带内按颜色投影重估 alpha（只缩不增）；不变量 6 项全成（实心计数与字节、原背景保持与字节、未变更软边字节逐一不变）。三件均有实益故替换落库：软边 30996/37490/32153→21495/24658/20235 px、疑似光晕 17586/14650/14479→7211/5196/5889 px（暗底 before/after 全图 + 3 组 2× 放大对比逐一目视 PASS）。
+- 碎点评估：三件 detached 碎点经 4× 放大接触表目视判为发丝残段（艺术内容），不做 despeckle（与 listening 母版处置不同）；近背景色发缕可能被细化淡出，如实记录。清单三条目 bytes/sha256/算法/注记已同步（runtimeUsable=true 保持）。
+- 回执 `.project-local/runs/derived-alpha-states-v3/derive-report-states-v3.json`，脚本 `.project-local/runs/derive-alpha-states-v3.py`。
+
 ## 回滚
 
 本任务线性提交于 `feat/astryn-learning-companion-v1`；回滚 = `git revert` 本提交。契约变更（renderMarkup 可选参数、`AstrynAvatarViewProfile`）为加法，回滚不破坏 GF00–GF02。未改写已推送历史。

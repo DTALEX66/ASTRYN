@@ -1,6 +1,6 @@
 {
   "schema": "astryn.character-assets/v2",
-  "updated": "2026-10-15",
+  "updated": "2026-10-16",
   "character": {
     "id": "xiaoqi",
     "displayName": "小栖",
@@ -13,7 +13,7 @@
     "realPersonReference": false,
     "note": "验收红线：不得把参考真人截图硬裁人像作为产品人物资产；任何真人参考素材不得进入本目录。当前交付未使用真人参考素材；生成种子/参数未暴露（已知缺口，无法复现同批画面）。",
     "knownGaps": [
-      "四张去背失败（429）：四张均已本地派生（derived-alpha，DERIVED_LOCALLY）；pose_listening 为 v3（v2 场拟合 + 软边带颜色投影细化，软边 30851→22320 px）——MINIMAX 侧原生去背 429 重试仍需显式授权",
+      "四张去背失败（429）：四张均已本地派生（derived-alpha，DERIVED_LOCALLY）；pose_listening 为 v3（v2 场拟合 + 软边带颜色投影细化，软边 30851→22320 px）；thinking/completed/failed 三件亦已回灌 v3 颜色投影（平场变体，实心与原背景字节不变；软边 30996/37490/32153→21495/24658/20235 px，疑似光晕 17586/14650/14479→7211/5196/5889 px）——MINIMAX 侧原生去背 429 重试仍需显式授权",
       "圆形头像安全区已做本地几何核验（2026-10-14）：头部完整在圆内，躯干下缘 2.48% 像素出界（最大 1.145R，常规头像裁切）；宿主实际裁切几何仍由宿主决定",
       "无种子/参数"
     ]
@@ -330,62 +330,62 @@
         {
           "path": "assets/character/upgraded/v1/derived-alpha/",
           "name": "xiaoqi_state_completed_sleepwear_v1.png",
-          "bytes": 5882273,
-          "sha256": "1e1f76f9d2ec7bc67af992224c1e905ce80cbf57171a36beeb3f441f79b1a4fe",
+          "bytes": 4978693,
+          "sha256": "35ab5ba7b2717da2bf79249cfa13abe6e56f75294b78f89d9bce66d071161aa0",
           "w": 1696,
           "h": 2528,
           "alpha": "transparent",
           "forState": "completed",
           "sourcePath": "assets/character/upgraded/v1/xiaoqi_state_completed_sleepwear_v1.png",
           "sourceSha256": "776233629f00d6ddffad7902cf3f0a2ca457a29f08e5853bf1ba37a51a9b485a",
-          "algorithm": "flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite",
+          "algorithm": "flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite + v3 colour-projection alpha refinement, flat-field variant (min(ramp, median3(<obs-flat, d>/<d,d>)), shrink-only inside soft band)",
           "bg": [
             177,
             180,
             200
           ],
           "runtimeUsable": true,
-          "note": "本地派生去背（过渡件）：flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite；原交付去背失败（429），重试需另授权"
+          "note": "本地派生去背（过渡件）v3：平场洪泛 + 环带 ramp + uncomposite 之上追加颜色投影细化（平场变体，只缩不增；实心与原背景字节不变）；软边 37490→24658 px、疑似光晕 14650→5196 px（暗底目视对比通过）；碎点经目视判为发丝残段，不做 despeckle；脚本与回执 .project-local/runs/derive-alpha-states-v3.py / derived-alpha-states-v3/derive-report-states-v3.json；原交付去背失败（429），重试需另授权"
         },
         {
           "path": "assets/character/upgraded/v1/derived-alpha/",
           "name": "xiaoqi_state_failed_sleepwear_v1.png",
-          "bytes": 5947667,
-          "sha256": "333ebaa18b7817586739d4011ce98a24ad77e88fac32d15adbfd9c3d92e720e7",
+          "bytes": 4922676,
+          "sha256": "e957f557ac8007508af2b36dbedb0e06751d42faaf9803426e904ffd14ff9141",
           "w": 1696,
           "h": 2528,
           "alpha": "transparent",
           "forState": "failed",
           "sourcePath": "assets/character/upgraded/v1/xiaoqi_state_failed_sleepwear_v1.png",
           "sourceSha256": "0d049898f6ea4414554745858881d729f80a7524957a4e37a71da2037c751128",
-          "algorithm": "flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite",
+          "algorithm": "flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite + v3 colour-projection alpha refinement, flat-field variant (min(ramp, median3(<obs-flat, d>/<d,d>)), shrink-only inside soft band)",
           "bg": [
             177,
             180,
             198
           ],
           "runtimeUsable": true,
-          "note": "本地派生去背（过渡件）：flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite；原交付去背失败（429），重试需另授权"
+          "note": "本地派生去背（过渡件）v3：平场洪泛 + 环带 ramp + uncomposite 之上追加颜色投影细化（平场变体，只缩不增；实心与原背景字节不变）；软边 32153→20235 px、疑似光晕 14479→5889 px（暗底目视对比通过）；碎点经目视判为发丝残段，不做 despeckle；脚本与回执 .project-local/runs/derive-alpha-states-v3.py / derived-alpha-states-v3/derive-report-states-v3.json；原交付去背失败（429），重试需另授权"
         },
         {
           "path": "assets/character/upgraded/v1/derived-alpha/",
           "name": "xiaoqi_state_thinking_sleepwear_v1.png",
-          "bytes": 6241041,
-          "sha256": "0d64e454767ab1fda01f1af490fff15b31221a7686f91a4d9a195ab49dc22126",
+          "bytes": 5043622,
+          "sha256": "458d47b8e89dd8270f500c0429ea93c1a5cc5964ce9efd6b3a25affe9bd8970f",
           "w": 1696,
           "h": 2528,
           "alpha": "transparent",
           "forState": "thinking",
           "sourcePath": "assets/character/upgraded/v1/xiaoqi_state_thinking_sleepwear_v1.png",
           "sourceSha256": "ee5a6c17e32ed555e60bce4707dd0df833637fa51da2e03c4a9f6d41cdcd7904",
-          "algorithm": "flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite",
+          "algorithm": "flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite + v3 colour-projection alpha refinement, flat-field variant (min(ramp, median3(<obs-flat, d>/<d,d>)), shrink-only inside soft band)",
           "bg": [
             172,
             176,
             193
           ],
           "runtimeUsable": true,
-          "note": "本地派生去背（过渡件）：flood(diff<=9 && std5<=2.2) + ring4 ramp + uncomposite；原交付去背失败（429），重试需另授权"
+          "note": "本地派生去背（过渡件）v3：平场洪泛 + 环带 ramp + uncomposite 之上追加颜色投影细化（平场变体，只缩不增；实心与原背景字节不变）；软边 30996→21495 px、疑似光晕 17586→7211 px（暗底目视对比通过）；碎点经目视判为发丝残段，不做 despeckle；脚本与回执 .project-local/runs/derive-alpha-states-v3.py / derived-alpha-states-v3/derive-report-states-v3.json；原交付去背失败（429），重试需另授权"
         },
         {
           "path": "assets/character/upgraded/v1/derived-alpha/",

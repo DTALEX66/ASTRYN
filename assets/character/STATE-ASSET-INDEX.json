@@ -404,6 +404,59 @@
           "note": "本地派生去背 v2（C 组体态参考件）：v1 平场洪泛如实中止（maxDev=24>12）后改用二次背景场拟合（稳健两遍，边界内点残差 15.93，剔除 8.27% 底边衣着污染像素）；暗/亮底合成目视通过，软边 30851 px；脚本与回执 .project-local/runs/derive-alpha-pose-listening-v2.py / derived-alpha/derive-report-pose-listening-v2.json；原生去背仍待 MINIMAX 429 重试（需授权）"
         }
       ],
+      "candidateFrames": [
+        {
+          "path": "assets/character/upgraded/v1/derived-frames/",
+          "name": "xiaoqi_mouth_closed_sleepwear_v1.png",
+          "bytes": 2788757,
+          "sha256": "bf7d81e2808aeb54712918b9976b3734f232fdd4dbeee2bd7c76411a922eb51d",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "kind": "mouth-frame",
+          "frame": "closed",
+          "sourcePath": "assets/character/upgraded/v1/xiaoqi_state_speaking_sleepwear_v1.png",
+          "sourceSha256": "cfcb6d4eb2f09c3fb3b8152e0366bd32d3a364ed7d4bcbd127a7913562065282",
+          "algorithm": "local vertical pinch warp (gaussian falloff, mouth ROI cx=848 cy=676 sx=70 sy=26 strength=2.2)",
+          "runtimeUsable": false,
+          "status": "CANDIDATE",
+          "note": "E 组口部帧候选（文本事件驱动帧交换，非音素口型）；仅 ROI 内像素变化（129737 px，3.03%），其余字节级同母版；口张开帧 = speaking 母版本身"
+        },
+        {
+          "path": "assets/character/upgraded/v1/derived-frames/",
+          "name": "xiaoqi_mouth_half_sleepwear_v1.png",
+          "bytes": 2793424,
+          "sha256": "a8693b5277bffc42e3931cb72216328bf25e234f2b3dc7d592072498e7fd8191",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "kind": "mouth-frame",
+          "frame": "half-open",
+          "sourcePath": "assets/character/upgraded/v1/xiaoqi_state_speaking_sleepwear_v1.png",
+          "sourceSha256": "cfcb6d4eb2f09c3fb3b8152e0366bd32d3a364ed7d4bcbd127a7913562065282",
+          "algorithm": "local vertical pinch warp (gaussian falloff, mouth ROI cx=848 cy=676 sx=70 sy=26 strength=0.85)",
+          "runtimeUsable": false,
+          "status": "CANDIDATE",
+          "note": "E 组口部帧候选（非音素口型）；仅 ROI 内像素变化（128463 px，3.00%）"
+        },
+        {
+          "path": "assets/character/upgraded/v1/derived-frames/",
+          "name": "xiaoqi_blink_closed_sleepwear_v1.png",
+          "bytes": 2774559,
+          "sha256": "1de298aeac06054b2fcb54203780db5e250f2232803a858d9b479e905567db73",
+          "w": 1696,
+          "h": 2528,
+          "alpha": "transparent",
+          "kind": "blink-frame",
+          "frame": "closed",
+          "sourcePath": "assets/character/upgraded/v1/xiaoqi_state_speaking_sleepwear_v1.png",
+          "sourceSha256": "cfcb6d4eb2f09c3fb3b8152e0366bd32d3a364ed7d4bcbd127a7913562065282",
+          "algorithm": "local vertical pinch warp x2 (eye ROIs cx=725/968 cy=503 sx=62 sy=26 strength=6.0)",
+          "runtimeUsable": false,
+          "status": "CANDIDATE",
+          "note": "E 组眨眼帧候选；眼睁帧 = speaking 母版本身；仅 ROI 内像素变化（110709 px，2.58%）；右颞部 ROI 边缘有轻微拉拽痕迹（候选件如实标注）"
+        }
+      ],
       "gaps": {
         "decodeFailures": [
           {
@@ -431,7 +484,7 @@
         ],
         "avatarSafeArea": "MEASURED（本地几何核验，2026-10-14）：居中圆形裁切（R=50%宽）下 2.48% 不透明像素出界（最大径向 1.145R，内容底边触界）；头部完整在圆内，头像语义下为常规底部裁切——宿主实际裁切几何仍由宿主决定，证据 .project-local/runs/avatar-safe-area-report.json",
         "seedExposure": "NONE（无种子/参数，同批画面不可复现）",
-        "mouthFrames": "SKIPPED（E 组口型/眼睑帧未交付；静帧驱动无音素口型）",
+        "mouthFrames": "CANDIDATE_LOCAL 2026-10-15（E 组口闭合/半开 + 眼闭合三帧本地像素编辑候选，见 candidateFrames 节；口张开/眼睁 = speaking 母版；非音素口型，runtimeUsable=false 待验收）",
         "formalAcceptance": "MACHINE_PARTIAL 2026-10-15：§6.2 九态 180px 两两可辨 PASS（最小对 executing|failed 12.071）；§6.3 两张三视图各 3 视图、底线差 0px、高度差 ≤13px（生成级）；§6.4 过渡件边缘残留 11–14% 与标注一致，原生件灰边启发式不可测（白衣同色系）；§6.1/§6.5 人眼项未做。证据 .project-local/runs/asset-acceptance-2026-10-15/（accept.py + report.json + ACCEPTANCE.md）",
         "identityDrift": "简报 §1/§2.1 身份（紫罗兰发/星形发夹/赛璐璐）已被生产侧改定（灰蓝渐变发/星球发夹/写实数字角色，见交付清单）；简报待同步，未来提示词以交付清单身份为准"
       }

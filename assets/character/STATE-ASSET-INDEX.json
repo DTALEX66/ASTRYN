@@ -404,7 +404,8 @@
           "note": "本地派生去背 v2（C 组体态参考件）：v1 平场洪泛如实中止（maxDev=24>12）后改用二次背景场拟合（稳健两遍，边界内点残差 15.93，剔除 8.27% 底边衣着污染像素）；暗/亮底合成目视通过，软边 30851 px；脚本与回执 .project-local/runs/derive-alpha-pose-listening-v2.py / derived-alpha/derive-report-pose-listening-v2.json；原生去背仍待 MINIMAX 429 重试（需授权）"
         }
       ],
-      "candidateFrames": [        {
+      "candidateFrames": [
+        {
           "path": "assets/character/upgraded/v1/derived-frames/",
           "name": "xiaoqi_mouth_closed_sleepwear_v1.png",
           "bytes": 2788757,
@@ -417,9 +418,10 @@
           "sourcePath": "assets/character/upgraded/v1/xiaoqi_state_speaking_sleepwear_v1.png",
           "sourceSha256": "cfcb6d4eb2f09c3fb3b8152e0366bd32d3a364ed7d4bcbd127a7913562065282",
           "algorithm": "local vertical pinch warp (gaussian falloff, mouth ROI cx=848 cy=676 sx=70 sy=26 strength=2.2)",
-          "runtimeUsable": false,
-          "status": "CANDIDATE",
-          "note": "E 组口部帧候选（文本事件驱动帧交换，非音素口型）；仅 ROI 内像素变化（129737 px，3.03%），其余字节级同母版；口张开帧 = speaking 母版本身"
+          "runtimeUsable": true,
+          "status": "ACCEPTED_LOCAL",
+          "note": "E 组口部帧候选（文本事件驱动帧交换，非音素口型）；仅 ROI 内像素变化（129737 px，3.03%），其余字节级同母版；口张开帧 = speaking 母版本身",
+          "acceptance": "2026-10-15 ROI外像素级一致 PASS（outside=0）+ 目视 PASS；回执 .project-local/runs/derived-frames/acceptance-e-frames.md/.json"
         },
         {
           "path": "assets/character/upgraded/v1/derived-frames/",
@@ -434,9 +436,10 @@
           "sourcePath": "assets/character/upgraded/v1/xiaoqi_state_speaking_sleepwear_v1.png",
           "sourceSha256": "cfcb6d4eb2f09c3fb3b8152e0366bd32d3a364ed7d4bcbd127a7913562065282",
           "algorithm": "local vertical pinch warp (gaussian falloff, mouth ROI cx=848 cy=676 sx=70 sy=26 strength=0.85)",
-          "runtimeUsable": false,
-          "status": "CANDIDATE",
-          "note": "E 组口部帧候选（非音素口型）；仅 ROI 内像素变化（128463 px，3.00%）"
+          "runtimeUsable": true,
+          "status": "ACCEPTED_LOCAL",
+          "note": "E 组口部帧候选（非音素口型）；仅 ROI 内像素变化（128463 px，3.00%）",
+          "acceptance": "2026-10-15 ROI外像素级一致 PASS（outside=0）+ 目视 PASS；回执 .project-local/runs/derived-frames/acceptance-e-frames.md/.json"
         },
         {
           "path": "assets/character/upgraded/v1/derived-frames/",
@@ -451,9 +454,10 @@
           "sourcePath": "assets/character/upgraded/v1/xiaoqi_state_speaking_sleepwear_v1.png",
           "sourceSha256": "cfcb6d4eb2f09c3fb3b8152e0366bd32d3a364ed7d4bcbd127a7913562065282",
           "algorithm": "local vertical pinch warp x2 (eye ROIs cx=725/968 cy=503 sx=62 sy=26 strength=6.0)",
-          "runtimeUsable": false,
-          "status": "CANDIDATE",
-          "note": "E 组眨眼帧候选；眼睁帧 = speaking 母版本身；仅 ROI 内像素变化（110709 px，2.58%）；右颞部 ROI 边缘有轻微拉拽痕迹（候选件如实标注）"
+          "runtimeUsable": true,
+          "status": "ACCEPTED_LOCAL",
+          "note": "E 组眨眼帧候选；眼睁帧 = speaking 母版本身；仅 ROI 内像素变化（110709 px，2.58%）；右颞部 ROI 边缘有轻微拉拽痕迹（候选件如实标注）",
+          "acceptance": "2026-10-15 ROI外像素级一致 PASS（outside=0）+ 目视 PASS；回执 .project-local/runs/derived-frames/acceptance-e-frames.md/.json"
         }
       ],
       "derivedRefs": [

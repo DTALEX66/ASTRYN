@@ -404,8 +404,7 @@
           "note": "本地派生去背 v2（C 组体态参考件）：v1 平场洪泛如实中止（maxDev=24>12）后改用二次背景场拟合（稳健两遍，边界内点残差 15.93，剔除 8.27% 底边衣着污染像素）；暗/亮底合成目视通过，软边 30851 px；脚本与回执 .project-local/runs/derive-alpha-pose-listening-v2.py / derived-alpha/derive-report-pose-listening-v2.json；原生去背仍待 MINIMAX 429 重试（需授权）"
         }
       ],
-      "candidateFrames": [
-        {
+      "candidateFrames": [        {
           "path": "assets/character/upgraded/v1/derived-frames/",
           "name": "xiaoqi_mouth_closed_sleepwear_v1.png",
           "bytes": 2788757,
@@ -455,6 +454,24 @@
           "runtimeUsable": false,
           "status": "CANDIDATE",
           "note": "E 组眨眼帧候选；眼睁帧 = speaking 母版本身；仅 ROI 内像素变化（110709 px，2.58%）；右颞部 ROI 边缘有轻微拉拽痕迹（候选件如实标注）"
+        }
+      ],
+      "derivedRefs": [
+        {
+          "path": "assets/character/upgraded/v1/derived-refs/",
+          "name": "xiaoqi_head_supplement_sleepwear_v1.png",
+          "bytes": 2398742,
+          "sha256": "f885e344126633ee944f877487e2396378168e5e16a0c1bec92be505aafbc2c5",
+          "w": 3697,
+          "h": 1440,
+          "alpha": "opaque",
+          "kind": "head-supplement",
+          "forView": "a3-head-supplement",
+          "sourcePath": "assets/character/upgraded/v1/xiaoqi_turnaround_3d_sleepwear_v3.png",
+          "sourceSha256": "3954f0b7f5c510bdf745b2b962dd21d9a8fa258ca7a8f96ab034ab177b6b845a",
+          "algorithm": "crop(front/side/back head boxes) + LANCZOS uniform-height 1200 + compose on #E8ECF1, no text",
+          "runtimeUsable": false,
+          "note": "A3 头部补充页（本地裁切派生）：正/侧/背头部特写拼版，无文字；分辨率受源图限制（头部源像素长边约 285px 放大至 1200，仅作建模参考不作高清资产）；正面为浅笑非严格中性表情；回执 .project-local/runs/derived-frames/head-supplement-report.json"
         }
       ],
       "gaps": {

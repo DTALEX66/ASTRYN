@@ -415,7 +415,9 @@
         ],
         "avatarSafeArea": "MEASURED（本地几何核验，2026-10-14）：居中圆形裁切（R=50%宽）下 2.48% 不透明像素出界（最大径向 1.145R，内容底边触界）；头部完整在圆内，头像语义下为常规底部裁切——宿主实际裁切几何仍由宿主决定，证据 .project-local/runs/avatar-safe-area-report.json",
         "seedExposure": "NONE（无种子/参数，同批画面不可复现）",
-        "mouthFrames": "SKIPPED（E 组口型/眼睑帧未交付；静帧驱动无音素口型）"
+        "mouthFrames": "SKIPPED（E 组口型/眼睑帧未交付；静帧驱动无音素口型）",
+        "formalAcceptance": "MACHINE_PARTIAL 2026-10-15：§6.2 九态 180px 两两可辨 PASS（最小对 executing|failed 12.071）；§6.3 两张三视图各 3 视图、底线差 0px、高度差 ≤13px（生成级）；§6.4 过渡件边缘残留 11–14% 与标注一致，原生件灰边启发式不可测（白衣同色系）；§6.1/§6.5 人眼项未做。证据 .project-local/runs/asset-acceptance-2026-10-15/（accept.py + report.json + ACCEPTANCE.md）",
+        "identityDrift": "简报 §1/§2.1 身份（紫罗兰发/星形发夹/赛璐璐）已被生产侧改定（灰蓝渐变发/星球发夹/写实数字角色，见交付清单）；简报待同步，未来提示词以交付清单身份为准"
       }
     }
   ],

@@ -73,6 +73,14 @@
 - 渲染链：位图加载失败有图像级回退（`data-renderer-fallback=image-error`）与未注册 id 的显式回退（v1），scenes 注册表同源由门禁测试钉住。
 - 本节事实的登记处：`assets/character/STATE-ASSET-INDEX.json`、`docs/authority/DECISIONS.md` D018/D019、`tests/boundary/character-assets.test.ts`（11 项）。
 
+## v2 资产补齐与验收更新（2026-10-15）
+
+- `pose_listening` 缺口闭合：v2 二次背景场拟合法本地派生成功（derived-alpha 第 4 件，`DERIVED_LOCALLY`，runtimeUsable=false 作 C 组体态参考）；四张 429 全部有本地过渡件，原生去背 retry 仍在交接清单 H1（需授权）。
+- E 组口部/眨眼帧：`SKIPPED` 解除为本地候选——口闭合/口半开/双眼闭合三帧（对 speaking 母版高斯捏合，ROI 外零差异像素机验 PASS + 目视 PASS，`ACCEPTED_LOCAL`，runtimeUsable=true）；口张开/眼睁帧 = 母版本身不另存。帧交换接线属宿主 UI（CODEX 范围），不在此宣称。回执 `.project-local/runs/derived-frames/acceptance-e-frames.md`。
+- A3 头部补充页：从 `turnaround_3d_sleepwear_v3` 裁正/侧/背头部特写拼版（derived-refs，runtimeUsable=false，分辨率受源图限制已标注）。
+- v1 SVG ↔ v2 raster 状态视觉一致性盘点（只读）：`STATE_VISUALS` 九态键集合 = 契约 `AstrynVisibleState` = raster `STATE_IMAGES` 键集合；九态运行时文件 sha256/bytes 与登记全对账 PASS；v1 各态 eye/mouth 语义与简报九态表情表逐条对应无冲突。已知差异如实记录：① v1 的 ringColor/glyph（! ? > ✓ ×）不进入位图（红线：环与字形由 UI 叠加）；② v1 speaking 为四帧 MOUTH_CYCLE 矢量口型循环，v2 为静帧，E 组候选帧是未来帧交换素材；③ failed 态 v1 eyeMode 为 closed-glitch，位图实为歉意垂眼（语义近似，非缺陷）。
+- 概念图两件（写实机甲方向）登记于 concepts 节，仅参考永不进运行时；是否立为第二服装线待用户定夺（交接清单 H4）。
+
 ## 回滚
 
 本任务线性提交于 `feat/astryn-learning-companion-v1`；回滚 = `git revert` 本提交。契约变更（renderMarkup 可选参数、`AstrynAvatarViewProfile`）为加法，回滚不破坏 GF00–GF02。未改写已推送历史。

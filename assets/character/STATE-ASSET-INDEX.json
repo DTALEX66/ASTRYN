@@ -13,7 +13,7 @@
     "realPersonReference": false,
     "note": "验收红线：不得把参考真人截图硬裁人像作为产品人物资产；任何真人参考素材不得进入本目录。当前交付未使用真人参考素材；生成种子/参数未暴露（已知缺口，无法复现同批画面）。",
     "knownGaps": [
-      "四张去背失败（429）：四张均已本地派生（derived-alpha，DERIVED_LOCALLY）；pose_listening 走 v2 二次背景场拟合法（v1 平场洪泛如实中止 maxDev=24>12）——MINIMAX 侧原生去背 429 重试仍需显式授权",
+      "四张去背失败（429）：四张均已本地派生（derived-alpha，DERIVED_LOCALLY）；pose_listening 为 v3（v2 场拟合 + 软边带颜色投影细化，软边 30851→22320 px）——MINIMAX 侧原生去背 429 重试仍需显式授权",
       "圆形头像安全区已做本地几何核验（2026-10-14）：头部完整在圆内，躯干下缘 2.48% 像素出界（最大 1.145R，常规头像裁切）；宿主实际裁切几何仍由宿主决定",
       "无种子/参数"
     ]
@@ -390,8 +390,8 @@
         {
           "path": "assets/character/upgraded/v1/derived-alpha/",
           "name": "xiaoqi_pose_listening_sleepwear_v1.png",
-          "bytes": 4453376,
-          "sha256": "2acab17bf3c756ead04f634090932177d1ec2f97e27c0db615e2c8e01654d25c",
+          "bytes": 4415801,
+          "sha256": "64452f4471ea064fe412f721c6246ae53d9f78680350dcbf78db050fed954b56",
           "w": 1696,
           "h": 2528,
           "alpha": "transparent",
@@ -399,9 +399,9 @@
           "kind": "pose",
           "sourcePath": "assets/character/upgraded/v1/xiaoqi_pose_listening_sleepwear_v1.png",
           "sourceSha256": "ccbda3963f23c8ed8bea0494765f727a4708bd801ed346f5c362f00ae184824a",
-          "algorithm": "field-fit(quad-lstsq border8, robust 2-pass inlier resid<=16) + flood(fieldDiff<=10 && std5<=2.2) + ring4 ramp + uncomposite(field)",
+          "algorithm": "v2 field-fit/flood + v3 colour-projection alpha refinement (min(ramp, median3(<obs-field, d>/<d,d>)), shrink-only inside soft band)",
           "runtimeUsable": false,
-          "note": "本地派生去背 v2（C 组体态参考件）：v1 平场洪泛如实中止（maxDev=24>12）后改用二次背景场拟合（稳健两遍，边界内点残差 15.93，剔除 8.27% 底边衣着污染像素）；暗/亮底合成目视通过，软边 30851 px；脚本与回执 .project-local/runs/derive-alpha-pose-listening-v2.py / derived-alpha/derive-report-pose-listening-v2.json；原生去背仍待 MINIMAX 429 重试（需授权）"
+          "note": "本地派生去背 v3（C 组体态参考件）：v1 平场洪泛如实中止（ABORTED_BG_NONUNIFORM，maxDev=24>12）→ v2 二次背景场拟合（内点残差 15.93、剔除 8.27%）→ v3 软边带内按颜色投影重估 alpha（只缩不增，实心区与 v2 逐位一致）；软边 30851→22320 px、疑似光晕 5889→3519 px（暗底目视对比通过；注：灰蓝发色接近背景灰，光晕计数含合法发缘）；脚本与回执 .project-local/runs/derive-alpha-pose-listening-v3.py / derived-alpha-v3/derive-report-pose-listening-v3.json；原生去背仍待 MINIMAX 429 重试（需授权）"
         }
       ],
       "candidateFrames": [
@@ -500,12 +500,12 @@
             "kind": "pose",
             "taskId": "tsk_3aeb57ddebfc",
             "status": "DERIVED_LOCALLY",
-            "retry": "DERIVED_LOCALLY 2026-10-15（v2 背景场拟合法，见 derived 节与 .project-local/runs/derived-alpha/derive-report-pose-listening-v2.json）；原生去背仍待 MINIMAX 429 重试（需显式授权）"
+            "retry": "v1 平场洪泛如实中止（ABORTED_BG_NONUNIFORM，maxDev=24>12）→ DERIVED_LOCALLY 2026-10-15（v2 背景场拟合 + v3 颜色投影细化，见 derived 节与 .project-local/runs/derived-alpha-v3/derive-report-pose-listening-v3.json）；原生去背仍待 MINIMAX 429 重试（需显式授权）"
           }
         ],
         "avatarSafeArea": "MEASURED（本地几何核验，2026-10-14）：居中圆形裁切（R=50%宽）下 2.48% 不透明像素出界（最大径向 1.145R，内容底边触界）；头部完整在圆内，头像语义下为常规底部裁切——宿主实际裁切几何仍由宿主决定，证据 .project-local/runs/avatar-safe-area-report.json",
         "seedExposure": "NONE（无种子/参数，同批画面不可复现）",
-        "mouthFrames": "CANDIDATE_LOCAL 2026-10-15（E 组口闭合/半开 + 眼闭合三帧本地像素编辑候选，见 candidateFrames 节；口张开/眼睁 = speaking 母版；非音素口型，runtimeUsable=false 待验收）",
+        "mouthFrames": "ACCEPTED_LOCAL 2026-10-15（E 组口闭合/半开 + 眼闭合三帧本地像素编辑，ROI 外像素零差异验收通过，见 candidateFrames 节；口张开/眼睁 = speaking 母版；非音素口型，不得宣称音素驱动）",
         "formalAcceptance": "MACHINE_PARTIAL 2026-10-15：§6.2 九态 180px 两两可辨 PASS（最小对 executing|failed 12.071）；§6.3 两张三视图各 3 视图、底线差 0px、高度差 ≤13px（生成级）；§6.4 过渡件边缘残留 11–14% 与标注一致，原生件灰边启发式不可测（白衣同色系）；§6.1/§6.5 人眼项未做。证据 .project-local/runs/asset-acceptance-2026-10-15/（accept.py + report.json + ACCEPTANCE.md）",
         "identityDrift": "简报 §1/§2.1 身份（紫罗兰发/星形发夹/赛璐璐）已被生产侧改定（灰蓝渐变发/星球发夹/写实数字角色，见交付清单）；简报待同步，未来提示词以交付清单身份为准"
       }

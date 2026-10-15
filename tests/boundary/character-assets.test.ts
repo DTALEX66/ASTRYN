@@ -45,6 +45,32 @@ const manifest = JSON.parse(readFileSync(join(repoRoot, 'assets/character/STATE-
       bytes: number;
       sha256: string;
       forState: string;
+      kind?: string;
+      sourcePath: string;
+      sourceSha256: string;
+      algorithm: string;
+      runtimeUsable: boolean;
+    }>;
+    candidateFrames?: Array<{
+      path: string;
+      name: string;
+      bytes: number;
+      sha256: string;
+      kind: string;
+      frame: string;
+      sourcePath: string;
+      sourceSha256: string;
+      algorithm: string;
+      runtimeUsable: boolean;
+      status?: string;
+      acceptance?: string;
+    }>;
+    derivedRefs?: Array<{
+      path: string;
+      name: string;
+      bytes: number;
+      sha256: string;
+      kind: string;
       sourcePath: string;
       sourceSha256: string;
       algorithm: string;
@@ -129,7 +155,9 @@ describe('角色资产清单（assets/character/STATE-ASSET-INDEX.json，schema 
     // 否则一张未登记的多余 PNG 落进 upgraded/v1/，所有断言仍全绿。
     const registered = new Set([
       ...(v2?.files ?? []).map((file) => file.path),
-      ...(v2?.derived ?? []).map((entry) => `${entry.path}${entry.name}`)
+      ...(v2?.derived ?? []).map((entry) => `${entry.path}${entry.name}`),
+      ...(v2?.candidateFrames ?? []).map((entry) => `${entry.path}${entry.name}`),
+      ...(v2?.derivedRefs ?? []).map((entry) => `${entry.path}${entry.name}`)
     ]);
     const walk = (dir: string): string[] => {
       const entries = readdirSync(join(repoRoot, dir), { withFileTypes: true });
@@ -154,7 +182,9 @@ describe('角色资产清单（assets/character/STATE-ASSET-INDEX.json，schema 
   it('派生件登记完整：磁盘一致、来源链闭合、状态归属合法', () => {
     const derived = v2?.derived ?? [];
     const files = v2?.files ?? [];
-    expect(derived.length).toBe(3);
+    // 三张运行时过渡件（thinking/completed/failed）+ 一张 C 组体态参考件（pose_listening，不进运行时）。
+    expect(derived.length).toBe(4);
+    expect(derived.filter((entry) => entry.runtimeUsable).length).toBe(3);
     for (const entry of derived) {
       const path = `${entry.path}${entry.name}`;
       expect(existsSync(join(repoRoot, path)), `${path} 不存在`).toBe(true);
@@ -166,7 +196,41 @@ describe('角色资产清单（assets/character/STATE-ASSET-INDEX.json，schema 
       expect(source?.sha256).toBe(entry.sourceSha256);
       expect(manifest.states).toContain(entry.forState);
       expect(entry.algorithm.length).toBeGreaterThan(0);
-      expect(entry.runtimeUsable).toBe(true);
+    }
+    // 运行时可用性白名单：只有三张状态过渡件可进运行时；pose_listening 必须保持 runtimeUsable=false。
+    const runtimeDerived = derived.filter((entry) => entry.runtimeUsable).map((entry) => entry.forState);
+    expect([...runtimeDerived].sort()).toEqual(['completed', 'failed', 'thinking']);
+    const pose = derived.find((entry) => entry.kind === 'pose');
+    expect(pose?.runtimeUsable, 'pose 参考件不得进入运行时').toBe(false);
+    expect(pose?.forState).toBe('listening');
+  });
+
+  it('候选帧与参考派生件登记完整：磁盘一致、来源链闭合、验收状态如实', () => {
+    const files = v2?.files ?? [];
+    const candidateFrames = v2?.candidateFrames ?? [];
+    expect(candidateFrames.length).toBe(3);
+    for (const entry of candidateFrames) {
+      const path = `${entry.path}${entry.name}`;
+      expect(existsSync(join(repoRoot, path)), `${path} 不存在`).toBe(true);
+      expect(readFileSync(join(repoRoot, path)).byteLength, `${path} 字节数漂移`).toBe(entry.bytes);
+      expect(sha256Of(path), `${path} 哈希漂移`).toBe(entry.sha256);
+      const source = files.find((file) => file.path === entry.sourcePath);
+      expect(source, `候选帧来源 ${entry.sourcePath} 未登记`).toBeTruthy();
+      expect(source?.sha256).toBe(entry.sourceSha256);
+      expect(entry.status, '候选帧必须有验收结论').toBe('ACCEPTED_LOCAL');
+      expect(entry.acceptance, '候选帧必须有验收回执路径').toContain('.project-local/runs/');
+    }
+    const derivedRefs = v2?.derivedRefs ?? [];
+    expect(derivedRefs.length).toBeGreaterThan(0);
+    for (const entry of derivedRefs) {
+      const path = `${entry.path}${entry.name}`;
+      expect(existsSync(join(repoRoot, path)), `${path} 不存在`).toBe(true);
+      expect(readFileSync(join(repoRoot, path)).byteLength, `${path} 字节数漂移`).toBe(entry.bytes);
+      expect(sha256Of(path), `${path} 哈希漂移`).toBe(entry.sha256);
+      expect(entry.runtimeUsable, '参考派生件不得进入运行时').toBe(false);
+      const source = files.find((file) => file.path === entry.sourcePath);
+      expect(source, `参考件来源 ${entry.sourcePath} 未登记`).toBeTruthy();
+      expect(source?.sha256).toBe(entry.sourceSha256);
     }
   });
 
@@ -199,15 +263,19 @@ describe('角色资产清单（assets/character/STATE-ASSET-INDEX.json，schema 
     for (const failure of gaps?.decodeFailures ?? []) {
       expect(failure.taskId).toMatch(/^tsk_[0-9a-f]+$/);
     }
-    expect(gaps?.decodeFailures.filter((failure) => failure.status === 'DERIVED_LOCALLY')).toHaveLength(3);
-    // 第四张（listening）：本地推导已如实中止（背景不均匀 maxDev>12），不得冒充成功。
+    expect(gaps?.decodeFailures.filter((failure) => failure.status === 'DERIVED_LOCALLY')).toHaveLength(4);
+    // 第四张（listening，pose）：本地派生已闭合，但 v1 中止史与原生 429 重试待授权必须如实保留。
     const listening = gaps?.decodeFailures.find((failure) => failure.state === 'listening');
-    expect(listening?.status).toBe('NOT_LANDED_RUNTIME');
-    expect(listening?.retry, 'listening 的本地推导失败必须如实登记中止原因').toContain('ABORTED_BG_NONUNIFORM');
+    expect(listening?.status).toBe('DERIVED_LOCALLY');
+    expect(listening?.kind).toBe('pose');
+    expect(listening?.retry, 'listening 必须保留 v1 中止史与原生重试待授权').toContain('ABORTED_BG_NONUNIFORM');
+    expect(listening?.retry).toContain('需显式授权');
     // 安全区已从 UNVERIFIED 升级为本地几何实测（2026-10-14），断言实测口径与证据路径。
     expect(gaps?.avatarSafeArea).toContain('MEASURED');
     expect(gaps?.avatarSafeArea).toContain('avatar-safe-area-report.json');
     expect(gaps?.seedExposure).toContain('NONE');
-    expect(gaps?.mouthFrames).toContain('SKIPPED');
+    // 口型帧：E 组三帧本地验收通过，但非音素口型的诚实标注不得丢。
+    expect(gaps?.mouthFrames).toContain('ACCEPTED_LOCAL');
+    expect(gaps?.mouthFrames).toContain('非音素');
   });
 });

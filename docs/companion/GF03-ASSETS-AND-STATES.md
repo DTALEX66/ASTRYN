@@ -76,11 +76,11 @@
 ## v2 资产补齐与验收更新（2026-10-15）
 
 - `pose_listening` 缺口闭合：v2 二次背景场拟合法本地派生成功（derived-alpha 第 4 件，`DERIVED_LOCALLY`，runtimeUsable=false 作 C 组体态参考）；四张 429 全部有本地过渡件，原生去背 retry 仍在交接清单 H1（需授权）。同日边缘质量 v3：软边带内按颜色投影重估 alpha（只缩不增、实心区与 v2 逐位一致），软边 30851→22320 px、疑似光晕 5889→3519 px，暗底放大目视对比通过（注：灰蓝发色接近背景灰，光晕计数含合法发缘）；回执 `.project-local/runs/derived-alpha-v3/derive-report-pose-listening-v3.json`。
-- E 组口部/眨眼帧：`SKIPPED` 解除为本地候选——口闭合/口半开/双眼闭合三帧（对 speaking 母版高斯捏合，ROI 外零差异像素机验 PASS + 目视 PASS，`ACCEPTED_LOCAL`，runtimeUsable=true）；口张开/眼睁帧 = 母版本身不另存。帧交换接线属宿主 UI（CODEX 范围），不在此宣称。回执 `.project-local/runs/derived-frames/acceptance-e-frames.md`。
+- E 组口部/眨眼帧：`SKIPPED` 解除为本地候选——口闭合/口半开/双眼闭合三帧（对 speaking 母版高斯捏合，ROI 外零差异像素机验 PASS + 目视 PASS，`ACCEPTED_LOCAL`，runtimeUsable=true）；口张开/眼睁帧 = 母版本身不另存。帧交换接线属宿主 UI（CODEX 范围），规格与素材清单见 `docs/companion/CODEX-HANDOFF.md` C1，不在此宣称。回执 `.project-local/runs/derived-frames/acceptance-e-frames.md`。
 - A3 头部补充页：从 `turnaround_3d_sleepwear_v3` 裁正/侧/背头部特写拼版（derived-refs，runtimeUsable=false，分辨率受源图限制已标注）。
 - D 组三呈现构图本地派生（简报 §D，全部从 idle 母版原生像素画布重排，无缩放无重绘；派生前清除母版 10 粒去背残点 264px，已登记）：home 4552×2528（主体左 1/3、右侧 2/3 全透明机验）、avatar 904×904（眼线 45.9%H、头宽 523≤圆内径 777 机验）、sidebar 1255×2510（1:2、左右边距 175/177px 机验、顶留白 18%H）；runtimeUsable=false 供 CODEX 侧呈现参考；回执 `.project-local/runs/derived-refs-d/derive-report-d-group.json`。
 - v1 SVG ↔ v2 raster 状态视觉一致性盘点（只读）：`STATE_VISUALS` 九态键集合 = 契约 `AstrynVisibleState` = raster `STATE_IMAGES` 键集合；九态运行时文件 sha256/bytes 与登记全对账 PASS；v1 各态 eye/mouth 语义与简报九态表情表逐条对应无冲突。已知差异如实记录：① v1 的 ringColor/glyph（! ? > ✓ ×）不进入位图（红线：环与字形由 UI 叠加）；② v1 speaking 为四帧 MOUTH_CYCLE 矢量口型循环，v2 为静帧，E 组候选帧是未来帧交换素材；③ failed 态 v1 eyeMode 为 closed-glitch，位图实为歉意垂眼（语义近似，非缺陷）。
-- 概念图两件（写实机甲方向）登记于 concepts 节，仅参考永不进运行时；是否立为第二服装线待用户定夺（交接清单 H4）。
+- 概念图两件（写实机甲方向）登记于 concepts 节，仅参考永不进运行时；2026-10-16 用户确认两套造型并存，机甲线立为第二服装线（H4 定夺），生成材料（身份块/机甲服装块/参考图/M-A1'/M-B 提示词/命名/落库要求）已备于简报 §10，待 MINIMAX 侧生成。
 
 ## derived-alpha 三件过渡件 v3 回灌（2026-10-16）
 
